@@ -18,10 +18,12 @@
     _create: ->
       # By default the icon is icon-command, but this doesn't
       # always match with <http://fortawesome.github.com/Font-Awesome/#base-icons>
-      @options.icon ?= "icon-#{@options.label.toLowerCase()}"
+      #@options.icon ?= "icon-#{@options.label.toLowerCase()}"
+      @options.text = false
+      @options.icons = { "primary": "ui-icon-#{options.command}" }
 
       id = "#{@options.uuid}-#{@options.label}"
-      @button = @_createButton id, @options.command, @options.label, @options.icon
+      @button = @_createButton id, @options.command, @options.label, @options.icons
       @element.append @button
       @button.addClass @options.cssClass if @options.cssClass
       @button.addClass 'btn-large' if @options.editable.options.touchScreen
@@ -79,7 +81,9 @@
       @refresh()
 
     _createButton: (id, command, label, icon) ->
-      jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\"><span class=\"ui-button-text\"><i class=\"#{icon}\"></i></span></button>"
+      jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\" rel=\"#{command}\">${label}</button>"
+      # could we switch this somehow?
+      # jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\"><span class=\"ui-button-text\"><i class=\"#{icon}\"></i></span></button>"
 
 
   jQuery.widget 'IKS.hallobuttonset',
