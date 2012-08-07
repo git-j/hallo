@@ -20,7 +20,7 @@
       # always match with <http://fortawesome.github.com/Font-Awesome/#base-icons>
       #@options.icon ?= "icon-#{@options.label.toLowerCase()}"
       @options.text = false
-      @options.icons = { "primary": "ui-icon-#{options.command}" }
+      @options.icons = { "primary": "ui-icon-#{@options.command}" }
 
       id = "#{@options.uuid}-#{@options.label}"
       @button = @_createButton id, @options.command, @options.label, @options.icons
@@ -81,7 +81,7 @@
       @refresh()
 
     _createButton: (id, command, label, icon) ->
-      jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\" rel=\"#{command}\">${label}</button>"
+      jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all #{command}_button\" title=\"#{label}\" rel=\"#{command}\">#{label}</button>"
       # could we switch this somehow?
       # jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\"><span class=\"ui-button-text\"><i class=\"#{icon}\"></i></span></button>"
 
