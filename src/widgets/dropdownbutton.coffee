@@ -39,13 +39,13 @@
       @element.append @button
 
     _showTarget: ->
-      target = jQuery @options.target   
+      target = jQuery @options.target
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()
-    
+
     _hideTarget: ->
-      target = jQuery @options.target     
+      target = jQuery @options.target
       target.removeClass 'open'
       target.hide()
 
