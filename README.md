@@ -90,6 +90,18 @@ If you want to also generate a minified version, run:
 
 Hallo development is coordinated using Git. Just fork the [Hallo repository on GitHub](https://github.com/bergie/hallo) and [send pull requests](http://help.github.com/pull-requests/).
 
+To build Hallo on a otherwise uncaked system you need to install nodejs, use the npm package manager to install coffee-script globaly and add the node-module 'async' to the git source directory:
+
+    $ sudo ${package-manager} install nodejs
+    $ sudo npm install -g coffee-script
+    $ npm install async
+    
+Then other node modules might be useful like uglify-js to use the 'min' target and 'docco-husky' that itself requires a additional dependency: pygments
+    
+    $ sudo ${package-manager} install pygments
+    $ sudo npm install -g docco-husky
+    $ sudo npm install -g uglify-js
+
 ### Writing plugins
 
 Hallo plugins are written as regular [jQuery UI widgets](http://semantic-interaction.org/blog/2011/03/01/jquery-ui-widget-factory/).
