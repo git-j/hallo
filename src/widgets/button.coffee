@@ -20,11 +20,12 @@
       # always match with <http://fortawesome.github.com/Font-Awesome/#base-icons>
       #@options.icon ?= "icon-#{@options.label.toLowerCase()}"
       @options.text = false
-      @options.icons = { "primary": "ui-icon-#{@options.command}" }
+      @options.icons = { "primary": "ui-icon-#{@options.command}-p" }
 
       id = "#{@options.uuid}-#{@options.label}"
-      @button = @_createButton id, @options.command, @options.label, @options.icons
+      @button = @_createButton id, @options.command, @options.label, @options.icon
       @element.append @button
+      @button.button {"icons": @options.icons,"text": false}
       @button.addClass @options.cssClass if @options.cssClass
       @button.addClass 'btn-large' if @options.editable.options.touchScreen
       @button.data 'hallo-command', @options.command
