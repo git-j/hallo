@@ -216,6 +216,25 @@ http://hallojs.org
                 sel.removeAllRanges();
                 sel.addRange(range);
 
+        replaceSelectionHTML: (cb) ->
+            if ( jQuery.browser.msie )
+                t = document.selection.createRange().text;
+                r = document.selection.createRange()
+                r.pasteHTML(cb(t))
+            else
+                sel = window.getSelection();
+                range = sel.getRangeAt(0);
+                range_parent = range.commonAncestorContainer
+                range_parent = range_parent.parentNode if range_parent.nodeType != 1
+                range_content= range.cloneContents()
+                range_parent_jq = jQuery ( range_parent )
+                range_content_jq = jQuery "<div></div>" #needs container to hold html, as it may not start with node
+                range_content_jq[0].appendChild(range_content)
+                replacement = cb(range_parent_jq, range_content_jq);
+                document.execCommand("insertHTML",false,replacement) if ( replacement )
+                sel.removeAllRanges();
+                sel.addRange(range);
+
         removeAllSelections: () ->
             if ( jQuery.browser.msie )
                 range.empty()
