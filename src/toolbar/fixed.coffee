@@ -68,9 +68,9 @@
       # catch activate -> show
       @element.bind 'halloactivated', (event, data) =>
         @_updatePosition @_getPosition event
-        @toolbar.show()
+        @toolbar.show() if @toolbar else @_create
 
       # catch deactivate -> hide
       @element.bind 'hallodeactivated', (event, data) =>
-        @toolbar.hide()
+        @toolbar.remove()
 ) jQuery

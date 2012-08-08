@@ -65,12 +65,8 @@
       return
 
     _bindEvents: ->
-      # catch activate -> show
-      @element.bind 'halloactivated', (event, data) =>
-        @_updatePosition @_getPosition event
-        @toolbar.show()
-
-      # catch deactivate -> hide
+      # catch deactivate -> remove/cleanup
       @element.bind 'hallodeactivated', (event, data) =>
-        @toolbar.hide()
+        @toolbar.remove()
+        @destroy()
 ) jQuery

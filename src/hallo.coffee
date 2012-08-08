@@ -115,11 +115,15 @@ http://hallojs.org
                   buttonCssClass: @options.buttonCssClass
                 jQuery(@element)[plugin] options
 
-            @element.one 'halloactivated', =>
-                # We will populate the toolbar the first time this
+            @element.bind 'halloactivated', =>
+                # We will populate the toolbar when the
                 # editable is activated. This will make multiple
                 # Hallo instances on same page load much faster
                 @_prepareToolbar()
+            @element.bind 'hallodeactivated', =>
+                # We will remove the toolbar from dom to keep
+                # the DOM clean
+                @_removeToolbar()
 
             @originalContent = @getContents()
 
@@ -273,18 +277,21 @@ http://hallojs.org
             "#{S4()}#{S4()}-#{S4()}-#{S4()}-#{S4()}-#{S4()}#{S4()}#{S4()}"
 
         _prepareToolbar: ->
-            @toolbar = jQuery('<div class="hallotoolbar"></div>').hide()
+            @toolbar = jQuery('<div class="hallotoolbar"></div>')
 
             jQuery(@element)[@options.toolbar]
               editable: @
               parentElement: @options.parentElement
               toolbar: @toolbar
-
+            jQuery(@element)[@options.toolbar]('_create') if jQuery(@element)[@options.toolbar]
             for plugin of @options.plugins
                 jQuery(@element)[plugin] 'populateToolbar', @toolbar
 
             jQuery(@element)[@options.toolbar] 'setPosition'
             @protectFocusFrom @toolbar
+
+        _removeToolbar: ->
+            @toolbar.remove()
 
         _checkModified: (event) ->
             widget = event.data
