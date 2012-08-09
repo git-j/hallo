@@ -11,6 +11,7 @@
       icon: null
       editable: null
       target: ''
+      setup: null
       cssClass: null
 
     _create: ->
@@ -40,6 +41,7 @@
 
     _showTarget: ->
       target = jQuery @options.target
+      @options.setup() if @options.setup
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()
