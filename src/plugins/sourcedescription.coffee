@@ -16,17 +16,15 @@
       citehandler: null
 
     _create: ->
+      @options.citehandler = root.citehandler.get()
       @
 
     populateToolbar: (toolbar) ->
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
-      @options.citehandler = jQuery(@options.editable.element).citehandler()
-      @options.citehandler.citehandler('bindEvents')
-      citehandler = @options.citehandler
       setup= =>
-        @options.citehandler.citehandler('setupSourceDescriptions',target, jQuery.proxy(@._addElement,@))
+        root.citehandler.get().setupSourceDescriptions(target, @options.editable, jQuery.proxy(@._addElement,@))
       buttonset.append target
       buttonset.append @_prepareButton setup, target
       toolbar.append buttonset
@@ -67,7 +65,6 @@
           replacement
         #/scb
         this_editable.replaceSelectionHTML scb
-        this_citehandler.citehandler "bindEvents"
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
