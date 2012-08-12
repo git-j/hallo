@@ -11,32 +11,49 @@
       editable: null
       toolbar: null
       selector: '.cite'
+      tip_id: '#__hallotipoverlay'
       can_edit: false
       data_cb: null
+      timeout: 2000
+      default_css:
+        'position': 'fixed'
+        'background-color': 'white'
+        'margin-top': '1em'
+        'padding': '4px'
+        'min-height': '2em'
+        'min-width': '200px'
+        'border': '1px solid silver'
+        'z-index': '99999'
     can_hide: 0
     node: null
     timeout: 0
-    tip_id: '#__hallotipoverlay'
     tip_node: null
 
+    _create:  ->
+      @bindEvents()
+
     # bind the mouseover event to the given selector
-    bindEvents: (@args) ->
+    bindEvents: () ->
       show_fn = jQuery.proxy @_show,@
-      jQuery(window).bind('scroll',jQuery.proxy(@_hide,@))
+      hide_fn = jQuery.proxy @_hide,@
+      jQuery(window).bind 'scroll', (ev) ->
+        hide_fn()
       can_edit = @options.can_edit
       jQuery(@options.selector).live 'mouseover', (ev) ->
         jQuery(@).attr('contenteditable',can_edit)
         show_fn(@)
       debug.log('hallotip bound events')
 
+    # reset hide timer
     _restartCheckHide: ->
       #debug.log('restartCheckHide')
       window.clearTimeout(@timeout)
       check_hide_fn = jQuery.proxy( @_checkHide,@ )
-      @timeout = window.setTimeout( check_hide_fn, 2000 )
+      @timeout = window.setTimeout( check_hide_fn, @options.timeout )
 
+    # bound to timed and scroll events
     _hide: (cb) ->
-      debug.log('hide hallotip')
+      #debug.log('hide hallotip')
       if @tip_node && @tip_node.length
         @tip_node.unbind()
 
@@ -52,7 +69,8 @@
 
       window.clearTimeout(@timeout)
 
-
+    # timed to check if hide should be triggered
+    # hiding can be blocked with mouseover
     _checkHide: ->
       #debug.log('check hide' + @can_hide)
       if ( @can_hide == 1 )
@@ -65,12 +83,14 @@
       element = jQuery(target)
       if @can_hide > 0 && element[0] != @node[0]
         debug.log('display other node')
-        @_hide() =>
+        @_hide () =>
           @_show(target)
       if @can_hide == 0
         data = '[dev] no callback defined for tipoverlay.options.data_cb: ' + element.html();
-        data = @options.data_cb(element) if ( @options.data_cb )
-        @tip_node = jQuery('<span id="' + @tip_id + '">' + data + '</span>')
+        @tip_node = jQuery('<span id="' + @options.tip_id + '"></span>')
+        data = @options.data_cb(@tip_node,element) if ( @options.data_cb )
+        @tip_node.css (@options.default_css)
+
         element.append(@tip_node)
         # dont jump out of the window on the right side
         ov_width = @tip_node.width()
@@ -106,4 +126,4 @@
           @_restartCheckHide()
           @tip_node.animate({'opacity':'0.6'})
         @_restartCheckHide()
-)
+)(jQuery)

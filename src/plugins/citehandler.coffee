@@ -23,8 +23,12 @@ class _Citehandler
     @sourcedescription_loid = 0
     @footnote = ''
     @bibliograpy = ''
-    @tips.hallotipoverlay ({'options': {'selector': '.cite','data_cb': jQuery.proxy(@_makeTip,@) }})
-
+    @tips = jQuery('<span></span>')
+    @tips.hallotipoverlay (
+      'selector': '.cite'
+      'tip_id': 'cite_overlay'
+      'data_cb': jQuery.proxy(@_makeTip,@)
+    )
   setupSourceDescriptions: (target, editable, add_element_cb) ->
     debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
@@ -79,9 +83,9 @@ class _Citehandler
         @footnote = @citeproc.footnote(em_id)
         jQuery('#_temporary_citation').remove()
 
-  _makeTip: (element) -> # target: jq-dom-node
+  _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings
-    ov_data = '<h1>' + element.html() + '</h1>'
+    ov_data = '<h1>' + target.html() + '</h1>'
     @_updateCitationDisplay(element)
     #TODO: nicer HTML for better styling
     ov_data+= '<ul>'
@@ -101,7 +105,7 @@ class _Citehandler
     #ov_data+= '<p>' + utils.tr('notes') + ': <textarea id="notes" class="edit_attribute">' + @citation_data['notes'] + '</textarea></p>'
     #ov_data+= '</div></div>'
 
-    element.append(ov_data)
-    element.find('.edit_attribute').bind 'blur', @_formChanged
-    overlay.find('.edit').bind 'click', (ev) =>
+    target.append(ov_data)
+    target.find('.edit_attribute').bind 'blur', @_formChanged
+    target.find('.edit').bind 'click', (ev) =>
       jQuery('body').sourceDescriptionEditor({'loid':@sourcedescription_loid,'data':@citation_data})
