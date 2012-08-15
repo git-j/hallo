@@ -33,7 +33,7 @@
         widthToAdd += parseFloat el.css('border-right-width')
         widthToAdd += (parseFloat el.css('outline-width')) * 2
         widthToAdd += (parseFloat el.css('outline-offset')) * 2
-        jQuery(@toolbar).css "width", el.width() + widthToAdd
+        jQuery(@toolbar).css "min-width", el.width() + widthToAdd
 
     _getPosition: (event, selection) ->
       return unless event
