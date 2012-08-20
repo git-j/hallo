@@ -310,7 +310,7 @@ http://hallojs.org
             @protectFocusFrom @toolbar
 
         _removeToolbar: ->
-            @toolbar.remove()
+            @toolbar.remove() if ( @toolbar )
 
         _checkModified: (event) ->
             widget = event.data
