@@ -31,7 +31,8 @@
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()  
 
       addElement = (element) =>
-        el = jQuery "<button class='blockselector'><#{element} class=\"menu-item\">#{element}</#{element}></button>"
+        #el = jQuery "<button class='blockselector'><#{element} class=\"menu-item\">#{element}</#{element}></button>"
+        el = jQuery "<button class='blockselector'>#{element}</button>"
         
         if containingElement is element
           el.addClass 'selected'

@@ -82,7 +82,12 @@
       @refresh()
 
     _createButton: (id, command, label, icon) ->
-      jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all #{command}_button\" title=\"#{label}\" rel=\"#{command}\">#{label}</button>"
+      button_str = "<button for=\"#{id}\""
+      button_str+= " class=\"#{command}_button ui-button ui-widget ui-state-default ui-corner-all\""
+      button_str+= " title=\"#{label}\""
+      button_str+= " rel=\"#{command}\""
+      button_str+= ">#{label}</button>"
+      jQuery button_str
       # could we switch this somehow?
       # jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\"><span class=\"ui-button-text\"><i class=\"#{icon}\"></i></span></button>"
 
