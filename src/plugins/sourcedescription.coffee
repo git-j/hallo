@@ -40,7 +40,9 @@
       contentArea
 
     _addElement: (element, containing_element, publication_type, data) ->
+      debug.log(element,containing_element,publication_type,data)
       el = jQuery "<div class=\"menu-item\">#{element}</div>"
+      el = jQuery "<button class=\"publication-selector\">#{element}</button>"
       el.addClass publication_type if publication_type
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data
@@ -61,7 +63,7 @@
               replacement = "<span class=\"citation\">" + old.html() + "</span>"
             else
               replacement = ""
-            replacement+= "<span class=\"cite\" id=\"ITEM-#{data}\">#{element}</span>"
+            replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
           replacement
         #/scb
         this_editable.replaceSelectionHTML scb
