@@ -394,6 +394,7 @@ http://hallojs.org
 
         _deactivated: (event) ->
             return if event.data._keepActivated
+
             event.data.options.store_callback(event.data.getContents()) if event.data.options.store_callback
 
             unless event.data._protectToolbarFocus is true

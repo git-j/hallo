@@ -18,11 +18,6 @@ class _Citehandler
     @_overlay_timeout = 0
     @settings = {}
     @citation_data = {}
-    @citeproc = null
-    @citeproc = new ICiteProc() if ICiteProc
-    @sourcedescription_loid = 0
-    @footnote = ''
-    @bibliograpy = ''
     @tips = jQuery('<span></span>')
     @tips.hallotipoverlay (
       'selector': '.cite'
@@ -33,12 +28,10 @@ class _Citehandler
     debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
     domnugget = new DOMNugget();
-    if editable.element.parent('.nugget').length
-      sourcedescriptions = domnugget.getSourceDescriptions(editable.element.parent('.nugget'))
-    else
-      sourcedescriptions = domnugget.getSourceDescriptions(editable.element.parent('.Text'))
+
+    sourcedescriptions = domnugget.getSourceDescriptions(editable.element.parent('.nugget'))
     jQuery.each sourcedescriptions, (index,item) =>
-      target.append(add_element_cb(item.title,null,item.type,item.index).addClass('SourceDescription'))
+      target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
 
   _updateSettings: ->
     @settings = JSON.parse(omc_settings.getSettings()) if omc_settings
@@ -58,42 +51,22 @@ class _Citehandler
     @bibliography = ''
     @citation_data = {}
     @sourcedescription_loid = 0
-    if @citeproc
-      citation = jQuery ('<span id="_temporary_citation"></span>')
-      em_id = element.attr('id')
-      citation_data = ''
-      element.parent().parent().find('.source_descriptions .SourceDescription').each (index,item) =>
-        cindx = jQuery(item).find('.citation_index').text()
-        if em_id == 'ITEM-' + cindx
-          citation_data = jQuery(item).find('.citation_data').text()
-          citation_data = citation_data.replace(/, \"ITEM-/,'"ITEM-')
-          citation.append('<span id="' + em_id + '" class="cite"></span>')
-          @sourcedescription_loid = jQuery(item).attr('id')
-          @citation_data = JSON.parse('{' + citation_data + '}')[em_id]
-      if citation_data != ''
-        @citeproc.resetCitationData()
-        @citeproc.appendCitationData('{')
-        @citeproc.appendCitationData(citation_data)
-        @citeproc.appendCitationData('}')
-
-        @citeproc.citation_style = @settings.citation_style # TODO: settnigs from document
-        element.append(citation)
-        @citeproc.process('#_temporary_citation');
-        @bibliography = @citeproc.endnotes()
-        @footnote = @citeproc.footnote(em_id)
-        jQuery('#_temporary_citation').remove()
+    domnugget = new DOMNugget();
+    @citation_data = domnugget.getSourceDescriptionData(element)
 
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings
     ov_data = '<h1>' + target.html() + '</h1>'
     @_updateCitationDisplay(element)
     #TODO: nicer HTML for better styling
+    debug.log(@citation_data)
     ov_data+= '<ul>'
-    ov_data+= '<li>' + utils.tr('citation in') + ' ' + @settings.default_citation_style+ ':</li>'
-    ov_data+= '<li>' + utils.tr('footnote') + ': ' + @footnote + '</li>'
-    ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @bibliography + '</li>'
+    ov_data+= '<li>' + utils.tr('citation in') + ' ' + @citation_data.citation_style+ ': ' + @citation_data.cite + '</li>'
+    ov_data+= '<li>' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
+    ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
     ov_data+= '<li><button class="edit">' + utils.tr('edit') + '</button></li>'
     ov_data+= '</ul>'
+
     #<div class="more_view">'
     # varies for different sourcedescription types
     #@citation_data['number_of_pages'] = '' if !@citation_data['number_of_pages']
