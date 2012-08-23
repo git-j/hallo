@@ -14,6 +14,7 @@
         'p'
         'pre'
         'blockquote'
+        'none'
       ]
       buttonCssClass: null
 
@@ -42,6 +43,9 @@
 
         el.bind 'click', =>
           if el.hasClass 'disabled'
+            return
+          if element == 'none'
+            @options.editable.execute 'removeFormat'
             return
           if jQuery.browser.msie
             @options.editable.execute 'FormatBlock', '<'+element.toUpperCase()+'>'
