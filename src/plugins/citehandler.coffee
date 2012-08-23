@@ -13,15 +13,13 @@ class root.citehandler
 class _Citehandler
   tips: null
   constructor: (@args) ->
-    @_overlay_can_hide = 0
-    @_overlay_node = null
-    @_overlay_timeout = 0
     @settings = {}
     @citation_data = {}
     @tips = jQuery('<span></span>')
+    @overlay_id = 'cite_overlay'
     @tips.hallotipoverlay (
       'selector': '.cite'
-      'tip_id': 'cite_overlay'
+      'tip_id': @overlay_id
       'data_cb': jQuery.proxy(@_makeTip,@)
     )
   setupSourceDescriptions: (target, editable, add_element_cb) ->
@@ -46,7 +44,7 @@ class _Citehandler
       omc.storePublicationDescriptionAttribute(@sourcedescription_loid,path,data)
 
   _updateCitationDisplay: (element) -> #element: jq-dom-node
-    debug.log('update citation')
+    #debug.log('update citation')
     @footnote = ''
     @bibliography = ''
     @citation_data = {}
@@ -56,15 +54,17 @@ class _Citehandler
 
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings
-    ov_data = '<h1>' + target.html() + '</h1>'
+    ov_data = ''
     @_updateCitationDisplay(element)
     #TODO: nicer HTML for better styling
-    debug.log(@citation_data)
+    #debug.log(@citation_data)
     ov_data+= '<ul>'
     ov_data+= '<li>' + utils.tr('citation in') + ' ' + @citation_data.citation_style+ ': ' + @citation_data.cite + '</li>'
     ov_data+= '<li>' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
     ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
+    ov_data+= '</ul><ul>'
     ov_data+= '<li><button class="edit">' + utils.tr('edit') + '</button></li>'
+    ov_data+= '<li><button class="remove">' + utils.tr('remove') + '</button></li>'
     ov_data+= '</ul>'
 
     #<div class="more_view">'
@@ -82,3 +82,13 @@ class _Citehandler
     target.find('.edit_attribute').bind 'blur', @_formChanged
     target.find('.edit').bind 'click', (ev) =>
       jQuery('body').sourceDescriptionEditor({'loid':@sourcedescription_loid,'data':@citation_data})
+    target.find('.remove').bind 'click', (ev) =>
+      #debug.log(element.closest('.cite'))
+      #debug.log(element.closest('.cite').prev('.citation'))
+      citation = element.closest('.cite').prev('.citation')
+      citation.replaceWith(citation.html())
+      element.closest('.cite').remove()
+      jQuery('#' + @overlay_id).remove()
+    if !@citation_data.processed
+      target.find('.edit').remove()
+      target.find('.remove').closest('ul').prev('ul').remove();
