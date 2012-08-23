@@ -24,6 +24,8 @@
         'min-width': '200px'
         'border': '1px solid silver'
         'z-index': '99999'
+        'top':'0'
+        'left':'0'
     can_hide: 0
     node: null
     timeout: 0
@@ -82,27 +84,28 @@
       #debug.log('show:' + @can_hide )
       element = jQuery(target)
       if @can_hide > 0 && element[0] != @node[0]
-        debug.log('display other node')
+        #debug.log('display other node')
         @_hide () =>
           @_show(target)
       if @can_hide == 0
         data = '[dev] no callback defined for tipoverlay.options.data_cb: ' + element.html();
         @tip_node = jQuery('<span id="' + @options.tip_id + '"></span>')
-        data = @options.data_cb(@tip_node,element) if ( @options.data_cb )
         @tip_node.css (@options.default_css)
+        @options.data_cb(@tip_node,element) if ( @options.data_cb )
 
-        element.append(@tip_node)
+        jQuery('body').append(@tip_node)
         # dont jump out of the window on the right side
         ov_width = @tip_node.width()
         ov_height = @tip_node.height()
         b_width = jQuery('body').width() - 15;
         w_height = jQuery(window).height();
         position = element.offset();
+        #debug.log(ov_width,ov_height,b_width,w_height);
+        #debug.log(position.left,position.top);
+        @tip_node.css({'left':position.left,'top':position.top});
         if (position.left + ov_width > b_width )
           newleft = b_width - ov_width
-          @tip_node.css('right', '20px')
-        else
-          @tip_node.css('left',position.left)
+          @tip_node.css('left', newleft)
         # and try to position above, if the target-node is on the bottom of the viewport
         ov_top = position.top - jQuery('body').scrollTop()
         if ( ov_top + ov_height > w_height )
