@@ -81,7 +81,8 @@ class _Citehandler
     target.append(ov_data)
     target.find('.edit_attribute').bind 'blur', @_formChanged
     target.find('.edit').bind 'click', (ev) =>
-      jQuery('body').sourceDescriptionEditor({'loid':@sourcedescription_loid,'data':@citation_data})
+      jQuery('body').hallosourcedescriptioneditor({'loid':@sourcedescription_loid,'data':@citation_data,'element':target})
+
     target.find('.remove').bind 'click', (ev) =>
       #debug.log(element.closest('.cite'))
       #debug.log(element.closest('.cite').prev('.citation'))
