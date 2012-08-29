@@ -67,28 +67,27 @@ class _Citehandler
     ov_data+= '<li><button class="remove">' + utils.tr('remove') + '</button></li>'
     ov_data+= '</ul>'
 
-    #<div class="more_view">'
-    # varies for different sourcedescription types
-    #@citation_data['number_of_pages'] = '' if !@citation_data['number_of_pages']
-    #ov_data+= '<p>' + utils.tr('pages') + ': <input type="text" id="number_of_pages" value="' + @citation_data['number_of_pages']+ '" class="edit_attribute"/></p>'
-    #@citation_data['rights'] = '' if !@citation_data['rights']
-    #ov_data+= '<p>' + utils.tr('rights') + ': <textarea id="rights" class="edit_attribute">' + @citation_data['rights'] + '</textarea></p>'
-
-    #@citation_data['notes'] = '' if ! @citation_data['notes']
-    #ov_data+= '<p>' + utils.tr('notes') + ': <textarea id="notes" class="edit_attribute">' + @citation_data['notes'] + '</textarea></p>'
-    #ov_data+= '</div></div>'
-
     target.append(ov_data)
-    target.find('.edit_attribute').bind 'blur', @_formChanged
     target.find('.edit').bind 'click', (ev) =>
-      jQuery('body').hallosourcedescriptioneditor({'loid':@sourcedescription_loid,'data':@citation_data,'element':target})
+      jQuery('body').hallosourcedescriptioneditor({'loid':@citation_data.loid,'data':@citation_data,'element':element,'tip_element':target})
 
     target.find('.remove').bind 'click', (ev) =>
       #debug.log(element.closest('.cite'))
       #debug.log(element.closest('.cite').prev('.citation'))
+
       citation = element.closest('.cite').prev('.citation')
-      citation.replaceWith(citation.html())
-      element.closest('.cite').remove()
+      citation_html = ''
+      if ( citation.length )
+        citation_html = citation.html()
+        citation.selectText()
+        #TODO: start undo transaction
+        document.execCommand('delete',false)
+        document.execCommand('insertHTML',false,citation_html)
+      if ( element.closest('.cite').length )
+        element.closest('.cite').attr('contentEditable',true)
+        element.closest('.cite').selectText()
+        document.execCommand('delete',false)
+      #TODO: stop undo transaction
       jQuery('#' + @overlay_id).remove()
     if !@citation_data.processed
       target.find('.edit').remove()
