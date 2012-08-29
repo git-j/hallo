@@ -17,6 +17,7 @@ class _Citehandler
     @citation_data = {}
     @tips = jQuery('<span></span>')
     @overlay_id = 'cite_overlay'
+    @sourcedescription_loid = 0
     @tips.hallotipoverlay (
       'selector': '.cite'
       'tip_id': @overlay_id
