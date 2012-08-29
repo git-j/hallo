@@ -34,15 +34,6 @@ class _Citehandler
   _updateSettings: ->
     @settings = JSON.parse(omc_settings.getSettings()) if omc_settings
 
-
-  _formChanged: (event) ->
-    target = jQuery(event.target)
-    debug.log('form changed' + target.html())
-    path = target.attr('id')
-    data = target.val()
-    if omc && @sourcedescription_loid
-      omc.storePublicationDescriptionAttribute(@sourcedescription_loid,path,data)
-
   _updateCitationDisplay: (element) -> #element: jq-dom-node
     #debug.log('update citation')
     @footnote = ''
