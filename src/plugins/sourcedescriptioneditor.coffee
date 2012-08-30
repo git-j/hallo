@@ -26,7 +26,7 @@
         'border':'1px solid silver'
         'overflow-y':'auto'
     _init: ->
-      debug.log('sourcedescriptioneditor initialized',@options)
+      #debug.log('sourcedescriptioneditor initialized',@options)
 
       @options.tip_element.hide()
       inputs = jQuery('<div id="cite_editor_inputs"></div>')
@@ -75,16 +75,16 @@
       input
     _formChanged: (event, options) ->
       target = jQuery(event.target)
-      debug.log('form changed' + target.html())
+      #debug.log('form changed' + target.html())
       path = target.attr('id')
       data = target.val()
       if omc && options.loid
         omc.storePublicationDescriptionAttribute(options.loid,path,data)
-        debug.log('stored',options.loid,path,data)
+        #debug.log('stored',options.loid,path,data)
 
     _create: ->
       @options.citehandler = root.citehandler.get()
-      debug.log('created');
+      #debug.log('created');
       @
 
 )(jQuery)

@@ -44,7 +44,7 @@
       jQuery(@options.selector).live 'mouseover', (ev) ->
         jQuery(@).attr('contenteditable',can_edit)
         show_fn(@)
-      debug.log('hallotip bound events')
+      #debug.log('hallotip bound events')
 
     # reset hide timer
     _restartCheckHide: ->

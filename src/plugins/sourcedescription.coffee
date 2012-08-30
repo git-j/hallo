@@ -68,7 +68,7 @@
         #/scb
         this_editable.replaceSelectionHTML scb
         nugget = new DOMNugget()
-        debug.log('sdc::addElement',this_editable)
+        #debug.log('sdc::addElement',this_editable)
         nugget.updateSourceDescriptionData(this_editable.element)
 
     _prepareButton: (setup, target) ->

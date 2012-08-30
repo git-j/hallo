@@ -24,7 +24,7 @@ class _Citehandler
       'data_cb': jQuery.proxy(@_makeTip,@)
     )
   setupSourceDescriptions: (target, editable, add_element_cb) ->
-    debug.log('setup sourcedescriptions...')
+    #debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
     domnugget = new DOMNugget();
 
