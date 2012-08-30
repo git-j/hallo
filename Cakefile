@@ -37,6 +37,7 @@ task 'build', 'generate unified JavaScript file for whole Hallo', ->
     (sh "cp -R src tmp")
     (sh "sed -i 's/{{ VERSION }}/#{version}/' #{__dirname}/tmp/hallo.coffee")
     (sh "coffee -o examples -j hallo.js -c `find tmp -type f -name '*.coffee'`")
+    (sh "cp examples/hallo.js ../js/lib/hallojs")
     (sh "rm -r tmp")
   ]
 
