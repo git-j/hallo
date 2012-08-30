@@ -40,7 +40,7 @@
       contentArea
 
     _addElement: (element, containing_element, publication_type, data) ->
-      debug.log(element,containing_element,publication_type,data)
+      #debug.log(element,containing_element,publication_type,data)
       el = jQuery "<div class=\"menu-item\">#{element}</div>"
       el = jQuery "<button class=\"publication-selector\">#{element}</button>"
       el.addClass publication_type if publication_type
@@ -67,6 +67,9 @@
           replacement
         #/scb
         this_editable.replaceSelectionHTML scb
+        nugget = new DOMNugget()
+        debug.log('sdc::addElement',this_editable)
+        nugget.updateSourceDescriptionData(this_editable.element)
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
