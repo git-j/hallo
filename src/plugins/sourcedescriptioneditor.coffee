@@ -40,7 +40,7 @@
       sdi = nugget.getAllSourceDescriptionAttributes(@options.loid)
       @selectables = '<option value="">' + utils.tr('more') + '</option>' ;
       jQuery.each sdi.description, (index, value) =>
-        return if index == '__AUTOIDENT' || index == 'loid' || index == 'type'
+        return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title'
         return if sdi.instance[index] == undefined
         return if !value.label
         qvalue = sdi.instance[index]
