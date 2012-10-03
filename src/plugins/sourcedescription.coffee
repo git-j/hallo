@@ -36,17 +36,21 @@
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()
 
       for element in @options.elements
-        contentArea.append @_addElement(element,containingElement)
+        el = @_addElement(element,containingElement)
+        contentArea.append el if el
       contentArea
 
     _addElement: (element, containing_element, publication_type, data) ->
-      #debug.log(element,containing_element,publication_type,data)
+      #debug.log(element,containing_element,publication_type,data,@options)
       el = jQuery "<div class=\"menu-item\">#{element}</div>"
       el = jQuery "<button class=\"publication-selector\">#{element}</button>"
       el.addClass publication_type if publication_type
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data
-      el.addClass "disabled" if containing_element != 'div'
+      #el.addClass "disabled" if containing_element != 'div'
+      if $(@options.editable.element).find(".sourcedescription-#{data}").length
+        el.attr("disabled","disabled")
+        el.addClass 'used'
       this_editable = @options.editable
       this_citehandler = @options.citehandler
       el.bind "click", (ev) =>
