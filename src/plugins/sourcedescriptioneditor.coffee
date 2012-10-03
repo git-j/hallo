@@ -50,7 +50,7 @@
           inputs.append(@_createInput(index,value.label,qvalue))
       @widget.append('<div><label>&nbsp;</label><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div>')
       @widget.append(inputs)
-      @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_back">' + utils.tr('back') + '</button></div>')
+      @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_back">' + utils.tr('continue') + '</button></div>')
       jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
       jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
         new_input = jQuery(ev.target).val()
