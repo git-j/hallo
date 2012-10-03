@@ -81,6 +81,8 @@ class _Citehandler
         element.closest('.cite').attr('contentEditable',true)
         element.closest('.cite').selectText()
         document.execCommand('delete',false)
+      nugget = new DOMNugget();
+      nugget.updateCitations(element);
       #TODO: stop undo transaction
       jQuery('#' + @overlay_id).remove()
     if !@citation_data.processed
