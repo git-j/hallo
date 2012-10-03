@@ -228,10 +228,13 @@ http://hallojs.org
                 range_parent = range_parent.parentNode if range_parent.nodeType != 1
                 range_content= range.cloneContents()
                 range_parent_jq = jQuery ( range_parent )
-                range_content_jq = jQuery "<div></div>" #needs container to hold html, as it may not start with node
+                range_content_jq = jQuery "<span></span>" #needs container to hold html, as it may not start with node
                 range_content_jq[0].appendChild(range_content)
-                replacement = cb(range_parent_jq, range_content_jq);
-                document.execCommand("insertHTML",false,replacement) if ( replacement )
+                replacement = cb(range_parent_jq, range_content_jq)
+                if ( range_content_jq.text() == '' )
+                  range_parent_jq.append(replacement) if replacement
+                else
+                  document.execCommand("insertHTML",false,replacement) if replacement
                 sel.removeAllRanges();
                 sel.addRange(range);
 
