@@ -74,6 +74,7 @@
         nugget = new DOMNugget()
         #debug.log('sdc::addElement',this_editable)
         nugget.updateSourceDescriptionData(this_editable.element)
+        nugget.updateCitations(this_editable.element)
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
