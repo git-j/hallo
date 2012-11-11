@@ -53,6 +53,7 @@
         el.addClass 'used'
       this_editable = @options.editable
       this_citehandler = @options.citehandler
+      @options.citehandler.editable = @options.editable
       el.bind "click", (ev) =>
         scb = (parent, old) ->
           replacement = false
