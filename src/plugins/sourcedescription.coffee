@@ -82,7 +82,7 @@
       buttonElement.hallodropdownbutton
         uuid: @options.uuid
         editable: @options.editable
-        label: 'block'
+        label: 'sourcedescription'
         icon: 'icon-text-height'
         target: target
         setup: setup
