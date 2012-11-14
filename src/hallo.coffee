@@ -396,6 +396,7 @@ http://hallojs.org
             event.data.turnOn()
 
         _deactivated: (event) ->
+            return if window.debug_hallotoolbar
             return if event.data._keepActivated
 
             event.data.options.store_callback(event.data.getContents()) if event.data.options.store_callback
