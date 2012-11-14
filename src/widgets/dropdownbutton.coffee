@@ -56,7 +56,13 @@
       {top, left} = @button.position()
       top += @button.outerHeight()
       target.css 'top', top
-      target.css 'left', left - 20
+      last_button = target.closest('.hallotoolbar').find('button:last')
+      last_button_pos =last_button.position().left
+      last_button_pos+=last_button.width()
+      if ( left+target.width() > last_button_pos )
+        target.css 'left', left - target.width()+last_button.width()
+      else
+        target.css 'left', left
 
     _prepareButton: ->
       id = "#{@options.uuid}-#{@options.label}"
