@@ -25,6 +25,7 @@
         'position': 'fixed'
         'border':'1px solid silver'
         'overflow-y':'auto'
+        'z-index': '999999'
     _init: ->
       #debug.log('sourcedescriptioneditor initialized',@options)
 

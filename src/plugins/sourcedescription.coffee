@@ -48,34 +48,37 @@
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data
       #el.addClass "disabled" if containing_element != 'div'
-      if $(@options.editable.element).find(".sourcedescription-#{data}").length
-        el.attr("disabled","disabled")
-        el.addClass 'used'
+      has_citation = jQuery(@options.editable.element).find(".sourcedescription-#{data}").length
+      if has_citation
+        has_auto_citation = jQuery(@options.editable.element).find(".sourcedescription-#{data}").hasClass('auto-cite')
+        if !has_auto_citation
+          el.attr("disabled","disabled")
+          el.addClass 'used'
       this_editable = @options.editable
       this_citehandler = @options.citehandler
       @options.citehandler.editable = @options.editable
       el.bind "click", (ev) =>
-        scb = (parent, old) ->
-          replacement = false
-          if element == "quote"
-            # select which publication
-            if ( !parent.attr('contenteditable') && parent.hasClass(element))
-              parent.removeClass element
-              replacement
-            replacement = "<span class=\"#{element}\">" + old.html() + "</span>"
-          else
+        if element == "quote"
+          sel = window.getSelection();
+          range = sel.getRangeAt(0);
+          $('body').hallopublicationselector({'editable':this_editable,'range':range});
+        else
+          scb = (parent, old) ->
+            replacement = false
             if old.html() != ""
               replacement = "<span class=\"citation\">" + old.html() + "</span>"
             else
               replacement = ""
             replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
-          replacement
-        #/scb
-        this_editable.replaceSelectionHTML scb
-        nugget = new DOMNugget()
-        #debug.log('sdc::addElement',this_editable)
-        nugget.updateSourceDescriptionData(this_editable.element)
-        nugget.updateCitations(this_editable.element)
+            replacement
+          #/scb
+          if jQuery(@options.editable.element).find(".sourcedescription-#{data} .auto-cite").length
+            jQuery(@options.editable.element).find(".sourcedescription-#{data} .auto-cite").remove()
+          this_editable.replaceSelectionHTML scb
+          nugget = new DOMNugget()
+          #debug.log('sdc::addElement',this_editable)
+          nugget.updateSourceDescriptionData(this_editable.element)
+          nugget.updateCitations(this_editable.element)
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'

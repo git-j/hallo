@@ -23,7 +23,7 @@
         'min-height': '2em'
         'min-width': '200px'
         'border': '1px solid silver'
-        'z-index': '99999'
+        'z-index': '999999'
         'top':'0'
         'left':'0'
     can_hide: 0
