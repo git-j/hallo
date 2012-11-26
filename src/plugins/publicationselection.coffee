@@ -51,7 +51,8 @@
           'node_dblclick': (node) =>
             @select(node)
             @apply()
-          'node_select': @select
+          'node_select': (node) =>
+            @select(node)
         })
 
     apply:  ->
