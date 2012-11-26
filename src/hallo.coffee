@@ -285,6 +285,8 @@ http://hallojs.org
         protectFocusFrom: (el) ->
             widget = @
             el.bind "mousedown", (event) ->
+                if ( jQuery('.dropdownform:visible').length )
+                  return
                 event.preventDefault()
                 widget._protectToolbarFocus = true
                 setTimeout ->
@@ -400,6 +402,9 @@ http://hallojs.org
             return if event.data._keepActivated
 
             event.data.options.store_callback(event.data.getContents()) if event.data.options.store_callback
+
+            if ( jQuery('.dropdownform:visible').length )
+              return
 
             unless event.data._protectToolbarFocus is true
               event.data.turnOff()
