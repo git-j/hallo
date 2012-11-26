@@ -14,7 +14,7 @@
       tip_id: '#__hallotipoverlay'
       can_edit: false
       data_cb: null
-      timeout: 2000
+      timeout: 500
       default_css:
         'position': 'fixed'
         'background-color': 'white'
@@ -23,7 +23,7 @@
         'min-height': '2em'
         'min-width': '200px'
         'border': '1px solid silver'
-        'z-index': '999999'
+        'z-index': '99998'
         'top':'0'
         'left':'0'
     can_hide: 0
