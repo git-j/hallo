@@ -26,21 +26,21 @@
       toolbar.append buttonset
 
     _prepareDropdown: (contentId) ->
-      contentArea = jQuery "<div id=\"#{contentId}\" class=\"dropdownform\"></div>"
+      contentArea = jQuery "<div id=\"#{contentId}\"></div>"
 
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()
 
       addInput = (type,element,default_value) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<label for\"#{elid}\">#{element}</label><input type=\"#{type}\" id=\"#{elid}\"/>"
-        if ( el.is('type["checkbox"]') && default_value=="true" )
+        el = jQuery "<label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/>"
+        if ( el.is('input[type="checkbox"]') && default_value=="true" )
           el.attr('checked',true);
         else if ( default_value )
           el.val(default_value)
 
         el
       addButton = (element) =>
-        el = jQuery "<button class=\"confirm action-button\">confirm</button>"
+        el = jQuery "<button class=\"action-button\">" + utils.tr(element) + "</button>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -76,7 +76,7 @@
       contentArea.append addInput("text", "width", "auto")
       contentArea.append addInput("text", "height", "auto")
       contentArea.append addInput("text", "align", "center")
-      contentArea.append addInput("checkbox", "border")
+      contentArea.append addInput("checkbox", "border", "false")
       contentArea.append addButton("insert")
       contentArea
 
