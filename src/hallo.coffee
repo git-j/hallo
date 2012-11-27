@@ -285,7 +285,7 @@ http://hallojs.org
         protectFocusFrom: (el) ->
             widget = @
             el.bind "mousedown", (event) ->
-                if ( jQuery('.dropdownform:visible').length )
+                if ( jQuery('.dropdown-form:visible').length )
                   return
                 event.preventDefault()
                 widget._protectToolbarFocus = true
@@ -395,6 +395,10 @@ http://hallojs.org
                 @setContents @options.placeholder
 
         _activated: (event) ->
+            if ( jQuery('.dropdown-form:visible').length )
+              jQuery('.dropdown-form:visible').removeClass('open')
+              jQuery('.dropdown-form:visible').hide()
+              event.data.turnOff()
             event.data.turnOn()
 
         _deactivated: (event) ->
@@ -403,7 +407,7 @@ http://hallojs.org
 
             event.data.options.store_callback(event.data.getContents()) if event.data.options.store_callback
 
-            if ( jQuery('.dropdownform:visible').length )
+            if ( jQuery('.dropdown-form:visible').length )
               return
 
             unless event.data._protectToolbarFocus is true
