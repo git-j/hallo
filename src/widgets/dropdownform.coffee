@@ -52,19 +52,23 @@
       target = jQuery @options.target
       target.removeClass 'open'
       target.hide()
+      @restoreContentPosition
 
     hideForm: ->
       jQuery('.dropdown-form').hide()
       jQuery('.dropdown-form').removeClass('open')
+      @restoreContentPosition
 
     storeContentPosition: ->
       sel = window.getSelection();
-      @content_range = sel.getRangeAt(0);
+      if sel.rangeCount
+        @content_range = sel.getRangeAt(0);
 
     restoreContentPosition: ->
       sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(@content_range);
+      @options.editable.element.focus()
 
     _updateTargetPosition: ->
       target = jQuery @options.target
