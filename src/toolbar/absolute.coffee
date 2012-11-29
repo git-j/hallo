@@ -60,6 +60,7 @@
       @toolbar.css 'position', 'fixed'
       @toolbar.css 'top', '4px'
       @toolbar.css 'left', '4px'
+      @toolbar.css 'right', '4px'
       @toolbar.css 'z-index', '99999'
 
     _updatePosition: (position) ->
