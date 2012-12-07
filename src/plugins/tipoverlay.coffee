@@ -83,7 +83,7 @@
     _show: (target) -> # target: dom-node
       #debug.log('show:' + @can_hide )
       element = jQuery(target)
-      if @can_hide > 0 && element[0] != @node[0]
+      if @can_hide > 0 && @node && @node.length && element[0] != @node[0]
         #debug.log('display other node')
         @_hide () =>
           @_show(target)
@@ -120,6 +120,19 @@
         # set state for automatic hiding
         @can_hide = 2
         @node = element
+
+        # bind events for the trigger
+        node_unbind_ptr = null
+        node_unbind = =>
+          console.log('unbind');
+          element.unbind 'mouseleave', node_unbind_ptr
+          if @node && @node.length && element[0] == @node[0]
+            @can_hide = 2
+            @_restartCheckHide()
+        node_unbind_ptr = node_unbind
+        element.bind 'mouseleave', node_unbind_ptr
+
+        # bind events for the tip
         @tip_node.bind 'mouseenter', () =>
           @can_hide = 1
           @_restartCheckHide()
@@ -128,5 +141,5 @@
           @can_hide = 2
           @_restartCheckHide()
           @tip_node.animate({'opacity':'0.6'})
-        @_restartCheckHide()
+        #@_restartCheckHide()
 )(jQuery)
