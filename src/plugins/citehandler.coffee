@@ -58,8 +58,8 @@ class _Citehandler
       ov_data+= '<li>' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
       ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul>'
-      ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button></li>'
-      ov_data+= '<li><button class="remove action_button">' + utils.tr('remove') + '</button></li>'
+      ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button>'
+      ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
       ov_data+= '</ul>'
 
       target.append(ov_data)
