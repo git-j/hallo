@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="jquery-ui-bootstrap/css/custom-theme/jquery-ui-1.8.16.custom.css" />
+    <link rel="stylesheet" href="hallo.css" />
+    <link rel="stylesheet" href="fontawesome/css/font-awesome.css" charset="utf-8" />
+<!--[if lt IE 9]>
+    <link rel="stylesheet" href="fontawesome/css/font-awesome-ie7.css" charset="utf-8" />
+<![endif]-->
+    <script src="../deps/jquery-1.7.1.min.js"></script>
+    <script src="../deps/jquery-ui-1.8.18.custom.min.js"></script>
+    <script src="../deps/rangy-core-1.2.3.js"></script>
+    <script src="hallo.js"></script>
+  </head>
+  <body>
+
+
+    <h1 class="editable">Slow Down</h1>
+    <div id="editable_mu">
+please enter edit-mode to start the test
+    </div>
+
+    <script>
+
+var cfg = {
+  plugins: {
+  'halloformat': {},
+  'halloblock': {},
+  'hallojustify': {},
+  'hallolists': {},
+  'halloreundo': {}
+ }
+, 'showAlways': true
+};
+
+var counter=1;
+// 30 is noticeable @ i5/2.3ghz
+// 100 is unuseable
+// depends on the amount of plugins loaded
+var max = 100;
+var selector="#editable_mu";
+var active_node;
+$(selector).hallo(cfg);
+
+
+// simulate multiple calls (imagine a list which selects the instance to be edited)
+// cfg is dependent on the content of the selected instance
+function reinit(){
+  $(selector).html(counter + 'some text. enter edit mode (click this text) and wait util the countup stops, then enter text' + counter + '/' + max)
+  // when i dont't do this, the editor stays responsive
+  $(selector).hallo(cfg);
+}
+var restart_self = null;
+function restart(){
+  if ( counter > max ) return;
+  counter++;
+  reinit();
+  window.setTimeout(restart_self,1);
+}
+restart_self = restart; //sorry hacky
+$('#editable_mu').bind('focus',function(){
+  window.setTimeout(restart,1000);
+});
+    </script>
+  </body>
+</html>
