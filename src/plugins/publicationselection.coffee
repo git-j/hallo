@@ -33,8 +33,8 @@
       @widget.addClass('form_display');
       jQuery('body').append(@widget)
       @widget.append('<div id="publication_list"></div>');
-      @widget.append('<button class="publication_selector_back">' + utils.tr('back') + '</button>');
-      @widget.append('<button class="publication_selector_apply">' + utils.tr('apply') + '</button>');
+      @widget.append('<button class="publication_selector_back view_button">' + utils.tr('back') + '</button>');
+      @widget.append('<button class="publication_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
       @widget.find('.publication_selector_back').bind 'click', =>
         @back()
