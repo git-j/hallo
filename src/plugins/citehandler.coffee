@@ -59,7 +59,10 @@ class _Citehandler
       ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul>'
       ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button>'
-      ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
+      if ( element.closest('.cite').hasClass('auto-cite') )
+        ov_data+=     '<button class="remove action_button">' + utils.tr('remove from nugget') + '</button></li>'
+      else
+        ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
       ov_data+= '</ul>'
 
       target.append(ov_data)
@@ -72,6 +75,7 @@ class _Citehandler
         #debug.log(element.closest('.cite').prev('.citation'))
 
         citation = element.closest('.cite').prev('.citation')
+        is_auto_cite =  element.closest('.cite').hasClass('auto-cite')
         citation_html = ''
         if ( citation.length )
           citation_html = citation.html()
@@ -87,6 +91,8 @@ class _Citehandler
         nugget = new DOMNugget();
         if ( @editable.element )
           nugget.updateCitations(@editable.element);
+        if ( is_auto_cite )
+          nugget.removeSourceDescription(@editable.element,@citation_data.loid)
         #TODO: stop undo transaction
       if !@citation_data.processed
         target.find('.edit').remove()
