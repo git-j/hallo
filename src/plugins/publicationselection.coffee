@@ -54,6 +54,7 @@
           'node_select': (node) =>
             @select(node)
         })
+      jQuery(window).resize()
 
     apply:  ->
       publication_loid = @current_node.replace(/node_/,'')
