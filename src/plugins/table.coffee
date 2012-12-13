@@ -53,7 +53,7 @@
           cols = $('#' + contentId + 'cols').val();
           border = $('#' + contentId + 'border').is(':checked');
           heading = $('#' + contentId + 'heading').is(':checked');
-          console.log(rows,cols,border)
+          #console.log(rows,cols,border)
           if ( rows < 0 || cols < 0 ) 
             return
           if ( border )
@@ -70,7 +70,7 @@
                 html+='<td>cell</td>';
             html+='</tr>';
           html+= '</table>';
-          console.log(html)
+          #console.log(html)
           @dropdownform.hallodropdownform('restoreContentPosition')
           document.execCommand 'insertHTML',false, html
           @dropdownform.hallodropdownform('hideForm')

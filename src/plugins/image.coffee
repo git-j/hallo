@@ -67,7 +67,7 @@
           if ( align != '' )
             html+=' style="align:' + align + '"'
           html+='/>'
-          console.log(html)
+          #console.log(html)
           @dropdownform.hallodropdownform('restoreContentPosition')
           document.execCommand 'insertHTML',false, html
           @dropdownform.hallodropdownform('hideForm')
