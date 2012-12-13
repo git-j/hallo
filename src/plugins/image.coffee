@@ -26,26 +26,27 @@
       toolbar.append buttonset
 
     _prepareDropdown: (contentId) ->
-      contentArea = jQuery "<div id=\"#{contentId}\"></div>"
+      contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
+      contentAreaUL = contentArea.find('ul');
 
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()
 
       addInput = (type,element,default_value) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/>"
-        if ( el.is('input[type="checkbox"]') && default_value=="true" )
-          el.attr('checked',true);
+        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
+        if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
+          el.find('input').attr('checked',true);
         else if ( default_value )
-          el.val(default_value)
+          el.find('input').val(default_value)
 
         el
       addButton = (element) =>
-        el = jQuery "<button class=\"action-button\">" + utils.tr(element) + "</button>"
+        el = jQuery "<li><button class=\"action-button\">" + utils.tr(element) + "</button></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
-        el.bind 'click', =>
+        el.find('button').bind 'click', =>
           #if el.hasClass 'disabled'
           #    return
           url = $('#' + contentId + 'url').val();
@@ -71,13 +72,13 @@
           document.execCommand 'insertHTML',false, html
           @dropdownform.hallodropdownform('hideForm')
         el
-      contentArea.append addInput("text", "url")
-      contentArea.append addInput("text", "alt")
-      contentArea.append addInput("text", "width", "auto")
-      contentArea.append addInput("text", "height", "auto")
-      contentArea.append addInput("text", "align", "center")
-      contentArea.append addInput("checkbox", "border", "false")
-      contentArea.append addButton("insert")
+      contentAreaUL.append addInput("text", "url")
+      contentAreaUL.append addInput("text", "alt")
+      contentAreaUL.append addInput("text", "width", "auto")
+      contentAreaUL.append addInput("text", "height", "auto")
+      contentAreaUL.append addInput("text", "align", "center")
+      contentAreaUL.append addInput("checkbox", "border", "false")
+      contentAreaUL.append addButton("insert")
       contentArea
 
     _prepareButton: (target) ->
