@@ -37,9 +37,9 @@
       @widget.css @options.default_css
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
-      nugget = new DOMNugget();
+      nugget = new DOMNugget()
       nugget.getAllSourceDescriptionAttributes(@options.loid).done (sdi) =>
-        @selectables = '<option value="">' + utils.tr('more') + '</option>' ;
+        @selectables = '<option value="">' + utils.tr('more') + '</option>'
         jQuery.each sdi.description, (index, value) =>
           return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title'
           return if sdi.instance[index] == undefined
@@ -51,7 +51,8 @@
             inputs.append(@_createInput(index,value.label,qvalue))
         @widget.append('<div><label>&nbsp;</label><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div>')
         @widget.append(inputs)
-        @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_back" class="action_button">' + utils.tr('continue') + '</button></div>')
+        @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button></div>')
+        @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button></div>')
         jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
         jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
           new_input = jQuery(ev.target).val()
@@ -65,10 +66,16 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('#sourcedescriptioneditor_selectable').html(@selectables )
           jQuery('#sourcedescriptioneditor_selectable').selectBox()
-        jQuery('#sourcedescriptioneditor_back').bind 'click', =>
+        jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
           nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
           @widget.remove()
+        jQuery('#sourcedescriptioneditor_back').bind 'click', =>
+          @widget.focus() # trigger form changed
+          #TODO restore data
+          nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
+          @widget.remove()
+      jQuery(window).resize()
 
     _createInput: (identifier, label, value) ->
       input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
