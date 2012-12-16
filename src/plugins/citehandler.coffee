@@ -89,10 +89,10 @@ class _Citehandler
           document.execCommand('delete',false)
         jQuery('#' + @overlay_id).remove()
         nugget = new DOMNugget();
-        if ( @editable.element )
-          nugget.updateCitations(@editable.element);
         if ( is_auto_cite )
           nugget.removeSourceDescription(@editable.element,@citation_data.loid)
+        if ( @editable.element )
+          nugget.updateCitations(@editable.element);
         #TODO: stop undo transaction
       if !@citation_data.processed
         target.find('.edit').remove()
