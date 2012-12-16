@@ -124,7 +124,7 @@
         # bind events for the trigger
         node_unbind_ptr = null
         node_unbind = =>
-          console.log('unbind');
+          #console.log('unbind');
           element.unbind 'mouseleave', node_unbind_ptr
           if @node && @node.length && element[0] == @node[0]
             @can_hide = 2
