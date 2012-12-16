@@ -44,15 +44,15 @@
           return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title'
           return if sdi.instance[index] == undefined
           return if !value.label
-          qvalue = sdi.instance[index]
+          qvalue = sdi.instance[index].replace(/"/g,'&#34;'); #"
           if ( qvalue == '' )
             @selectables+='<option value="' + index + '">' + value.label + '</option>'
           else
             inputs.append(@_createInput(index,value.label,qvalue))
         @widget.append('<div><label>&nbsp;</label><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div>')
         @widget.append(inputs)
-        @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button></div>')
-        @widget.append('<div><label>&nbsp;</label><button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button></div>')
+        @widget.append('<div><button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button><')
+        @widget.append('<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button></div>')
         jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
         jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
           new_input = jQuery(ev.target).val()
@@ -86,7 +86,7 @@
       target = jQuery(event.target)
       #debug.log('form changed' + target.html())
       path = target.attr('id')
-      data = target.val()
+      data = target.val().replace(/&#34/g,'"');
       if omc && options.loid
         omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
