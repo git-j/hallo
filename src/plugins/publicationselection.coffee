@@ -31,6 +31,7 @@
       #debug.log('publicationselector initialized',@options)
       @widget = jQuery('<div id="publication_selector"></div>')
       @widget.addClass('form_display');
+      jQuery('body').css({'overflow':'hidden'})
       jQuery('body').append(@widget)
       @widget.append('<div id="publication_list"></div>');
       @widget.append('<button class="publication_selector_back view_button">' + utils.tr('back') + '</button>');
@@ -81,9 +82,12 @@
         nugget.updateSourceDescriptionData(@options.editable.element)
         nugget.updateCitations(@options.editable.element)
         @widget.remove()
+        jQuery('body').css({'overflow':'auto'})
+
 
     back: ->
       @widget.remove()
+      jQuery('body').css({'overflow':'auto'})
 
     select: (node) ->
       @current_node = jQuery(node).attr('id')
