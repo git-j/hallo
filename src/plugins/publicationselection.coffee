@@ -73,10 +73,11 @@
           replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
           replacement
         #/scb
-        window.getSelection().addRange(@options.range)
-        @options.editable.replaceSelectionHTML scb
+        if ( jQuery(@options.range.cloneContents()).text() != '' )
+          window.getSelection().addRange(@options.range)
+          @options.editable.replaceSelectionHTML scb
+          #debug.log('sdc::addElement',@options.editable)
         nugget = new DOMNugget()
-        #debug.log('sdc::addElement',@options.editable)
         nugget.updateSourceDescriptionData(@options.editable.element)
         nugget.updateCitations(@options.editable.element)
         @widget.remove()

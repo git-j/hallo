@@ -10,7 +10,7 @@
       toolbar: null
       uuid: ''
       elements: [
-        'quote'
+        '__quote'
       ]
       buttonCssClass: null
       citehandler: null
@@ -42,8 +42,11 @@
 
     _addElement: (element, containing_element, publication_type, data) ->
       #debug.log(element,containing_element,publication_type,data,@options)
-      el = jQuery "<div class=\"menu-item\">#{element}</div>"
-      el = jQuery "<button class=\"publication-selector\">#{element}</button>"
+      if ( element=='__quote' ) 
+        element_text = utils.tr('quote')
+      else
+        element_text = element
+      el = jQuery "<button class=\"publication-selector\">#{element_text}</button>"
       el.addClass publication_type if publication_type
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data
@@ -58,7 +61,7 @@
       this_citehandler = @options.citehandler
       @options.citehandler.editable = @options.editable
       el.bind "click", (ev) =>
-        if element == "quote"
+        if element == '__quote'
           sel = window.getSelection();
           range = sel.getRangeAt(0);
           $('body').hallopublicationselector({'editable':this_editable,'range':range});
