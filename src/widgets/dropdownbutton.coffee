@@ -10,12 +10,13 @@
       label: null
       icon: null
       editable: null
+      command: null
       target: ''    # dropdown
       setup: null
       cssClass: null
 
     _create: ->
-      @options.icon ?= "icon-#{@options.label.toLowerCase()}"
+      @options.icon ?= "icon-#{@options.command.toLowerCase()}"
 
     _init: ->
       target = jQuery @options.target
@@ -65,17 +66,17 @@
         target.css 'left', left
 
     _prepareButton: ->
-      id = "#{@options.uuid}-#{@options.label}"
+      id = "#{@options.uuid}-#{@options.command}"
       button_str = "<button id=\"#{id}\" data-toggle=\"dropdown\""
-      button_str+= " class=\"#{@options.label}_button ui-button ui-widget ui-state-default ui-corner-all\""
+      button_str+= " class=\"#{@options.command}_button ui-button ui-widget ui-state-default ui-corner-all\""
       button_str+= " data-target=\"##{@options.target.attr('id')}\""
-      button_str+= " title=\"#{@options.label}\" rel=\"#{@options.label}\""
+      button_str+= " title=\"#{@options.label}\" rel=\"#{@options.command}\""
       button_str+= "></button>"
       buttonEl = jQuery button_str;
       buttonEl.addClass @options.cssClass if @options.cssClass
       buttonEl.addClass 'btn-large' if @options.editable.options.touchScreen
 
-      button = buttonEl.button { "icons": { "primary": "ui-icon-#{@options.label}-p" }, "text": false }
+      button = buttonEl.button { "icons": { "primary": "ui-icon-#{@options.command}-p" }, "text": false }
       button.addClass @options.cssClass if @options.cssClass
       button
 
