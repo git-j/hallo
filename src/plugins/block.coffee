@@ -75,10 +75,14 @@
 
     _prepareButton: (target) ->
       buttonElement = jQuery '<span></span>'
+      button_label = 'block'
+      if ( window.action_list && window.action_list['hallojs_block'] != undefined )
+        button_label =  window.action_list['hallojs_block'].title
       buttonElement.hallodropdownbutton
         uuid: @options.uuid
         editable: @options.editable
-        label: 'block'
+        label: button_label
+        command: 'block'
         icon: 'icon-text-height'
         target: target
         cssClass: @options.buttonCssClass

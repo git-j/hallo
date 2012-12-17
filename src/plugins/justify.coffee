@@ -12,11 +12,14 @@
         populateToolbar: (toolbar) ->
             buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
             buttonize = (alignment) =>
+                label = alignment
+                if ( window.action_list && window.action_list['hallojs_' + alignment] != undefined )
+                  label =  window.action_list['hallojs_' + alignment].title
                 buttonElement = jQuery '<span></span>'
                 buttonElement.hallobutton
                   uuid: @options.uuid
                   editable: @options.editable
-                  label: alignment
+                  label: label
                   command: "justify#{alignment}"
                   icon: "icon-align-#{alignment.toLowerCase()}"
                   cssClass: @options.buttonCssClass

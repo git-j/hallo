@@ -83,10 +83,14 @@
 
     _prepareButton: (target) ->
       buttonElement = jQuery '<span></span>'
+      button_label = 'image'
+      if ( window.action_list && window.action_list['hallojs_image'] != undefined )
+        button_label =  window.action_list['hallojs_image'].title
       buttonElement.hallodropdownform
         uuid: @options.uuid
         editable: @options.editable
-        label: 'image'
+        label: button_label
+        command: 'image'
         icon: 'icon-text-height'
         target: target
         cssClass: @options.buttonCssClass

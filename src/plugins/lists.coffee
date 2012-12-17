@@ -15,12 +15,14 @@
         populateToolbar: (toolbar) ->
             buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
             buttonize = (type, label) =>
-
+                butten_label = label
+                if ( window.action_list && window.action_list['hallojs_' + label] != undefined )
+                  button_label =  window.action_list['hallojs_' + label].title
                 buttonElement = jQuery '<span></span>'
                 buttonElement.hallobutton
                   uuid: @options.uuid
                   editable: @options.editable
-                  label: label
+                  label: button_label
                   command: "insert#{type}List"
                   icon: "icon-list-#{label.toLowerCase()}"
                   cssClass: @options.buttonCssClass

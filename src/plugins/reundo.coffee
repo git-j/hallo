@@ -12,11 +12,14 @@
         populateToolbar: (toolbar) ->
             buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
             buttonize = (cmd, label) =>
+                button_label = label
+                if ( window.action_list && window.action_list['hallojs_' + cmd] != undefined )
+                  button_label =  window.action_list['hallojs_' + cmd].title
                 buttonElement = jQuery '<span></span>'
                 buttonElement.hallobutton
                   uuid: @options.uuid
                   editable: @options.editable
-                  label: label
+                  label: button_label
                   icon: if cmd is 'undo' then 'icon-undo' else 'icon-repeat'
                   command: cmd
                   queryState: false

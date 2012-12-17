@@ -85,10 +85,14 @@
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
+      button_label = 'sourcedescription'
+      if ( window.action_list && window.action_list['hallojs_sourcedescription'] != undefined )
+        button_label =  window.action_list['hallojs_sourcedescription'].title
       buttonElement.hallodropdownbutton
         uuid: @options.uuid
         editable: @options.editable
-        label: 'sourcedescription'
+        label: button_label
+        command: 'sourcedescription'
         icon: 'icon-text-height'
         target: target
         setup: setup
