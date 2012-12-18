@@ -17,12 +17,9 @@
       timeout: 500
       default_css:
         'position': 'fixed'
-        'background-color': 'white'
         'margin-top': '1em'
-        'padding': '4px'
         'min-height': '2em'
         'min-width': '200px'
-        'border': '1px solid silver'
         'z-index': '99998'
         'top':'0'
         'left':'0'
@@ -90,7 +87,7 @@
       if @can_hide == 0
         data = '[dev] no callback defined for tipoverlay.options.data_cb: ' + element.html();
         @tip_node = jQuery('<span id="' + @options.tip_id + '"></span>')
-        @tip_node.css (@options.default_css)
+        @tip_node.css(@options.default_css)
         @options.data_cb(@tip_node,element) if ( @options.data_cb )
 
         jQuery('body').append(@tip_node)

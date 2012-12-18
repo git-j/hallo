@@ -32,7 +32,6 @@
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"></div>"
-      contentArea.css {'background-color':'white'}
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()
 
       for element in @options.elements

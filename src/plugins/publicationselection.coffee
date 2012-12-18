@@ -24,9 +24,7 @@
         'top': 0
         'left': 0
         'position': 'fixed'
-        'border':'1px solid silver'
-        'overflow-y':'auto'
-        'z-index': '999999'
+        'z-index': 999999
     _init: ->
       #debug.log('publicationselector initialized',@options)
       @widget = jQuery('<div id="publication_selector"></div>')

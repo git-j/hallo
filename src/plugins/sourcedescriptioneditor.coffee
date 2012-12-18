@@ -17,15 +17,14 @@
       data: null
       loid: null
       has_changed: false
+      values: {}
       default_css:
         'width': '100%'
         'height': '100%'
         'top': 0
         'left': 0
         'position': 'fixed'
-        'border':'1px solid silver'
-        'overflow-y':'auto'
-        'z-index': '999999'
+        'z-index': 999999
     _init: ->
       #debug.log('sourcedescriptioneditor initialized',@options)
 
@@ -70,6 +69,8 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox()
         jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
+          jQuery.each @options.values, (key, value) =>
+            omc.storePublicationDescriptionAttribute(@options.loid,key,value)
           nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
@@ -94,9 +95,10 @@
       path = target.attr('id')
       data = target.val().replace(/&#34/g,'"');
       if omc && options.loid
-        omc.storePublicationDescriptionAttribute(options.loid,path,data)
+        options.values[path] = data;
+        #omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
-
+      
     _create: ->
       @options.citehandler = root.citehandler.get()
       #debug.log('created');

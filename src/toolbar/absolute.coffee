@@ -56,12 +56,9 @@
       return position
 
     setPosition: ->
-      return unless @options.parentElement is 'body'
       @toolbar.css 'position', 'fixed'
-      @toolbar.css 'top', '4px'
-      @toolbar.css 'left', '4px'
-      @toolbar.css 'right', '4px'
-      @toolbar.css 'z-index', '99999'
+      @toolbar.css 'z-index', '99999' # more than tip-overlay
+      return unless @options.parentElement is 'body'
 
     _updatePosition: (position) ->
       return
