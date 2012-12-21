@@ -41,6 +41,12 @@
       @element.append @button
 
     _showTarget: ->
+      jQuery(".dropdown-form").each (index,item) ->
+        jQuery(item).removeClass 'open'
+        jQuery(item).hide()
+      jQuery(".dropdown-menu").each (index,item) ->
+        jQuery(item).removeClass 'open'
+        jQuery(item).hide()
       target = jQuery @options.target
       @options.setup() if @options.setup
       @_updateTargetPosition()
