@@ -71,7 +71,8 @@
           @widget.focus() # trigger form changed
           jQuery.each @options.values, (key, value) =>
             omc.storePublicationDescriptionAttribute(@options.loid,key,value)
-          nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
+          nugget.updateSourceDescriptionData(@options.element.closest('.nugget')).done =>
+            nugget.resetCitations(@options.element.closest('.nugget'))
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
