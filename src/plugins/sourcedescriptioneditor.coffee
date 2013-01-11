@@ -29,6 +29,7 @@
       #debug.log('sourcedescriptioneditor initialized',@options)
 
       @options.tip_element.hide()
+      return if jQuery('#cite_editor').length
       inputs = jQuery('<div id="cite_editor_inputs"></div>')
       @widget = jQuery('<div id="cite_editor"></div>')
       @widget.addClass('form_display');

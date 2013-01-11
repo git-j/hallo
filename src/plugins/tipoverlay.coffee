@@ -86,6 +86,7 @@
           @_show(target)
       if @can_hide == 0
         data = '[dev] no callback defined for tipoverlay.options.data_cb: ' + element.html();
+        jQuery('#' + @options.tip_id ).remove if ( jQuery('#' + @options.tip_id ).length )
         @tip_node = jQuery('<span id="' + @options.tip_id + '"></span>')
         @tip_node.css(@options.default_css)
         @options.data_cb(@tip_node,element) if ( @options.data_cb )
