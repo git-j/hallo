@@ -92,7 +92,8 @@ class _Citehandler
         if ( is_auto_cite )
           nugget.removeSourceDescription(@editable.element,@citation_data.loid)
         if ( @editable.element )
-          nugget.updateCitations(@editable.element);
+          nugget.updateSourceDescriptionData(@editable.element).done =>
+            nugget.resetCitations(@editable.element)
         #TODO: stop undo transaction
       if !@citation_data.processed
         target.find('.edit').remove()
