@@ -71,27 +71,51 @@ class _Citehandler
       target.find('.edit').bind 'click', sourcedescriptioneditor
       element.bind 'click', sourcedescriptioneditor
       target.find('.remove').bind 'click', (ev) =>
+        #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
+        loid = element.closest('.cite').attr('class').replace(/.*sourcedescription-/,'').replace(/^(\d*).*/,'$1')
+        #console.log(loid);
 
         citation = element.closest('.cite').prev('.citation')
         is_auto_cite =  element.closest('.cite').hasClass('auto-cite')
         citation_html = ''
+        #console.log(citation.length);
+        #console.log(element.closest('.cite').length);
+        selection = window.getSelection()
         if ( citation.length )
           citation_html = citation.html()
-          citation.selectText()
           #TODO: start undo transaction
-          document.execCommand('delete',false)
-          document.execCommand('insertHTML',false,citation_html)
+          #not that simple: citation.selectText()
+          range = document.createRange()
+          range.selectNodeContents(citation[0])
+          selection.removeAllRanges()
+          selection.addRange(range)
+          #console.log('before:',@editable.element.html());
+          if ( document.execCommand('delete',false) )
+            document.execCommand('insertHTML',false,citation_html)
+          #console.log('after::',@editable.element.html(),citation_html);
         if ( element.closest('.cite').length )
-          element.closest('.cite').attr('contentEditable',true)
-          element.closest('.cite').selectText()
-          document.execCommand('delete',false)
+          cite =  element.closest('.cite')
+          cite.attr('contenteditable',true)
+          #not that simple: element.closest('.cite').selectText()
+          range = document.createRange()
+          range.selectNodeContents(cite[0])
+          selection.removeAllRanges()
+          selection.addRange(range)
+          if( ! document.execCommand('delete',false) )
+            #fallback in case the selection did not work
+            $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html)
+            $('.sourcedescription-' + loid).remove()
+          #console.log('citation removed')
+          $('.cite').attr('contenteditable',false)
         jQuery('#' + @overlay_id).remove()
         nugget = new DOMNugget();
+        #console.log(@editable.element.html());
         if ( is_auto_cite )
           nugget.removeSourceDescription(@editable.element,@citation_data.loid)
         if ( @editable.element )
+          @editable.element.find('.auto-cite').remove()
           nugget.updateSourceDescriptionData(@editable.element).done =>
             nugget.resetCitations(@editable.element)
         #TODO: stop undo transaction

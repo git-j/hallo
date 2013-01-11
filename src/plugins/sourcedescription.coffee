@@ -62,20 +62,25 @@
       el.bind "click", (ev) =>
         if element == '__quote'
           sel = window.getSelection();
-          range = sel.getRangeAt(0);
-          $('body').hallopublicationselector({'editable':this_editable,'range':range});
+          if sel
+            range = null
+            #console.log(sel,sel.getRangeAt())
+            if sel.rangeCount > 0
+              range = sel.getRangeAt(0)
+            $('body').hallopublicationselector({'editable':this_editable,'range':range});
         else
           scb = (parent, old) ->
             replacement = false
             if old.html() != ""
-              replacement = "<span class=\"citation\">" + old.html() + "</span>"
+              oldhtml = old.html().replace(/<div/,'<span').replace(/<\/div/,'</span')
+              replacement = "<span class=\"citation\">" + oldhtml + "</span>"
             else
               replacement = ""
             replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
             replacement
           #/scb
-          if jQuery(@options.editable.element).find(".sourcedescription-#{data} .auto-cite").length
-            jQuery(@options.editable.element).find(".sourcedescription-#{data} .auto-cite").remove()
+          if jQuery(@options.editable.element).find(".sourcedescription-#{data}").length
+            jQuery(@options.editable.element).find(".sourcedescription-#{data}").remove()
           this_editable.replaceSelectionHTML scb
           nugget = new DOMNugget()
           #debug.log('sdc::addElement',this_editable)

@@ -72,10 +72,14 @@
           replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
           replacement
         #/scb
-        if ( jQuery(@options.range.cloneContents()).text() != '' )
+        #console.log(@options.range,window.getSelection())
+        #console.log(@options.range)
+        if ( @options.range && !@options.range.collapsed) #&& jQuery(@options.range.cloneContents()).text() != '' )
+          #console.log('replace/enhance text')
           window.getSelection().addRange(@options.range)
           @options.editable.replaceSelectionHTML scb
-          #debug.log('sdc::addElement',@options.editable)
+          #console.log('sdc::addElement',@options.editable)
+
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
