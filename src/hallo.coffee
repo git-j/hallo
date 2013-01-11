@@ -232,6 +232,7 @@ http://hallojs.org
                 range_content_jq[0].appendChild(range_content)
                 replacement = cb(range_parent_jq, range_content_jq)
                 if ( range_content_jq.text() == '' )
+                  #TODO: undo buffer
                   range_parent_jq.append(replacement) if replacement
                 else
                   document.execCommand("insertHTML",false,replacement) if replacement

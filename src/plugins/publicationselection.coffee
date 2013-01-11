@@ -59,7 +59,7 @@
       publication_loid = @current_node.replace(/node_/,'')
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)
-      dfo.fail(debug.log)
+      dfo.fail(console.log)
       dfo.done (result) =>
         data = result.loid
         element = @current_node_label
