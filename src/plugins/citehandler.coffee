@@ -59,10 +59,15 @@ class _Citehandler
       ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul>'
       ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button>'
-      if ( element.closest('.cite').hasClass('auto-cite') )
-        ov_data+=     '<button class="remove action_button">' + utils.tr('remove from nugget') + '</button></li>'
-      else
-        ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
+      if ( !@editable || @editable.nugget_only )
+        @editable = {}
+        @editable.element = element.closest('.nugget')
+        @editable.nugget_only = true #     console.log('TODO: find reset point for switching nuggets, otherwise wrong nugget');
+      if ( @editable.element )
+        if ( element.closest('.cite').hasClass('auto-cite') )
+          ov_data+=     '<button class="remove action_button">' + utils.tr('remove from nugget') + '</button></li>'
+        else
+          ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
       ov_data+= '</ul>'
 
       target.append(ov_data)
