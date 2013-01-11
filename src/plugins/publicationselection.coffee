@@ -31,7 +31,7 @@
       @widget.addClass('form_display');
       jQuery('body').css({'overflow':'hidden'})
       jQuery('body').append(@widget)
-      @widget.append('<div id="publication_list"></div>');
+      @widget.append('<div id="publication_list" style="background-color:white; margin-bottom: 4px"></div>');
       @widget.append('<button class="publication_selector_back view_button">' + utils.tr('back') + '</button>');
       @widget.append('<button class="publication_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
