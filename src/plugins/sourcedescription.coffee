@@ -71,12 +71,18 @@
         else
           scb = (parent, old) ->
             replacement = false
-            if old.html() != ""
-              oldhtml = old.html().replace(/<div/,'<span').replace(/<\/div/,'</span')
-              replacement = "<span class=\"citation\">" + oldhtml + "</span>"
+            has_block_contents = old.find('address, article, aside, audio, blockquote, canvas, dd, div, dl, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, header, hgroup, hr, noscript, hr, output, p, pre, section, table, tfoot, ul, video').length > 0
+            if old.html() != "" && ! has_block_contents
+              replacement = "<span class=\"citation\">" + old.html() + "</span>"
             else
               replacement = ""
             replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+            if ( has_block_contents )
+              # wrong range:document.execCommand('insertHTML',false,replacement)
+              utils.info(utils.tr('warning selected block contents'))
+              window.getSelection().removeAllRanges()
+              parent.append(replacement)
+              replacement = false
             replacement
           #/scb
           if jQuery(@options.editable.element).find(".sourcedescription-#{data}").length
