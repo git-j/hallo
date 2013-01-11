@@ -73,14 +73,13 @@
           jQuery.each @options.values, (key, value) =>
             omc.storePublicationDescriptionAttribute(@options.loid,key,value)
           nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
+          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
-          @widget.focus() # trigger form changed
-          #TODO restore data
-          nugget.updateSourceDescriptionData(@options.element.closest('.nugget'))
-          @widget.remove()
+          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
+          jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
 
       jQuery(window).resize()
