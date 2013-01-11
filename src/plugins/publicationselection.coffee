@@ -77,8 +77,9 @@
           @options.editable.replaceSelectionHTML scb
           #debug.log('sdc::addElement',@options.editable)
         nugget = new DOMNugget()
-        nugget.updateSourceDescriptionData(@options.editable.element)
-        nugget.updateCitations(@options.editable.element)
+        @options.editable.element.closest('.nugget').find('.auto-cite').remove()
+        nugget.updateSourceDescriptionData(@options.editable.element).done =>
+          nugget.resetCitations(@options.editable.element)
         @widget.remove()
         jQuery('body').css({'overflow':'auto'})
 

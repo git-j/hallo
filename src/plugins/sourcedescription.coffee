@@ -79,8 +79,8 @@
           this_editable.replaceSelectionHTML scb
           nugget = new DOMNugget()
           #debug.log('sdc::addElement',this_editable)
-          nugget.updateSourceDescriptionData(this_editable.element)
-          nugget.updateCitations(this_editable.element)
+          nugget.updateSourceDescriptionData(this_editable.element).done =>
+            nugget.resetCitations(@options.editable.element)
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
