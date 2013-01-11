@@ -79,11 +79,13 @@
           window.getSelection().addRange(@options.range)
           @options.editable.replaceSelectionHTML scb
           #console.log('sdc::addElement',@options.editable)
-
+        else
+          utils.info(utils.tr('publication added to nugget'))
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)
+
         @widget.remove()
         jQuery('body').css({'overflow':'auto'})
 
