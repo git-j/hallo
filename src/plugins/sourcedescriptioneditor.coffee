@@ -17,6 +17,7 @@
       data: null
       loid: null
       has_changed: false
+      publication: {}
       values: {}
       default_css:
         'width': '100%'
@@ -41,6 +42,7 @@
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
       nugget = new DOMNugget()
       nugget.getAllSourceDescriptionAttributes(@options.loid).done (sdi) =>
+        @options.publication = sdi.publication
         @selectables = '<option value="">' + utils.tr('more') + '</option>'
         jQuery.each sdi.description, (index, value) =>
           return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title'
@@ -98,7 +100,16 @@
         options.values[path] = data;
         #omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
-      
+      if path.indexOf("number_of_pages")==0
+        try
+          user_number = parseInt(data)
+          if data <= options.publication.number_of_pages
+            jQuery('#' + path).attr('class','valid')
+          else
+            utils.error(utils.tr('number_of_pages not in range'));
+            jQuery('#' + path).attr('class','invalid')
+        catch error
+          jQuery('#' + path).attr('class','unparseable')
     _create: ->
       @options.citehandler = root.citehandler.get()
       #debug.log('created');
