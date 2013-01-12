@@ -79,7 +79,7 @@ class _Citehandler
         #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
-        loid = element.closest('.cite').attr('class').replace(/.*sourcedescription-/,'').replace(/^(\d*).*/,'$1')
+        loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
         #console.log(loid);
 
         citation = element.closest('.cite').prev('.citation')
