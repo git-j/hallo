@@ -383,8 +383,10 @@ http://hallojs.org
 
         turnOn: () ->
             if this.getContents() is this.options.placeholder
-                this.setContents ''
-
+                #this.setContents ' '
+                force_focus = =>
+                  document.execCommand('selectAll',false,null)
+                window.setTimeout(force_focus,1)
             jQuery(@element).addClass 'inEditMode'
             @_trigger "activated", @
 
@@ -392,7 +394,8 @@ http://hallojs.org
             jQuery(@element).removeClass 'inEditMode'
             @_trigger "deactivated", @
 
-            unless @getContents()
+            contents = @getContents()
+            if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
                 @setContents @options.placeholder
 
         _activated: (event) ->
@@ -406,7 +409,11 @@ http://hallojs.org
             return if window.debug_hallotoolbar
             return if event.data._keepActivated
 
-            event.data.options.store_callback(event.data.getContents()) if event.data.options.store_callback
+            if event.data.options.store_callback
+              contents = event.data.getContents()
+              if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
+                event.data.setContents ''
+              event.data.options.store_callback(event.data.getContents())
 
             if ( jQuery('.dropdown-form:visible').length )
               return
