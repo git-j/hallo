@@ -60,6 +60,8 @@
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)
       dfo.fail(console.log)
+      #tmp_id is used to identify new sourcedescription after it has been inserted for further editing
+      tmp_id='tmp_' + (new Date()).getTime();
       dfo.done (result) =>
         data = result.loid
         element = @current_node_label
@@ -83,8 +85,14 @@
           utils.info(utils.tr('publication added to nugget'))
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
+        # launch sourcedescription editor with newly created sourcedescription
+        new_sd_node=$('#' + tmp_id);
+        new_sd_node.removeAttr('id')
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)
+          sd_loid=new_sd_node.attr('class').replace(/.*sourcedescription-(\d*).*/,"$1");
+          nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
+            jQuery('body').hallosourcedescriptioneditor({'loid':sd_loid,'data':citation_data,'element':new_sd_node,'back':false})
 
         @widget.remove()
         jQuery('body').css({'overflow':'auto'})

@@ -13,6 +13,7 @@
       uuid: ''
       element: null
       tip_element: null
+      back: true
       citehandler: null
       data: null
       loid: null
@@ -29,7 +30,7 @@
     _init: ->
       #debug.log('sourcedescriptioneditor initialized',@options)
 
-      @options.tip_element.hide()
+      @options.tip_element.hide() if @options.tip_element
       return if jQuery('#cite_editor').length
       inputs = jQuery('<div id="cite_editor_inputs"></div>')
       @widget = jQuery('<div id="cite_editor"></div>')
@@ -55,7 +56,11 @@
             inputs.append(@_createInput(index,value.label,qvalue))
         @widget.append('<div><label>&nbsp;</label><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div>')
         @widget.append(inputs)
-        @widget.append('<div><button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button><button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button></div>')
+        str_html_buttons=''
+        if @options.back
+          str_html_buttons ='<button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button>'
+        str_html_buttons+='<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>'
+        @widget.append('<div>' + str_html_buttons + '</div>')
         jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
         jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
           new_input = jQuery(ev.target).val()
