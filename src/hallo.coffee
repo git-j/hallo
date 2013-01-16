@@ -333,6 +333,12 @@ http://hallojs.org
                     thrown: old
 
                 widget.turnOff()
+            if event.keyCode == 66 && event.ctrlKey #b
+                document.execCommand("bold",false)
+            if event.keyCode == 73 && event.ctrlKey #i
+                document.execCommand("italic",false)
+            if event.keyCode == 85 && event.ctrlKey #u
+                document.execCommand("underline",false)
 
         _rangesEqual: (r1, r2) ->
             r1.startContainer is r2.startContainer and r1.startOffset is r2.startOffset and r1.endContainer is r2.endContainer and r1.endOffset is r2.endOffset
