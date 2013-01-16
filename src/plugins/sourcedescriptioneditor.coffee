@@ -88,6 +88,9 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
+        window.setTimeout =>
+          jQuery(window).resize()
+        , 100
 
       jQuery(window).resize()
 
