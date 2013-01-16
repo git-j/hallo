@@ -67,22 +67,30 @@
         element = @current_node_label
         scb = (parent, old) ->
           replacement = false
-          if old.html() != ""
-            replacement = "<span class=\"citation\">" + old.html() + "</span>"
-          else
+          #console.log('[' + old.text() + ']' + old.html())
+          if old.html() == "" || old.html() == "&nbsp;" || old.text() == " "
             replacement = ""
-          replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+          else
+            replacement = "<span class=\"citation\">" + old.html() + "</span>"
+          replacement+= "<span class=\"cite sourcedescription-#{data}\" contenteditable=\"false\" id=\"#{tmp_id}\">#{element}</span>"
           replacement
         #/scb
         #console.log(@options.range,window.getSelection())
         #console.log(@options.range)
-        if ( @options.range && !@options.range.collapsed) #&& jQuery(@options.range.cloneContents()).text() != '' )
-          #console.log('replace/enhance text')
-          window.getSelection().addRange(@options.range)
+        selection =  @options.editable.element.find('.selection')
+        if ( selection.length )
+          range = document.createRange()
+          range.selectNode(selection[0])
+          if ( selection.hasClass('carret') )
+            range.setStartAfter(range.endContainer)
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
           @options.editable.replaceSelectionHTML scb
-          #console.log('sdc::addElement',@options.editable)
-        else
-          utils.info(utils.tr('publication added to nugget'))
+          window.__start_mini_activity = false
+          @options.editable.element.find('.selection').each (index,item) =>
+            $(item).replaceWith($(item).html())
+            if ( $(item).text() == ' ' )
+              $(item).find('.citation').remove()
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
         # launch sourcedescription editor with newly created sourcedescription

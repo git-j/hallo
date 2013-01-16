@@ -61,13 +61,29 @@
       @options.citehandler.editable = @options.editable
       el.bind "click", (ev) =>
         if element == '__quote'
-          sel = window.getSelection();
-          if sel
-            range = null
-            #console.log(sel,sel.getRangeAt())
-            if sel.rangeCount > 0
-              range = sel.getRangeAt(0)
-            $('body').hallopublicationselector({'editable':this_editable,'range':range});
+          scb = (parent, old) ->
+            replacement = false
+            has_block_contents = old.find('address, article, aside, audio, blockquote, canvas, dd, div, dl, fieldset, figcaption, figure, footer, form, h1, h2, h3, h4, h5, header, hgroup, hr, noscript, hr, output, p, pre, section, table, tfoot, ul, video').length > 0
+            if old.html() != "" && ! has_block_contents
+              replacement = "<span class=\"selection\">" + old.html() + "</span>"
+            else
+              replacement = "<span class=\"selection\">&nbsp;</span>"
+            nr = $('<span>' + replacement + '</span>');
+            if has_block_contents
+              range = window.getSelection().getRangeAt()
+              range.setStartAfter(range.endContainer)
+              range.insertNode(nr[0])
+            else
+              range = window.getSelection().getRangeAt()
+              range.deleteContents()
+              range.insertNode(nr[0])
+            replacement = false
+
+            replacement
+          #/scb
+          this_editable.replaceSelectionHTML scb
+          window.__start_mini_activity = true
+          $('body').hallopublicationselector({'editable':this_editable});
         else
           scb = (parent, old) ->
             replacement = false
