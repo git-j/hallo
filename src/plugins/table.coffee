@@ -5,6 +5,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.hallotable',
     dropdownform: null
+    tmpid: 0
     options:
       editable: null
       toolbar: null
@@ -21,13 +22,52 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      @dropdownform = @_prepareButton target
+      setup= =>
+        @tmpid='tmp_' + (new Date()).getTime()
+        table_placeholder='<table id="' + @tmpid + '" border="1"><tr><th>' + utils.tr('heading') + '</th></tr><tr><td>&nbsp;</td></tr></table>'
+        document.execCommand('insertHTML',false,table_placeholder)
+        recalc = =>
+          @recalcHTML(target.attr('id'))
+        window.setTimeout recalc, 300
+      rollback = =>
+        range = document.createRange()
+        range.selectNode($('#' + @tmpid)[0])
+        window.getSelection().addRange(range)
+        document.execCommand('insertHTML','delete')
+      @dropdownform = @_prepareButton setup, rollback, target
       buttonset.append @dropdownform
       toolbar.append buttonset
 
+    createTableHTML: (contentId) ->
+      rows = $('#' + contentId + 'rows').val();
+      cols = $('#' + contentId + 'cols').val();
+      border = $('#' + contentId + 'border').is(':checked');
+      heading = $('#' + contentId + 'heading').is(':checked');
+      if ( rows=='' || cols == '' || parseInt(rows) == NaN || parseInt(cols) == NaN || rows < 0 || cols < 0 ) 
+        return false
+      if ( border )
+        html = '<table border="1" class="table-border" id="' + @tmpid + '">';
+      else
+        html = '<table id="' + @tmpid + '">';
+      for r in[1..rows] by 1
+        html+='<tr>';
+        if ( r == 1 && heading)
+          for c in[1..cols] by 1
+            html+='<th>' + utils.tr('heading') + '</th>';
+        else
+          for c in[1..cols] by 1
+            html+='<td>' + utils.tr('content') + '</td>';
+        html+='</tr>';
+      html+= '</table>';
+      return html
+
+    recalcHTML: (contentId) ->
+      html = @createTableHTML(contentId)
+      $('#' + @tmpid).replaceWith(html) if html
+
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
-      contentAreaUL = contentArea.find('ul');
+      contentAreaUL = contentArea.find('ul')
 
       containingElement = @options.editable.element.get(0).tagName.toLowerCase()
 
@@ -38,6 +78,9 @@
           el.find('input').attr('checked',true);
         else if ( default_value )
           el.find('input').val(default_value)
+        recalc= =>
+          @recalcHTML(contentId)
+        el.find('input').bind('keyup change',recalc)
 
         el
       addButton = (element) =>
@@ -49,30 +92,16 @@
         el.find('button').bind 'click', =>
           #if el.hasClass 'disabled'
           #    return
-          rows = $('#' + contentId + 'rows').val();
-          cols = $('#' + contentId + 'cols').val();
-          border = $('#' + contentId + 'border').is(':checked');
-          heading = $('#' + contentId + 'heading').is(':checked');
-          #console.log(rows,cols,border)
-          if ( rows < 0 || cols < 0 ) 
-            return
-          if ( border )
-            html = '<table border="1" class="table-border">';
-          else
-            html = '<table>';
-          for r in[1..rows] by 1
-            html+='<tr>';
-            if ( r == 1 && heading)
-              for c in[1..cols] by 1
-                html+='<th>head</th>';
-            else
-              for c in[1..cols] by 1
-                html+='<td>cell</td>';
-            html+='</tr>';
-          html+= '</table>';
           #console.log(html)
-          @dropdownform.hallodropdownform('restoreContentPosition')
+          @recalcHTML()
+          window.getSelection().removeAllRanges()
+          range = document.createRange()
+          range.selectNode($('#' + @tmpid)[0])
+          window.getSelection().addRange(range)
+          html = $('#' + @tmpid).html()
           document.execCommand 'insertHTML',false, html
+          $('#' + @tmpid).removeAttr('id')
+          @rollback = null
           @dropdownform.hallodropdownform('hideForm')
         el
       contentAreaUL.append addInput("text", "rows","3")
@@ -82,7 +111,7 @@
       contentAreaUL.append addButton("insert")
       contentArea
 
-    _prepareButton: (target) ->
+    _prepareButton: (setup, rollback, target) ->
       buttonElement = jQuery '<span></span>'
       button_label = 'table'
       if ( window.action_list && window.action_list['hallojs_table'] != undefined )
@@ -94,6 +123,8 @@
         command: 'table'
         icon: 'icon-text-height'
         target: target
+        setup: setup
+        rollback: rollback
         cssClass: @options.buttonCssClass
       buttonElement
 

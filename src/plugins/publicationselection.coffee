@@ -61,7 +61,7 @@
       dfo = omc.AssociatePublication(target_loid,publication_loid)
       dfo.fail(console.log)
       #tmp_id is used to identify new sourcedescription after it has been inserted for further editing
-      tmp_id='tmp_' + (new Date()).getTime();
+      tmp_id='tmp_' + (new Date()).getTime()
       dfo.done (result) =>
         data = result.loid
         element = @current_node_label
