@@ -171,7 +171,7 @@ http://hallojs.org
                 @element.bind "focus", this, @_activated
                 @element.bind "blur", this, @_deactivated
                 @element.bind "keyup paste change", this, @_checkModified
-                @element.bind "keydown", @_syskeys
+                @element.bind "keydown", this, @_syskeys
                 @element.bind "keyup", this, @_keys
                 @element.bind "keyup mouseup", this, @_checkSelection
                 widget = this
@@ -349,6 +349,7 @@ http://hallojs.org
                 li = $(range.startContainer).closest('li')
                 li = $(range.endContainer).closest('li') if !li.length
                 if ( li.length )
+                  return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
                   document.execCommand("indent",false)
                   event.preventDefault()
             if event.keyCode == 9 && event.shiftKey  #shift+tab
@@ -356,6 +357,7 @@ http://hallojs.org
                 li = $(range.startContainer).closest('li')
                 li = $(range.endContainer).closest('li') if !li.length
                 if ( li.length )
+                  return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
                   document.execCommand("outdent",false)
                   event.preventDefault()
 
