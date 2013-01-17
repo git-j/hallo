@@ -139,6 +139,7 @@ http://hallojs.org
             @element.unbind "focus", @_activated
             @element.unbind "blur", @_deactivated
             @element.unbind "keyup paste change", @_checkModified
+            @element.unbind "keydown", @_syskeys
             @element.unbind "keyup", @_keys
             @element.unbind "keyup mouseup", @_checkSelection
             @bound = false
@@ -170,6 +171,7 @@ http://hallojs.org
                 @element.bind "focus", this, @_activated
                 @element.bind "blur", this, @_deactivated
                 @element.bind "keyup paste change", this, @_checkModified
+                @element.bind "keydown", @_syskeys
                 @element.bind "keyup", this, @_keys
                 @element.bind "keyup mouseup", this, @_checkSelection
                 widget = this
@@ -339,6 +341,23 @@ http://hallojs.org
                 document.execCommand("italic",false)
             if event.keyCode == 85 && event.ctrlKey #u
                 document.execCommand("underline",false)
+
+        _syskeys: (event) ->
+            widget = event.data
+            if event.keyCode == 9 && !event.shiftKey  #tab
+                range = window.getSelection().getRangeAt()
+                li = $(range.startContainer).closest('li')
+                li = $(range.endContainer).closest('li') if !li.length
+                if ( li.length )
+                  document.execCommand("indent",false)
+                  event.preventDefault()
+            if event.keyCode == 9 && event.shiftKey  #shift+tab
+                range = window.getSelection().getRangeAt()
+                li = $(range.startContainer).closest('li')
+                li = $(range.endContainer).closest('li') if !li.length
+                if ( li.length )
+                  document.execCommand("outdent",false)
+                  event.preventDefault()
 
         _rangesEqual: (r1, r2) ->
             r1.startContainer is r2.startContainer and r1.startOffset is r2.startOffset and r1.endContainer is r2.endContainer and r1.endOffset is r2.endOffset
