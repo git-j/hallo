@@ -12,9 +12,9 @@
         'h2'
         'h3'
         'p'
-        'pre'
-        'blockquote'
-        'none'
+#        'pre'
+#        'blockquote'
+#        'none'
       ]
       buttonCssClass: null
 
