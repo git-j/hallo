@@ -11,11 +11,9 @@
 #       'new version' 
       ]
       buttonCssClass: null
-      citehandler: null
       current_version: null
 
     _create: ->
-      @options.citehandler = root.citehandler.get()
       @
 
     populateToolbar: (toolbar) ->

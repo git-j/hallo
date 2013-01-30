@@ -13,10 +13,8 @@
         '__quote'
       ]
       buttonCssClass: null
-      citehandler: null
 
     _create: ->
-      @options.citehandler = root.citehandler.get()
       @
 
     populateToolbar: (toolbar) ->

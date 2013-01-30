@@ -14,7 +14,6 @@
       element: null
       tip_element: null
       back: true
-      citehandler: null
       data: null
       loid: null
       has_changed: false
@@ -119,7 +118,6 @@
         catch error
           jQuery('#' + path).attr('class','unparseable')
     _create: ->
-      @options.citehandler = root.citehandler.get()
       #debug.log('created');
       @
 

@@ -14,7 +14,6 @@
       uuid: ''
       element: null
       tip_element: null
-      citehandler: null
       data: null
       loid: null
       has_changed: false
@@ -129,7 +128,6 @@
         #debug.log('stored',options.loid,path,data)
 
     _create: ->
-      @options.citehandler = root.citehandler.get()
       #debug.log('created');
       @
 
