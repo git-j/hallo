@@ -8,28 +8,38 @@
       toolbar: null
       uuid: ''
       elements: [
-#       'new version' 
+        'new version'
       ]
       buttonCssClass: null
       current_version: null
+      in_document: false
 
     _create: ->
       @
 
     populateToolbar: (toolbar) ->
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
+      @options.in_document = @options.editable.element.closest('.Document').length > 0
+      return if ( @options.in_document )
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       setup= =>
         nugget = new DOMNugget()
         target.find('.version').remove()
+        @options.current_version = @options.editable.element.closest('.nugget').attr('id');
+        @options.in_document = @options.editable.element.closest('.Document').length > 0
         versions = nugget.getNuggetVersions(@options.editable.element)
         if versions.version
-          target.append(@_addElement('current version',versions.version))
-        if versions.subversions && versions.subversions.length
-          versions.subversions.reverse()
-          for subversion in versions.subversions
-            target.append(@_addElement(subversion.version.display_name,subversion.version))
+          display_name = versions.version.display_name
+          target.append(@_addElement(display_name,versions.version))
+        setupSubVersions = (versions) =>
+          if versions.subversions && versions.subversions.length
+            versions.subversions.reverse()
+            for subversion in versions.subversions
+              display_name = subversion.version.display_name
+              target.append(@_addElement(display_name,subversion.version))
+              setupSubVersions(subversion)
+        setupSubVersions(versions)
       buttonset.append target
       buttonset.append @_prepareButton setup, target
       toolbar.append buttonset
@@ -52,19 +62,25 @@
       if ( element_text == 'current version' )
         if ( window.action_list && window.action_list['hallojs_versioncurrent'] != undefined )
           element_text =  window.action_list['hallojs_versioncurrent'].title
+      if ( element_text.length > 40 )
+        element_text = element_text.substr(0,20) + '...' + element_text.substr(element_text.length-20,20)
       el = jQuery "<button class=\"version-selector\">#{element_text}</button>"
-      el.addClass "selected" if @options.current_version == version
+      el.addClass "selected" if version && @options.current_version == version.variant_loid
       el.addClass "version" if version
       this_editable = @options.editable
-      this_citehandler = @options.citehandler
-      @options.citehandler.editable = @options.editable
       el.bind "click", (ev) =>
         nugget = new DOMNugget();
         if ( element == 'new version' )
-          nugget.createNewVersion(@options.editable.element)
+          @options.editable.element.blur()
+          make_current = !@options.in_document # do not make the new version current when editable is in document
+          nugget.createNewVersion(@options.editable.element.closest('.nugget').attr('id'),@options.editable.element.html(),make_current).done (new_version) =>
+            nugget.loadVersion(@options.editable.element,new_version.variant.loid).done =>
+              nugget.updateSourceDescriptionData(@options.editable.element).done =>
+                nugget.resetCitations(@options.editable.element)
+                @options.editable.element.focus()
         else
           @options.editable.element.blur()
-          nugget.loadVersion(@options.editable.element,version.loid).done =>
+          nugget.loadVersion(@options.editable.element,version.variant_loid).done =>
             nugget.updateSourceDescriptionData(@options.editable.element).done =>
               nugget.resetCitations(@options.editable.element)
               @options.editable.element.focus()
