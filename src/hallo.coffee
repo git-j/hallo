@@ -412,7 +412,11 @@ http://hallojs.org
             if this.getContents() is this.options.placeholder
                 #this.setContents ' '
                 force_focus = =>
-                  document.execCommand('selectAll',false,null)
+                  new_range = document.createRange()
+                  content_node = jQuery(@element)[0] #//? is element a DOMnode?
+                  new_range.selectNodeContents(content_node);
+                  window.getSelection().removeAllRanges();
+                  window.getSelection().addRange(new_range);
                 window.setTimeout(force_focus,1)
             jQuery(@element).addClass 'inEditMode'
             @_trigger "activated", @
@@ -420,6 +424,7 @@ http://hallojs.org
         turnOff: () ->
             jQuery(@element).removeClass 'inEditMode'
             @_trigger "deactivated", @
+            jQuery('.misspelled').remove() #TODO: move to desktop
 
             contents = @getContents()
             if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
