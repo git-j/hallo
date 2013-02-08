@@ -412,6 +412,8 @@ http://hallojs.org
             if this.getContents() is this.options.placeholder
                 #this.setContents ' '
                 force_focus = =>
+                  return if !jQuery(@element).hasClass 'inEditMode'
+                  #document.execCommand('selectAll',false,null);
                   new_range = document.createRange()
                   content_node = jQuery(@element)[0] #//? is element a DOMnode?
                   new_range.selectNodeContents(content_node);
