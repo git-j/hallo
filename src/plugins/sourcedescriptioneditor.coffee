@@ -53,7 +53,7 @@
             @selectables+='<option value="' + index + '">' + value.label + '</option>'
           else
             inputs.append(@_createInput(index,value.label,qvalue))
-        @widget.append('<div><label>&nbsp;</label><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div>')
+        @widget.append('<div><label>&nbsp;</label><div class="max_width"><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div></div>')
         @widget.append(inputs)
         str_html_buttons=''
         if @options.back
