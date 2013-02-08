@@ -30,25 +30,22 @@
       toolbar.append buttonset
 
     _clean_nodes: (node,context) =>
-       node.removeAttr('style')
+       #console.log(node)
        if ( node[0].nodeType == 1 )
          node.children().each (index,child_node) =>
-           context._clean_nodes(jQuery(child_node),context);
+           cnode = jQuery(child_node)
+           #TODO: more attributes
+           cnode.removeAttr('style')
+           cnode.removeAttr('class')
+           cnode.removeAttr('id')
+           if ( cnode.is('acronym, applet, big, center, dir, font, frame, frameset, isindex, noframes, s, strike, tt, u') )
+             cnode = cnode.replaceWith(cnode.html())
+           context._clean_nodes(cnode,context)
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
       contentAreaUL = contentArea.find('ul')
 
-
-      addInput = (type,element,default_value) =>
-        elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
-        if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
-          el.find('input').attr('checked',true);
-        else if ( default_value )
-          el.find('input').val(default_value)
-
-        el
       addButton = (element,event_handler) =>
         button_label = element
         button_tooltip = element
@@ -64,8 +61,15 @@
         el
       contentAreaUL.append addButton "clean_html", =>
         console.log('cleanhtml')
-        utils.removeForbiddenElements(@options.editable.element)
-        utils.fixNestedElements(@options.editable.element)
+        #if @domnode
+        #  @domnode.removeSourceDescriptions()
+        if utils
+          utils.removeForbiddenElements(@options.editable.element)
+          #utils.removeBadAttributes(@options.editable.element)
+          #utils.removeBadStyles(@options.editable.element)
+          #utils.removeCites(@options.editable.element)
+          #utils.
+          utils.fixNestedElements(@options.editable.element)
         @_clean_nodes(@options.editable.element,@)
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "clean_plain", =>
