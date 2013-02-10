@@ -85,6 +85,7 @@
           window.getSelection().removeAllRanges()
           window.getSelection().addRange(range)
           @options.editable.replaceSelectionHTML scb
+          #console.log(@options.editable.element.html())
           window.__start_mini_activity = false
           @options.editable.element.find('.selection').each (index,item) =>
             $(item).replaceWith($(item).html())
@@ -95,12 +96,15 @@
         # launch sourcedescription editor with newly created sourcedescription
         new_sd_node=$('#' + tmp_id);
         new_sd_node.removeAttr('id')
+        #console.log(new_sd_node)
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)
-          sd_loid=new_sd_node.attr('class').replace(/.*sourcedescription-(\d*).*/,"$1");
-          nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
-            jQuery('body').hallosourcedescriptioneditor({'loid':sd_loid,'data':citation_data,'element':new_sd_node,'back':false})
-
+          #console.log(new_sd_node)
+          new_sd_class = new_sd_node.attr('class')
+          if new_sd_class
+            sd_loid=new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
+            nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
+              jQuery('body').hallosourcedescriptioneditor({'loid':sd_loid,'data':citation_data,'element':new_sd_node,'back':false})
         @widget.remove()
         jQuery('body').css({'overflow':'auto'})
 
