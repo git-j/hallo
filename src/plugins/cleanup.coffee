@@ -55,7 +55,7 @@
         if ( window.action_list && window.action_list['hallojs_cleanup_' + element] != undefined )
           button_label = window.action_list['hallojs_cleanup_' + element].title
           button_tooltip = window.action_list['hallojs_cleanup_' + element].tooltip
-        el = jQuery "<li><button class=\"action-button\" id=\"" + @tmpid+element + "\" title=\"" + button_tooltip+ "\">" + button_label + "</button></li>"
+        el = jQuery "<div><button class=\"action_button\" id=\"" + @tmpid+element + "\" title=\"" + button_tooltip+ "\">" + button_label + "</button></div>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -63,7 +63,8 @@
         el.find('button').bind 'click', event_handler
         el
       contentAreaUL.append addButton "clean_html", =>
-        console.log('cleanhtml')
+        console.log('cleanhtml') if @debug
+        jQuery('.misspelled').remove()
         #if @domnode
         #  @domnode.removeSourceDescriptions()
         if utils
@@ -73,11 +74,27 @@
           #utils.removeCites(@options.editable.element)
           #utils.
           utils.fixNestedElements(@options.editable.element)
+
+        @options.editable.element.find('.cite').remove()
         @_clean_nodes(@options.editable.element,@)
         @dropdownform.hallodropdownform('hideForm')
+        nugget = new DOMNugget()
+        nugget.updateSourceDescriptionData(@options.editable.element).done =>
+          nugget.resetCitations(@options.editable.element)
       contentAreaUL.append addButton "clean_plain", =>
-        @options.editable.element.html(@options.editable.element.text())
+        jQuery('.misspelled').remove()
+        @options.editable.element.find('p,br,div').each (index, item) =>
+          jQuery(item).append('\n')
+        @options.editable.element.find('.cite').remove() # avoid leftover cites
+        plain = @options.editable.element.text()
+        plain = plain.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        plain = '<p>' + plain.replace(/\n/g,'</p>\n<p>') + '</p>'
+        plain = plain.replace(/<p><\/p>/g,'')
+        @options.editable.element.html(plain)
         @dropdownform.hallodropdownform('hideForm')
+        nugget = new DOMNugget()
+        nugget.updateSourceDescriptionData(@options.editable.element).done =>
+          nugget.resetCitations(@options.editable.element)
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
