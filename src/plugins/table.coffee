@@ -153,7 +153,7 @@
 
         el
       addButton = (element,event_handler) =>
-        el = jQuery "<li><button class=\"action-button\" id=\"" + @tmpid+element + "\">" + utils.tr(element) + "</button></li>"
+        el = jQuery "<li><button class=\"action_button\" id=\"" + @tmpid+element + "\">" + utils.tr(element) + "</button></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -164,6 +164,7 @@
       contentAreaUL.append addInput("text", "cols","3")
       contentAreaUL.append addInput("checkbox", "heading","true")
       contentAreaUL.append addInput("checkbox", "border","true")
+
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
         window.getSelection().removeAllRanges()
