@@ -69,6 +69,9 @@
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
+      target.bind 'hide', =>
+        jQuery('table').each (index,item) =>
+          jQuery(item).removeAttr('id')
       buttonset.append @dropdownform
       toolbar.append buttonset
 

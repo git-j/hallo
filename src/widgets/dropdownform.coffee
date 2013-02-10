@@ -38,19 +38,17 @@
       @element.append @button
 
     _showTarget: ->
-      jQuery(".dropdown-form").each (index,item) ->
-        jQuery(item).removeClass 'open'
-        jQuery(item).hide()
-      jQuery(".dropdown-menu").each (index,item) ->
-        jQuery(item).removeClass 'open'
-        jQuery(item).hide()
+      jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
+        jQuery(item).trigger('hide')
+
       target = jQuery @options.target
       @options.setup() if @options.setup
       @_updateTargetPosition()
-      @storeContentPosition()
       target.addClass 'open'
       target.show()
       target.find('input:first').focus()
+      target.bind 'hide', =>
+        @_hideTarget()
 
     _hideTarget: ->
       target = jQuery @options.target
@@ -59,20 +57,9 @@
       @restoreContentPosition
 
     hideForm: ->
-      jQuery('.dropdown-form').hide()
-      jQuery('.dropdown-form').removeClass('open')
+      jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
+        jQuery(item).trigger('hide')
       @restoreContentPosition
-
-    storeContentPosition: ->
-      sel = window.getSelection();
-      if sel.rangeCount
-        @content_range = sel.getRangeAt(0);
-
-    restoreContentPosition: ->
-      sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(@content_range);
-      @options.editable.element.focus()
 
     _updateTargetPosition: ->
       target = jQuery @options.target
