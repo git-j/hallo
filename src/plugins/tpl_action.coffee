@@ -31,7 +31,7 @@
       # build buttonset with single instance
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       buttonset.append @_prepareButton =>
-        @execute
+        @execute()
       buttonset.hallobuttonset()
 
     _prepareButton: (action) ->
