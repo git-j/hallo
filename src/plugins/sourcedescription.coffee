@@ -108,11 +108,14 @@
               window.getSelection().removeAllRanges()
               parent.append(replacement)
               replacement = false
+            #console.log(replacement)
             replacement
           #/scb
-          if jQuery(@options.editable.element).find(".sourcedescription-#{data}").length
-            jQuery(@options.editable.element).find(".sourcedescription-#{data}").remove()
+          #modifies dom invalidates range
+          #if @options.editable.element.find(".sourcedescription-#{data}").length
+          #  @options.editable.element.find(".sourcedescription-#{data}").remove()
           this_editable.replaceSelectionHTML scb
+          #console.log(this_editable.element)
           nugget = new DOMNugget()
           #debug.log('sdc::addElement',this_editable)
           nugget.updateSourceDescriptionData(this_editable.element).done =>
