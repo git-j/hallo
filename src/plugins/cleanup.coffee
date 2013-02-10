@@ -24,19 +24,22 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= =>
-        console.log('check nugget')
+        console.log('check nugget') if @debug
+        #TODO: evaluate problems and removal buttons to the form
       @dropdownform = @_prepareButton setup, target
       buttonset.append @dropdownform
       toolbar.append buttonset
 
     _clean_nodes: (node,context) =>
-       #console.log(node)
+       #console.log(node) if @debug
        if ( node[0].nodeType == 1 )
          node.children().each (index,child_node) =>
            cnode = jQuery(child_node)
            #TODO: more attributes
            cnode.removeAttr('style')
            cnode.removeAttr('class')
+           cnode.removeAttr('contenteditable')
+           cnode.removeAttr('spellcheck')
            cnode.removeAttr('id')
            if ( cnode.is('acronym, applet, big, center, dir, font, frame, frameset, isindex, noframes, s, strike, tt, u') )
              cnode = cnode.replaceWith(cnode.html())
