@@ -27,6 +27,7 @@
       toolbar.append target
       setup= =>
         @tmpid='mod_' + (new Date()).getTime()
+        return if !window.getSelection().rangeCount
         range = window.getSelection().getRangeAt()
 
         table = $(range.startContainer).closest('table')

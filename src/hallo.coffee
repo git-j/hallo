@@ -224,8 +224,9 @@ http://hallojs.org
                 r = document.selection.createRange()
                 r.pasteHTML(cb(t))
             else
-                sel = window.getSelection();
-                range = sel.getRangeAt(0);
+                sel = window.getSelection()
+                range = sel.getRangeAt(0)
+                console.log(range)
                 range_parent = range.commonAncestorContainer
                 range_parent = range_parent.parentNode if range_parent.nodeType != 1
                 range_content= range.cloneContents()
@@ -233,11 +234,8 @@ http://hallojs.org
                 range_content_jq = jQuery "<div></div>" #needs container to hold html, as it may not start with node
                 range_content_jq[0].appendChild(range_content)
                 replacement = cb(range_parent_jq, range_content_jq)
-                if ( range_content_jq.text() == '' )
-                  #TODO: undo buffer
-                  range_parent_jq.append(replacement) if replacement
-                else
-                  document.execCommand("insertHTML",false,replacement) if replacement
+                range.deleteContents()
+                range.insertNode($('<span>' + replacement + '</span>')[0]) if replacement
                 sel.removeAllRanges();
                 sel.addRange(range);
 
