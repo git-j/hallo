@@ -11,6 +11,7 @@
     editable_element: null
     plain_editor: null # optional component (codeMirror)
     overlay: null
+    debug: false
     options:
       editable: null
       toolbar: null
@@ -22,7 +23,7 @@
         'background': 'white'
 
     cancel: () ->
-      console.log('cancel')
+      console.log('cancel') if @debug
       @restore()
     commit: () ->
       @editable_element.html(@textarea.val())
@@ -56,9 +57,9 @@
       if ( window.action_list && window.action_list['hallojs_plaintext_' + name] != undefined )
         button_label = window.action_list['hallojs_plaintext_' + name].title
         button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip
-      btn = jQuery "<button class=\"action-button\" title=\"#{button_tooltip}\">#{button_label}</button>"
+      btn = jQuery "<button class=\"action_button\" title=\"#{button_tooltip}\">#{button_label}</button>"
       btn.bind 'click', event_handler
-      btn.addClass('action-button')
+      btn.addClass('action_button')
       btn
     _create_overlay: (id) ->
       @overlay = jQuery "<div id=\"#{id}\"></div>"
@@ -66,7 +67,6 @@
         @cancel()
       @overlay.append @_create_form_button 'Apply', =>
         @commit()
-      @overlay.append('<hr/>')
       @overlay.append @_create_plain(@editable_element.html())
       @_overlay_resize()
       jQuery(window).bind 'resize', =>
@@ -74,24 +74,25 @@
         @_plain_resize()
       @overlay
     _create_plain: (content) ->
-      @textarea = jQuery "<textarea>#{content}</textarea>"
+      @textarea = jQuery "<textarea></textarea>"
+      @textarea.val(content)
       @_plain_resize()
       @textarea.bind 'blur', =>
         @textarea.focus()
       @textarea
     _setup_syntax_highlight: () ->
-       return if !CodeMirror
+       #return if !CodeMirror
        editor_options = 
          'mode': 'application/xml'
          'lineNumbers': true
          'lineWrapping': true
-       @plain_editor = CodeMirror.fromTextArea(@textarea[0], editor_options)
-       hlLine = editor.addLineClass(0, "background", "activeline")
-       @plain_editor.on "cursorActivity", =>
-         cur = editor.getLineHandle(editor.getCursor().line)
-         if (cur != hlLine)
-           editor.removeLineClass(hlLine, "background", "activeline")
-           hlLine = editor.addLineClass(cur, "background", "activeline")
+       #@plain_editor = CodeMirror.fromTextArea(@textarea[0], editor_options)
+       #hlLine = editor.addLineClass(0, "background", "activeline")
+       #@plain_editor.on "cursorActivity", =>
+       #  cur = editor.getLineHandle(editor.getCursor().line)
+       #  if (cur != hlLine)
+       #    editor.removeLineClass(hlLine, "background", "activeline")
+       #    hlLine = editor.addLineClass(cur, "background", "activeline")
 
     _overlay_resize: () ->
       @overlay.offset(@toolbar.offset())
@@ -115,7 +116,6 @@
         'height': @editable_element.height() # TODO:center in window, does not work with large texts
         'max-width': @editable_element.width()
         'max-height': @editable_element.height()
-        'border': '1px solid black'
       @textarea.css text_dim
       if ( @plain_editor )
         @plain_editor.refresh()
@@ -129,10 +129,10 @@
       toolbar.append @_prepareButtons contentId
     _prepareButtons: (contentId) ->
       # build buttonset with single instance
-      console.log(@editable_element)
+      console.log(@editable_element) if @debug
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       buttonset.append @_prepareButton =>
-        console.log(@editable_element)
+        console.log(@editable_element) if @debug
         @execute()
       buttonset.hallobuttonset()
 
