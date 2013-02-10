@@ -7,6 +7,7 @@
     dropdownform: null
     tmpid: 0
     html: null
+    debug: false
     options:
       editable: null
       toolbar: null

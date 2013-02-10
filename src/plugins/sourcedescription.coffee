@@ -97,6 +97,7 @@
           scb = (parent, old) ->
             replacement = false
             has_block_contents = utils.hasBlockElement(old)
+            #console.log(old,has_block_contents)
             if old.html() != "" && ! has_block_contents
               replacement = "<span class=\"citation\">" + old.html() + "</span>"
             else
