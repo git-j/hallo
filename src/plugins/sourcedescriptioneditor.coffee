@@ -30,7 +30,7 @@
       #debug.log('sourcedescriptioneditor initialized',@options)
 
       @options.tip_element.hide() if @options.tip_element
-      return if jQuery('#cite_editor').length
+      jQuery('#cite_editor').remove() if jQuery('#cite_editor').length
       inputs = jQuery('<div id="cite_editor_inputs"></div>')
       @widget = jQuery('<div id="cite_editor"></div>')
       @widget.addClass('form_display');
@@ -77,6 +77,8 @@
           @widget.focus() # trigger form changed
           jQuery.each @options.values, (key, value) =>
             omc.storePublicationDescriptionAttribute(@options.loid,key,value)
+            #console.log(@options.loid,key,value)
+          @options.values = {}
           nugget.updateSourceDescriptionData(@options.element.closest('.nugget')).done =>
             nugget.resetCitations(@options.element.closest('.nugget'))
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
@@ -87,6 +89,7 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
+          @options.values = {}
         window.setTimeout =>
           jQuery(window).resize()
         , 100
