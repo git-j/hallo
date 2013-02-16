@@ -79,6 +79,7 @@
         @options.editable.element.find('.cite').remove()
         @_clean_nodes(@options.editable.element,@)
         @dropdownform.hallodropdownform('hideForm')
+        @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)
@@ -93,6 +94,7 @@
         plain = plain.replace(/<p><\/p>/g,'')
         @options.editable.element.html(plain)
         @dropdownform.hallodropdownform('hideForm')
+        @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)

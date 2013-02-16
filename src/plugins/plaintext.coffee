@@ -27,6 +27,7 @@
       @restore()
     commit: () ->
       @editable_element.html(@textarea.val())
+      @options.editable.store()
       @restore()
     execute: () ->
       jQuery('body').css
