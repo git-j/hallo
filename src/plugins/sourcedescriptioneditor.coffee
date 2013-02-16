@@ -86,10 +86,10 @@
           jQuery('body').css({'overflow':'auto'})
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
+          @options.values = {}
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
-          @options.values = {}
         window.setTimeout =>
           jQuery(window).resize()
         , 100
