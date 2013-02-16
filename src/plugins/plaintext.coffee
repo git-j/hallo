@@ -34,6 +34,7 @@
         'overflow':'hidden'
       @editable_element.css
         'opacity': '0.5'
+      jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element.parent().append @_create_overlay(@id)
       @textarea.focus()
