@@ -429,6 +429,12 @@ http://hallojs.org
             contents = @getContents()
             if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
                 @setContents @options.placeholder
+        store: () ->
+            if @options.store_callback
+              contents = @getContents()
+              if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
+                @setContents ''
+              @options.store_callback(@getContents())
 
         _activated: (event) ->
             if ( jQuery('.dropdown-form:visible').length )
