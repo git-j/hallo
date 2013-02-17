@@ -43,6 +43,10 @@
       #leave when navigation&control are pressed
       console.log(@options.editable.element[0].spellcheck,window.spellcheck,event.keyCode) if @debug
       return if ((event.keyCode >= 37 && event.keyCode <= 40 ) || event.keyCode == 17 || event.keyCode == 18 )
+      if event.keyCode == 13 || event.keyCode == 8 || event.keyCode == 46 
+        # remove underline when document structure would change return, backspace, delete
+        jQuery('.misspelled').remove()
+
       return if ( !window.spellcheck )
       return if ( !@options.editable.element[0].spellcheck )
       if ( @spellcheck_interval )
