@@ -134,6 +134,7 @@
 
     recalcHTML: (contentId) ->
       @html = @updateTableHTML(contentId)
+      @options.editable.store()
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
