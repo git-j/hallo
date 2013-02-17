@@ -49,6 +49,7 @@
 
       if @options.command
         @button.bind 'click', (event) =>
+          jQuery('.misspelled').remove()
           @options.editable.execute @options.command
           queryState
           return false

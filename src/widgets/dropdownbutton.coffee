@@ -27,6 +27,7 @@
       @button = @_prepareButton() unless @button
 
       @button.bind 'click', =>
+        jQuery('.misspelled').remove()
         if target.hasClass 'open'
           @_hideTarget()
           return
