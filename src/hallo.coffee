@@ -324,15 +324,14 @@ http://hallojs.org
 
         _keys: (event) ->
             widget = event.data
-            if event.keyCode == 27
-                old = widget.getContents()
-                widget.restoreOriginalContent(event)
-                widget._trigger "restored", null,
-                    editable: widget
-                    content: widget.getContents()
-                    thrown: old
-
-                widget.turnOff()
+            #if event.keyCode == 27
+            #    old = widget.getContents()
+            #    widget.restoreOriginalContent(event)
+            #    widget._trigger "restored", null,
+            #        editable: widget
+            #        content: widget.getContents()
+            #        thrown: old
+            #    widget.turnOff()
             if event.keyCode == 66 && event.ctrlKey #b
                 document.execCommand("bold",false)
             if event.keyCode == 73 && event.ctrlKey #i
