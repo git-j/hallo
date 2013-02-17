@@ -21,6 +21,7 @@
         'position': 'fixed'
         'z-index': 100000 # over toolbar
         'background': 'white'
+        'border':'2px solid silver'
 
     cancel: () ->
       console.log('cancel') if @debug
@@ -36,6 +37,7 @@
         'opacity': '0.5'
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
+      @editable_element = @options.editable.element
       @editable_element.parent().append @_create_overlay(@id)
       @textarea.focus()
       @_setup_syntax_highlight()
@@ -102,22 +104,22 @@
         width: @editable_element.width()
         height: @editable_element.height()
       dim.height = dim.height + ( @editable_element.offset().top - @toolbar.offset().top )
-      @options.overlayCss.height = dim.height
-      @options.overlayCss.width = dim.width
-      @options.overlayCss.top = @toolbar.offset().top
-      @options.overlayCss.left = @editable_element.offset().left
+      @options.overlayCss.height = $(window).height()
+      @options.overlayCss.width = $(window).width()
+      @options.overlayCss.top = 0
+      @options.overlayCss.left = 0
       @overlay.css @options.overlayCss
 
     _plain_resize: () ->
       height = $(window).height() - @toolbar.offset().top
       text_dim =
         'position': 'fixed'
-        'top': @editable_element.offset().top
-        'left': @editable_element.offset().left
-        'width': @editable_element.width()
-        'height': @editable_element.height() # TODO:center in window, does not work with large texts
-        'max-width': @editable_element.width()
-        'max-height': @editable_element.height()
+        'top': '34px'
+        'left': '8px'
+        'width': $(window).width()
+        'height': ($(window).height() - 48) + 'px'
+        'max-width':  $(window).width()
+        'max-height': $(window).height()
       @textarea.css text_dim
       if ( @plain_editor )
         @plain_editor.refresh()
