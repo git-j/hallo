@@ -113,7 +113,7 @@
       if path.indexOf("number_of_pages")==0
         try
           user_number = parseInt(data)
-          if data <= options.publication.number_of_pages
+          if user_number <= options.publication.number_of_pages
             jQuery('#' + path).attr('class','valid')
           else
             utils.error(utils.tr('number_of_pages not in range'));
