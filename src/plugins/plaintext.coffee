@@ -38,6 +38,7 @@
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element = @options.editable.element
+      console.log(@editable_element.html()) if debug
       @editable_element.parent().append @_create_overlay(@id)
       @textarea.focus()
       @_setup_syntax_highlight()
@@ -62,7 +63,7 @@
         button_label = window.action_list['hallojs_plaintext_' + name].title
         button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip
       btn = jQuery "<button class=\"action_button\" title=\"#{button_tooltip}\">#{button_label}</button>"
-      btn.bind 'click', event_handler
+      btn.on 'click', event_handler
       btn.addClass('action_button')
       btn
     _create_overlay: (id) ->
@@ -73,7 +74,7 @@
         @commit()
       @overlay.append @_create_plain(@editable_element.html())
       @_overlay_resize()
-      jQuery(window).bind 'resize', =>
+      jQuery(window).on 'resize', =>
         @_overlay_resize()
         @_plain_resize()
       @overlay
@@ -81,7 +82,7 @@
       @textarea = jQuery "<textarea></textarea>"
       @textarea.val(content)
       @_plain_resize()
-      @textarea.bind 'blur', =>
+      @textarea.on 'blur', =>
         @textarea.focus()
       @textarea
     _setup_syntax_highlight: () ->

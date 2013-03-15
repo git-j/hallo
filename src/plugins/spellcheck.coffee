@@ -27,14 +27,14 @@
       uuid: ''
       buttonCssClass: null
     _init: () ->
-      @options.editable.element.bind 'halloactivated', =>
+      @options.editable.element.on 'halloactivated', =>
         @enable()
 
     enable: () ->
       if ( !@spellcheck_proxy )
         @spellcheck_proxy = jQuery.proxy(@checkSpelling,this)
-      @options.editable.element.unbind('keydown click', @spellcheck_proxy)
-      @options.editable.element.bind('keydown click', @spellcheck_proxy)
+      @options.editable.element.off('keydown click', @spellcheck_proxy)
+      @options.editable.element.on('keydown click', @spellcheck_proxy)
       @initialized = true
       console.log(@initialized) if @debug
       return

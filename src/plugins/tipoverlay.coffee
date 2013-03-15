@@ -35,7 +35,7 @@
     bindEvents: () ->
       show_fn = jQuery.proxy @_show,@
       hide_fn = jQuery.proxy @_hide,@
-      jQuery(window).bind 'scroll', (ev) ->
+      jQuery(window).on 'scroll', (ev) ->
         hide_fn()
       can_edit = @options.can_edit
       jQuery(@options.selector).live 'mouseover', (ev) ->
@@ -54,7 +54,7 @@
     _hide: (cb) ->
       #debug.log('hide hallotip')
       if @tip_node && @tip_node.length
-        @tip_node.unbind()
+        @tip_node.off()
 
         @tip_node.fadeOut 100, () =>
           @tip_node.remove()
@@ -123,19 +123,19 @@
         node_unbind_ptr = null
         node_unbind = =>
           #console.log('unbind');
-          element.unbind 'mouseleave', node_unbind_ptr
+          element.off 'mouseleave', node_unbind_ptr
           if @node && @node.length && element[0] == @node[0]
             @can_hide = 2
             @_restartCheckHide()
         node_unbind_ptr = node_unbind
-        element.bind 'mouseleave', node_unbind_ptr
+        element.on 'mouseleave', node_unbind_ptr
 
         # bind events for the tip
-        @tip_node.bind 'mouseenter', () =>
+        @tip_node.on 'mouseenter', () =>
           @can_hide = 1
           @_restartCheckHide()
           @tip_node.animate({'opacity':'1'})
-        @tip_node.bind 'mouseleave', () =>
+        @tip_node.on 'mouseleave', () =>
           @can_hide = 2
           @_restartCheckHide()
           @tip_node.animate({'opacity':'0.6'})

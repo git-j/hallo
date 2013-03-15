@@ -77,7 +77,7 @@
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
+      target.on 'hide', =>
         jQuery('img').each (index,item) =>
           jQuery(item).removeAttr('id')
           jQuery(item).remove() if jQuery(item).attr('src') == ''
@@ -131,7 +131,7 @@
           el.find('input').val(default_value)
         recalc= =>
           @recalcHTML(contentId)
-        el.find('input').bind('keyup change',recalc)
+        el.find('input').on('keyup change',recalc)
 
         el
       addButton = (element,event_handler) =>
@@ -140,7 +140,7 @@
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
-        el.find('button').bind 'click', event_handler
+        el.find('button').on 'click', event_handler
         el
       contentAreaUL.append addInput("text", "url", "")
       contentAreaUL.append addInput("text", "alt", "")

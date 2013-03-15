@@ -31,21 +31,6 @@
       buttonset.append @dropdownform
       toolbar.append buttonset
 
-    _clean_nodes: (node,context) =>
-       #console.log(node) if @debug
-       if ( node[0].nodeType == 1 )
-         node.children().each (index,child_node) =>
-           cnode = jQuery(child_node)
-           #TODO: more attributes
-           cnode.removeAttr('style')
-           cnode.removeAttr('class')
-           cnode.removeAttr('contenteditable')
-           cnode.removeAttr('spellcheck')
-           cnode.removeAttr('id')
-           if ( cnode.is('acronym, applet, big, center, dir, font, frame, frameset, isindex, noframes, s, strike, tt, u') )
-             cnode = cnode.replaceWith(cnode.html())
-           context._clean_nodes(cnode,context)
-
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
       contentAreaUL = contentArea.find('ul')
@@ -61,38 +46,36 @@
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
-        el.find('button').bind 'click', event_handler
+        el.find('button').on 'click', event_handler
         el
       contentAreaUL.append addButton "clean_html", =>
         console.log('cleanhtml') if @debug
         jQuery('.misspelled').remove()
+        dom = new IDOM()
         #if @domnode
         #  @domnode.removeSourceDescriptions()
-        if utils
-          utils.removeForbiddenElements(@options.editable.element)
+        if dom
           #utils.removeBadAttributes(@options.editable.element)
           #utils.removeBadStyles(@options.editable.element)
           #utils.removeCites(@options.editable.element)
           #utils.
-          utils.fixNestedElements(@options.editable.element)
+          dom.fixNesting(@options.editable.element)
+          dom.fixDeprecated(@options.editable.element)
+          dom.fixAttributes(@options.editable.element)
+          @options.editable.element.html(@options.editable.element.html().replace(/&nbsp;/g,' '));
 
-        @options.editable.element.find('.cite').remove()
-        @_clean_nodes(@options.editable.element,@)
+        #@options.editable.element.find('.cite').remove()
         @dropdownform.hallodropdownform('hideForm')
         @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element)
+
+
       contentAreaUL.append addButton "clean_plain", =>
         jQuery('.misspelled').remove()
-        @options.editable.element.find('p,br,div').each (index, item) =>
-          jQuery(item).append('\n')
-        @options.editable.element.find('.cite').remove() # avoid leftover cites
-        plain = @options.editable.element.text()
-        plain = plain.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        plain = '<p>' + plain.replace(/\n/g,'</p>\n<p>') + '</p>'
-        plain = plain.replace(/<p><\/p>/g,'')
-        @options.editable.element.html(plain)
+        dom = new IDOM()
+        dom.plainTextParagraphs(@options.editable.element)
         @dropdownform.hallodropdownform('hideForm')
         @options.editable.store()
         nugget = new DOMNugget()

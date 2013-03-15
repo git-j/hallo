@@ -4,7 +4,7 @@
 #
 #     Fixed toolbar plugin
 ((jQuery) ->
-  jQuery.widget 'Hallo.halloToolbarAbsolute',
+  jQuery.widget 'IKS.halloToolbarAbsolute',
     toolbar: null
 
     options:
@@ -17,6 +17,7 @@
       @toolbar.show()
 
       jQuery(@options.parentElement).append @toolbar
+      
 
       @_bindEvents()
 
@@ -65,7 +66,7 @@
 
     _bindEvents: ->
       # catch deactivate -> remove/cleanup
-      @element.bind 'hallodeactivated', (event, data) =>
+      @element.on 'hallodeactivated', (event, data) =>
         @toolbar.remove()
         @destroy()
 ) jQuery

@@ -47,7 +47,7 @@ http://hallojs.org
   # When user activates an editable (usually by clicking or tabbing
   # to an editable element), a `halloactivated` event will be fired.
   #
-  #     jQuery('p').bind('halloactivated', function() {
+  #     jQuery('p').on('halloactivated', function() {
   #         console.log("Activated");
   #     });
   #
@@ -56,7 +56,7 @@ http://hallojs.org
   # When user gets out of an editable element, a `hallodeactivated`
   # event will be fired.
   #
-  #     jQuery('p').bind('hallodeactivated', function() {
+  #     jQuery('p').on('hallodeactivated', function() {
   #         console.log("Deactivated");
   #     });
   #
@@ -65,7 +65,7 @@ http://hallojs.org
   # When contents in an editable have been modified, a
   # `hallomodified` event will be fired.
   #
-  #     jQuery('p').bind('hallomodified', function(event, data) {
+  #     jQuery('p').on('hallomodified', function(event, data) {
   #         console.log("New contents are " + data.content);
   #     });
   #
@@ -76,17 +76,17 @@ http://hallojs.org
   # the cursor is in the editable element, a 'hallorestored' event will
   # be fired.
   #
-  #     jQuery('p').bind('hallorestored', function(event, data) {
+  #     jQuery('p').on('hallorestored', function(event, data) {
   #         console.log("The thrown contents are " + data.thrown);
   #         console.log("The restored contents are " + data.content);
   #     });
   #
-  jQuery.widget "IKS.hallo",
+  jQuery.widget 'IKS.hallo',
     toolbar: null
     bound: false
-    originalContent: ""
-    previousContent: ""
-    uuid: ""
+    originalContent: ''
+    previousContent: ''
+    uuid: ''
     selection: null
     _keepActivated: false
     originalHref: null
@@ -97,6 +97,9 @@ http://hallojs.org
       toolbar: 'halloToolbarContextual'
       parentElement: 'body'
       buttonCssClass: null
+      toolbarCssClass: null
+      toolbarPositionAbove: false
+      toolbarOptions: {}
       placeholder: ''
       forceStructured: true
       checkTouch: true
@@ -115,15 +118,11 @@ http://hallojs.org
           buttonCssClass: @options.buttonCssClass
         jQuery(@element)[plugin] options
 
-      @element.bind 'halloactivated', =>
-        # We will populate the toolbar when the
+      @element.one 'halloactivated', =>
+        # We will populate the toolbar the first time this
         # editable is activated. This will make multiple
         # Hallo instances on same page load much faster
         @_prepareToolbar()
-      @element.bind 'hallodeactivated', =>
-        # We will remove the toolbar from dom to keep
-        # the DOM clean
-        @_removeToolbar()
 
       @originalContent = @getContents()
 
@@ -133,18 +132,30 @@ http://hallojs.org
       else
         @disable()
 
+    destroy: ->
+      @disable()
+
+      if @toolbar
+        @toolbar.remove()
+        @element[@options.toolbar] 'destroy'
+
+      for plugin, options of @options.plugins
+        jQuery(@element)[plugin] 'destroy'
+
+      jQuery.Widget::destroy.call @
+
     # Disable an editable
     disable: ->
       @element.attr "contentEditable", false
-      @element.unbind "focus", @_activated
-      @element.unbind "blur", @_deactivated
-      @element.unbind "keyup paste change", @_checkModified
-      @element.unbind "keydown", @_syskeys
-      @element.unbind "keyup", @_keys
-      @element.unbind "keyup mouseup", @_checkSelection
+      @element.off "focus", @_activated
+      @element.off "blur", @_deactivated
+      @element.off "keyup paste change", @_checkModified
+      @element.off "keyup", @_keys
+      @element.off "keyup mouseup", @_checkSelection
       @bound = false
 
       jQuery(@element).removeClass 'isModified'
+      jQuery(@element).removeClass 'inEditMode'
 
       @element.parents('a').andSelf().each (idx, elem) =>
         element = jQuery elem
@@ -164,17 +175,18 @@ http://hallojs.org
 
       @element.attr "contentEditable", true
 
-      unless @element.html()
+      unless @element.html().trim()
         @element.html this.options.placeholder
+        @element.css
+          'min-width': @element.innerWidth()
+          'min-height': @element.innerHeight()
 
-      if not @bound
-        @element.bind "focus", this, @_activated
-        @element.bind "blur", this, @_deactivated
-        @element.bind "keyup paste change", this, @_checkModified
-        @element.bind "keydown", this, @_syskeys
-        @element.bind "keyup", this, @_keys
-        @element.bind "keyup mouseup", this, @_checkSelection
-        widget = this
+      unless @bound
+        @element.on "focus", this, @_activated
+        @element.on "blur", this, @_deactivated
+        @element.on "keyup paste change", this, @_checkModified
+        @element.on "keyup", this, @_keys
+        @element.on "keyup mouseup", this, @_checkSelection
         @bound = true
 
       @_forceStructured() if @options.forceStructured
@@ -187,7 +199,7 @@ http://hallojs.org
 
     # Checks whether the editable element contains the current selection
     containsSelection: ->
-      range=@getSelection()
+      range = @getSelection()
       return @element.has(range.startContainer).length > 0
 
     # Only supports one range for now (i.e. no multiselection)
@@ -201,11 +213,11 @@ http://hallojs.org
       return range
 
     restoreSelection: (range) ->
-      sel=rangy.getSelection()
+      sel = rangy.getSelection()
       sel.setSingleRange(range)
 
     replaceSelection: (cb) ->
-      if ( jQuery.browser.msie )
+      if navigator.appName is 'Microsoft Internet Explorer'
         t = document.selection.createRange().text;
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
@@ -219,7 +231,7 @@ http://hallojs.org
         sel.addRange(range);
 
     replaceSelectionHTML: (cb) ->
-      if ( jQuery.browser.msie )
+      if navigator.appName is 'Microsoft Internet Explorer'
         t = document.selection.createRange().text;
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
@@ -240,7 +252,7 @@ http://hallojs.org
         sel.addRange(range);
 
     removeAllSelections: () ->
-      if ( jQuery.browser.msie )
+      if navigator.appName is 'Microsoft Internet Explorer'
         range.empty()
       else
         window.getSelection().removeAllRanges()
@@ -250,7 +262,8 @@ http://hallojs.org
       # clone
       contentClone = @element.clone()
       for plugin of @options.plugins
-        continue unless jQuery.isFunction jQuery(@element).data(plugin)['cleanupContentClone']
+        #cleanup = jQuery(@element).data('IKS-'+plugin).cleanupContentClone
+        #continue unless jQuery.isFunction cleanup
         jQuery(@element)[plugin] 'cleanupContentClone', contentClone
       contentClone.html()
 
@@ -265,6 +278,7 @@ http://hallojs.org
 
     # Set the editable as unmodified
     setUnmodified: ->
+      jQuery(@element).removeClass 'isModified'
       @previousContent = @getContents()
 
     # Set the editable as modified
@@ -284,14 +298,11 @@ http://hallojs.org
         @element.trigger "change"
 
     protectFocusFrom: (el) ->
-      widget = @
-      el.bind "mousedown", (event) ->
-        if ( jQuery('.dropdown-form:visible').length )
-          return
+      el.on "mousedown", (event) =>
         event.preventDefault()
-        widget._protectToolbarFocus = true
-        setTimeout ->
-          widget._protectToolbarFocus = false
+        @_protectToolbarFocus = true
+        setTimeout =>
+          @_protectToolbarFocus = false
         , 300
 
     keepActivated: (@_keepActivated) ->
@@ -302,21 +313,38 @@ http://hallojs.org
       "#{S4()}#{S4()}-#{S4()}-#{S4()}-#{S4()}-#{S4()}#{S4()}#{S4()}"
 
     _prepareToolbar: ->
-      @toolbar = jQuery('<div class="hallotoolbar"></div>')
+      @toolbar = jQuery('<div class="hallotoolbar"></div>').hide()
+      @toolbar.addClass @options.toolbarCssClass if @options.toolbarCssClass
 
-      jQuery(@element)[@options.toolbar]
+      defaults =
         editable: @
         parentElement: @options.parentElement
         toolbar: @toolbar
-      jQuery(@element)[@options.toolbar]('_create') if jQuery(@element)[@options.toolbar]
-      for plugin of @options.plugins
-        jQuery(@element)[plugin] 'populateToolbar', @toolbar
+        positionAbove: @options.toolbarPositionAbove
 
-      jQuery(@element)[@options.toolbar] 'setPosition'
+      toolbarOptions = $.extend({}, defaults, @options.toolbarOptions)
+      @element[@options.toolbar] toolbarOptions
+
+      for plugin of @options.plugins
+        populate = jQuery(@element).data('IKS-'+plugin).populateToolbar
+        continue unless jQuery.isFunction populate
+        @element[plugin] 'populateToolbar', @toolbar
+
+      @element[@options.toolbar] 'setPosition'
       @protectFocusFrom @toolbar
 
-    _removeToolbar: ->
-      @toolbar.remove() if ( @toolbar )
+    changeToolbar: (element, toolbar, hide = false) ->
+      originalToolbar = @options.toolbar
+
+      @options.parentElement = element
+      @options.toolbar = toolbar if toolbar
+
+      return unless @toolbar
+      @element[originalToolbar] 'destroy'
+      do @toolbar.remove
+      do @_prepareToolbar
+
+      @toolbar.hide() if hide
 
     _checkModified: (event) ->
       widget = event.data
@@ -324,45 +352,25 @@ http://hallojs.org
 
     _keys: (event) ->
       widget = event.data
-      #if event.keyCode == 27
-      #    old = widget.getContents()
-      #    widget.restoreOriginalContent(event)
-      #    widget._trigger "restored", null,
-      #        editable: widget
-      #        content: widget.getContents()
-      #        thrown: old
-      #    widget.turnOff()
-      if event.keyCode == 66 && event.ctrlKey #b
-          document.execCommand("bold",false)
-      if event.keyCode == 73 && event.ctrlKey #i
-          document.execCommand("italic",false)
-      if event.keyCode == 85 && event.ctrlKey #u
-          document.execCommand("underline",false)
+      if event.keyCode == 27
+        old = widget.getContents()
+        widget.restoreOriginalContent(event)
+        widget._trigger "restored", null,
+          editable: widget
+          content: widget.getContents()
+          thrown: old
 
-    _syskeys: (event) ->
-      widget = event.data
-      if event.keyCode == 9 && !event.shiftKey  #tab
-        range = window.getSelection().getRangeAt()
-        li = $(range.startContainer).closest('li')
-        li = $(range.endContainer).closest('li') if !li.length
-        if ( li.length )
-          return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
-          document.execCommand("indent",false)
-          event.preventDefault()
-      if event.keyCode == 9 && event.shiftKey  #shift+tab
-        range = window.getSelection().getRangeAt()
-        li = $(range.startContainer).closest('li')
-        li = $(range.endContainer).closest('li') if !li.length
-        if ( li.length )
-          return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
-          document.execCommand("outdent",false)
-          event.preventDefault()
+        widget.turnOff()
 
     _rangesEqual: (r1, r2) ->
-      r1.startContainer is r2.startContainer and r1.startOffset is r2.startOffset and r1.endContainer is r2.endContainer and r1.endOffset is r2.endOffset
+      return false unless r1.startContainer is r2.startContainer
+      return false unless r1.startOffset is r2.startOffset
+      return false unless r1.endContainer is r2.endContainer
+      return false unless r1.endOffset is r2.endOffset
+      true
 
-    # Check if some text is selected, and if this selection has changed. If it changed,
-    # trigger the "halloselected" event
+    # Check if some text is selected, and if this selection has changed.
+    # If it changed, trigger the "halloselected" event
     _checkSelection: (event) ->
       if event.keyCode == 27
         return
@@ -371,7 +379,7 @@ http://hallojs.org
 
       # The mouseup event triggers before the text selection is updated.
       # I did not find a better solution than setTimeout in 0 ms
-      setTimeout ()->
+      setTimeout ->
         sel = widget.getSelection()
         if widget._isEmptySelection(sel) or widget._isEmptyRange(sel)
           if widget.selection
@@ -382,7 +390,7 @@ http://hallojs.org
           return
 
         if !widget.selection or not widget._rangesEqual sel, widget.selection
-          widget.selection = sel.cloneRange();
+          widget.selection = sel.cloneRange()
           widget._trigger "selected", null,
             editable: widget
             selection: widget.selection
@@ -393,7 +401,6 @@ http://hallojs.org
     _isEmptySelection: (selection) ->
       if selection.type is "Caret"
         return true
-
       return false
 
     _isEmptyRange: (range) ->
@@ -418,7 +425,7 @@ http://hallojs.org
           window.getSelection().addRange(new_range);
         window.setTimeout(force_focus,1)
       jQuery(@element).addClass 'inEditMode'
-      @_trigger "activated", @
+      @_trigger "activated", null, @
 
     turnOff: () ->
       jQuery(@element).removeClass 'inEditMode'

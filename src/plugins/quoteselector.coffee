@@ -44,11 +44,11 @@
       @widget.append('<button class="quote_selector_next action_button">' + utils.tr('next') + '</button>');
       @widget.append('<button class="quote_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
-      @widget.find('.quote_selector_back').bind 'click', =>
+      @widget.find('.quote_selector_back').on 'click', =>
         @back()
-      @widget.find('.quote_selector_next').bind 'click', =>
+      @widget.find('.quote_selector_next').on 'click', =>
         @next()
-      @widget.find('.quote_selector_apply').bind 'click', =>
+      @widget.find('.quote_selector_apply').on 'click', =>
         @apply()
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
@@ -139,7 +139,7 @@
         if ( node_data && node_data.indexOf('<![CDATA[') >= 0 )
           node_data = utils.replaceCDATA(node_data)
         content.html(node_data);
-        content.bind 'keyup keydown', (event) =>
+        content.on 'keyup keydown', (event) =>
           event.preventDefault()
           return false
         content.find('.name').hide()
@@ -187,7 +187,7 @@
 
     _createInput: (identifier, label, value) ->
       input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
-      input.find('input').bind 'blur', (event) =>
+      input.find('input').on 'blur', (event) =>
         @_formChanged(event,@options)
       input
     _formChanged: (event, options) ->

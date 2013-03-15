@@ -84,7 +84,7 @@
           el.attr("disabled","disabled")
           el.addClass 'used'
       this_editable = @options.editable
-      el.bind "click", (ev) =>
+      el.on "click", (ev) =>
         if element == '__associate'
           this_editable.replaceSelectionHTML @_keep_selection_replace_callback
           window.__start_mini_activity = true
