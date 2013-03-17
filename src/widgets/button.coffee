@@ -31,10 +31,10 @@
       @button.data 'hallo-command', @options.command
 
       hoverclass = 'ui-state-hover'
-      @button.on 'mouseenter', (event) =>
+      @button.bind 'mouseenter', (event) =>
         if @isEnabled()
           @button.addClass hoverclass
-      @button.on 'mouseleave', (event) =>
+      @button.bind 'mouseleave', (event) =>
         @button.removeClass hoverclass
 
     _init: ->
@@ -48,7 +48,7 @@
           return
 
       if @options.command
-        @button.on 'click', (event) =>
+        @button.bind 'click', (event) =>
           jQuery('.misspelled').remove()
           @options.editable.execute @options.command
           queryState
@@ -57,11 +57,11 @@
       return unless @options.queryState
 
       editableElement = @options.editable.element
-      editableElement.on 'keyup paste change mouseup hallomodified', queryState
-      editableElement.on 'halloenabled', =>
-        editableElement.on 'keyup paste change mouseup hallomodified', queryState
-      editableElement.on 'hallodisabled', =>
-        editableElement.off 'keyup paste change mouseup hallomodified', queryState
+      editableElement.bind 'keyup paste change mouseup hallomodified', queryState
+      editableElement.bind 'halloenabled', =>
+        editableElement.bind 'keyup paste change mouseup hallomodified', queryState
+      editableElement.bind 'hallodisabled', =>
+        editableElement.unbind 'keyup paste change mouseup hallomodified', queryState
 
     enable: ->
       @button.removeAttr 'disabled'

@@ -41,13 +41,13 @@
         unless containingElement is 'div'
           el.addClass 'disabled'
 
-        el.on 'click', =>
+        el.bind 'click', =>
           if el.hasClass 'disabled'
             return
           if element == 'none'
             @options.editable.execute 'removeFormat'
             return
-          if jQuery.browser.msie
+          if navigator.appName is 'Microsoft Internet Explorer'
             @options.editable.execute 'FormatBlock', '<'+element.toUpperCase()+'>'
           else
             @options.editable.execute 'formatBlock', element.toUpperCase()
@@ -60,12 +60,12 @@
           el.removeClass 'selected'
           
           
-        @options.editable.element.on 'keyup paste change mouseup', queryState
+        @options.editable.element.bind 'keyup paste change mouseup', queryState
 
-        @options.editable.element.on 'halloenabled', =>
-          @options.editable.element.on 'keyup paste change mouseup', queryState
-        @options.editable.element.on 'hallodisabled', =>
-          @options.editable.element.off 'keyup paste change mouseup', queryState
+        @options.editable.element.bind 'halloenabled', =>
+          @options.editable.element.bind 'keyup paste change mouseup', queryState
+        @options.editable.element.bind 'hallodisabled', =>
+          @options.editable.element.unbind 'keyup paste change mouseup', queryState
 
         el
 

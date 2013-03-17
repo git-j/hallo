@@ -34,9 +34,9 @@
       @widget.append('<button class="publication_selector_back view_button">' + utils.tr('back') + '</button>');
       @widget.append('<button class="publication_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
-      @widget.find('.publication_selector_back').on 'click', =>
+      @widget.find('.publication_selector_back').bind 'click', =>
         @back()
-      @widget.find('.publication_selector_apply').on 'click', =>
+      @widget.find('.publication_selector_apply').bind 'click', =>
         @apply()
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
@@ -58,9 +58,11 @@
       publication_loid = @current_node.replace(/node_/,'')
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)
-      dfo.fail(console.log)
+      dfo.fail (error) =>
+        @widget.remove()
+        jQuery('body').css({'overflow':'auto'})
       #tmp_id is used to identify new sourcedescription after it has been inserted for further editing
-      tmp_id='tmp_' + (new Date()).getTime()
+      tmp_id = 'tmp_' + (new Date()).getTime()
       dfo.done (result) =>
         data = result.loid
         element = @current_node_label
@@ -119,7 +121,7 @@
 
     _createInput: (identifier, label, value) ->
       input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
-      input.find('input').on 'blur', (event) =>
+      input.find('input').bind 'blur', (event) =>
         @_formChanged(event,@options)
       input
     _formChanged: (event, options) ->

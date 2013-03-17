@@ -63,13 +63,13 @@
               $('#' + contentId + 'heading').attr('checked',heading)
         else
           #create
-          table_placeholder='<table id="' + @tmpid + '" border="1" class="table-border"></table>'
+          table_placeholder = '<table id="' + @tmpid + '" border="1" class="table-border"></table>'
           document.execCommand('insertHTML',false,table_placeholder)
         recalc = =>
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
-      target.on 'hide', =>
+      target.bind 'hide', =>
         jQuery('table').each (index,item) =>
           jQuery(item).removeAttr('id')
       buttonset.append @dropdownform
@@ -150,7 +150,7 @@
           el.find('input').val(default_value)
         recalc= =>
           @recalcHTML(contentId)
-        el.find('input').on('keyup change',recalc)
+        el.find('input').bind('keyup change',recalc)
 
         el
       addButton = (element,event_handler) =>
@@ -159,7 +159,7 @@
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
-        el.find('button').on 'click', event_handler
+        el.find('button').bind 'click', event_handler
         el
       contentAreaUL.append addInput("text", "rows","3")
       contentAreaUL.append addInput("text", "cols","3")

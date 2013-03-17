@@ -47,7 +47,7 @@ http://hallojs.org
   # When user activates an editable (usually by clicking or tabbing
   # to an editable element), a `halloactivated` event will be fired.
   #
-  #     jQuery('p').on('halloactivated', function() {
+  #     jQuery('p').bind('halloactivated', function() {
   #         console.log("Activated");
   #     });
   #
@@ -56,7 +56,7 @@ http://hallojs.org
   # When user gets out of an editable element, a `hallodeactivated`
   # event will be fired.
   #
-  #     jQuery('p').on('hallodeactivated', function() {
+  #     jQuery('p').bind('hallodeactivated', function() {
   #         console.log("Deactivated");
   #     });
   #
@@ -65,7 +65,7 @@ http://hallojs.org
   # When contents in an editable have been modified, a
   # `hallomodified` event will be fired.
   #
-  #     jQuery('p').on('hallomodified', function(event, data) {
+  #     jQuery('p').bind('hallomodified', function(event, data) {
   #         console.log("New contents are " + data.content);
   #     });
   #
@@ -76,7 +76,7 @@ http://hallojs.org
   # the cursor is in the editable element, a 'hallorestored' event will
   # be fired.
   #
-  #     jQuery('p').on('hallorestored', function(event, data) {
+  #     jQuery('p').bind('hallorestored', function(event, data) {
   #         console.log("The thrown contents are " + data.thrown);
   #         console.log("The restored contents are " + data.content);
   #     });
@@ -118,7 +118,7 @@ http://hallojs.org
           buttonCssClass: @options.buttonCssClass
         jQuery(@element)[plugin] options
 
-      @element.one 'halloactivated', =>
+      @element.bind 'halloactivated', =>
         # We will populate the toolbar the first time this
         # editable is activated. This will make multiple
         # Hallo instances on same page load much faster
@@ -147,11 +147,11 @@ http://hallojs.org
     # Disable an editable
     disable: ->
       @element.attr "contentEditable", false
-      @element.off "focus", @_activated
-      @element.off "blur", @_deactivated
-      @element.off "keyup paste change", @_checkModified
-      @element.off "keyup", @_keys
-      @element.off "keyup mouseup", @_checkSelection
+      @element.unbind "focus", @_activated
+      @element.unbind "blur", @_deactivated
+      @element.unbind "keyup paste change", @_checkModified
+      @element.unbind "keyup", @_keys
+      @element.unbind "keyup mouseup", @_checkSelection
       @bound = false
 
       jQuery(@element).removeClass 'isModified'
@@ -182,11 +182,11 @@ http://hallojs.org
           'min-height': @element.innerHeight()
 
       unless @bound
-        @element.on "focus", this, @_activated
-        @element.on "blur", this, @_deactivated
-        @element.on "keyup paste change", this, @_checkModified
-        @element.on "keyup", this, @_keys
-        @element.on "keyup mouseup", this, @_checkSelection
+        @element.bind "focus", this, @_activated
+        @element.bind "blur", this, @_deactivated
+        @element.bind "keyup paste change", this, @_checkModified
+        @element.bind "keyup", this, @_keys
+        @element.bind "keyup mouseup", this, @_checkSelection
         @bound = true
 
       @_forceStructured() if @options.forceStructured
@@ -262,8 +262,8 @@ http://hallojs.org
       # clone
       contentClone = @element.clone()
       for plugin of @options.plugins
-        #cleanup = jQuery(@element).data('IKS-'+plugin).cleanupContentClone
-        #continue unless jQuery.isFunction cleanup
+        cleanup = jQuery(@element).data(plugin).cleanupContentClone
+        continue unless jQuery.isFunction cleanup
         jQuery(@element)[plugin] 'cleanupContentClone', contentClone
       contentClone.html()
 
@@ -298,7 +298,7 @@ http://hallojs.org
         @element.trigger "change"
 
     protectFocusFrom: (el) ->
-      el.on "mousedown", (event) =>
+      el.bind "mousedown", (event) =>
         event.preventDefault()
         @_protectToolbarFocus = true
         setTimeout =>
@@ -326,7 +326,7 @@ http://hallojs.org
       @element[@options.toolbar] toolbarOptions
 
       for plugin of @options.plugins
-        populate = jQuery(@element).data('IKS-'+plugin).populateToolbar
+        populate = jQuery(@element).data(plugin).populateToolbar
         continue unless jQuery.isFunction populate
         @element[plugin] 'populateToolbar', @toolbar
 

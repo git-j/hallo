@@ -65,7 +65,7 @@
         str_html_buttons+='<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>'
         @widget.append('<div>' + str_html_buttons + '</div>')
         jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
-        jQuery('#sourcedescriptioneditor_selectable').on 'change', (ev) =>
+        jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
           new_input = jQuery(ev.target).val()
           return if ( new_input == '' )
           input = @_createInput(new_input,sdi.description[new_input].label,'');
@@ -77,7 +77,7 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('#sourcedescriptioneditor_selectable').html(@selectables )
           jQuery('#sourcedescriptioneditor_selectable').selectBox()
-        jQuery('#sourcedescriptioneditor_apply').on 'click', =>
+        jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
           jQuery.each @options.values, (key, value) =>
             omc.storePublicationDescriptionAttribute(@options.loid,key,value)
@@ -89,7 +89,7 @@
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
 
-        jQuery('#sourcedescriptioneditor_back').on 'click', =>
+        jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
@@ -110,7 +110,7 @@
         fn_update_select = () =>
           window.setTimeout fn_dp_show, 100
         dp = input.find('input').datepicker({showOn: "button", onChangeMonthYear: fn_update_select, beforeShow: fn_update_select, buttonImage: "../icons/actions/datepicker-p.png", buttonImageOnly: true, dateFormat: "yy-mm-dd", changeMonth: false, changeYear: false, constrainInput: false})
-      input.find('input').on 'blur', (event) =>
+      input.find('input').bind 'blur', (event) =>
         @_formChanged(event,@options)
       input
     _formChanged: (event, options) ->

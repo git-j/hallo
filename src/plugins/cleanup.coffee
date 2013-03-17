@@ -46,7 +46,7 @@
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
-        el.find('button').on 'click', event_handler
+        el.find('button').bind 'click', event_handler
         el
       contentAreaUL.append addButton "clean_html", =>
         console.log('cleanhtml') if @debug

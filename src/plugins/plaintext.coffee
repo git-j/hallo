@@ -63,7 +63,7 @@
         button_label = window.action_list['hallojs_plaintext_' + name].title
         button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip
       btn = jQuery "<button class=\"action_button\" title=\"#{button_tooltip}\">#{button_label}</button>"
-      btn.on 'click', event_handler
+      btn.bind 'click', event_handler
       btn.addClass('action_button')
       btn
     _create_overlay: (id) ->
@@ -74,7 +74,7 @@
         @commit()
       @overlay.append @_create_plain(@editable_element.html())
       @_overlay_resize()
-      jQuery(window).on 'resize', =>
+      jQuery(window).bind 'resize', =>
         @_overlay_resize()
         @_plain_resize()
       @overlay
@@ -82,7 +82,7 @@
       @textarea = jQuery "<textarea></textarea>"
       @textarea.val(content)
       @_plain_resize()
-      @textarea.on 'blur', =>
+      @textarea.bind 'blur', =>
         @textarea.focus()
       @textarea
     _setup_syntax_highlight: () ->
@@ -93,7 +93,7 @@
          'lineWrapping': true
        #@plain_editor = CodeMirror.fromTextArea(@textarea[0], editor_options)
        #hlLine = editor.addLineClass(0, "background", "activeline")
-       #@plain_editor.on "cursorActivity", =>
+       #@plain_editor.bind "cursorActivity", =>
        #  cur = editor.getLineHandle(editor.getCursor().line)
        #  if (cur != hlLine)
        #    editor.removeLineClass(hlLine, "background", "activeline")

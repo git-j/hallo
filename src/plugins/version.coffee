@@ -68,7 +68,7 @@
       el.addClass "selected" if version && @options.current_version == version.variant_loid
       el.addClass "version" if version
       this_editable = @options.editable
-      el.on "click", (ev) =>
+      el.bind "click", (ev) =>
         nugget = new DOMNugget();
         if ( element == 'new version' )
           @options.editable.element.blur()

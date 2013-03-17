@@ -26,14 +26,14 @@
       target.hide()
       @button = @_prepareButton() unless @button
 
-      @button.on 'click', =>
+      @button.bind 'click', =>
         jQuery('.misspelled').remove()
         if target.hasClass 'open'
           @_hideTarget()
           return
         @_showTarget()
 
-      @options.editable.element.on 'hallodeactivated', =>
+      @options.editable.element.bind 'hallodeactivated', =>
         @_hideTarget()
 
       @element.append @button
@@ -48,7 +48,7 @@
       target.addClass 'open'
       target.show()
       target.find('input:first').focus()
-      target.on 'hide', =>
+      target.bind 'hide', =>
         @_hideTarget()
 
     _hideTarget: ->

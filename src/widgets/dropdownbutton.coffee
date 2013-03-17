@@ -26,17 +26,17 @@
       target.hide()
       @button = @_prepareButton() unless @button
 
-      @button.on 'click', =>
+      @button.bind 'click', =>
         jQuery('.misspelled').remove()
         if target.hasClass 'open'
           @_hideTarget()
           return
         @_showTarget()
 
-      target.on 'click', =>
+      target.bind 'click', =>
         @_hideTarget()
 
-      @options.editable.element.on 'hallodeactivated', =>
+      @options.editable.element.bind 'hallodeactivated', =>
         @_hideTarget()
 
       @element.append @button
@@ -49,7 +49,7 @@
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()
-      target.on 'hide', =>
+      target.bind 'hide', =>
         @_hideTarget()
 
 

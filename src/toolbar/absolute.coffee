@@ -15,10 +15,7 @@
     _create: ->
       @toolbar = @options.toolbar
       @toolbar.show()
-
       jQuery(@options.parentElement).append @toolbar
-      
-
       @_bindEvents()
 
       jQuery(window).resize (event) =>
@@ -66,7 +63,7 @@
 
     _bindEvents: ->
       # catch deactivate -> remove/cleanup
-      @element.on 'hallodeactivated', (event, data) =>
+      @element.bind 'hallodeactivated', (event, data) =>
         @toolbar.remove()
         @destroy()
 ) jQuery
