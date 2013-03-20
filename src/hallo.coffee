@@ -362,6 +362,42 @@ http://hallojs.org
 
         widget.turnOff()
 
+    _keys: (event) ->
+      widget = event.data
+      #if event.keyCode == 27
+      #    old = widget.getContents()
+      #    widget.restoreOriginalContent(event)
+      #    widget._trigger "restored", null,
+      #        editable: widget
+      #        content: widget.getContents()
+      #        thrown: old
+      #    widget.turnOff()
+      if event.keyCode == 66 && event.ctrlKey #b
+          document.execCommand("bold",false)
+      if event.keyCode == 73 && event.ctrlKey #i
+          document.execCommand("italic",false)
+      if event.keyCode == 85 && event.ctrlKey #u
+          document.execCommand("underline",false)
+
+    _syskeys: (event) ->
+      widget = event.data
+      if event.keyCode == 9 && !event.shiftKey  #tab
+        range = window.getSelection().getRangeAt()
+        li = $(range.startContainer).closest('li')
+        li = $(range.endContainer).closest('li') if !li.length
+        if ( li.length )
+          return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
+          document.execCommand("indent",false)
+          event.preventDefault()
+      if event.keyCode == 9 && event.shiftKey  #shift+tab
+        range = window.getSelection().getRangeAt()
+        li = $(range.startContainer).closest('li')
+        li = $(range.endContainer).closest('li') if !li.length
+        if ( li.length )
+          return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
+          document.execCommand("outdent",false)
+          event.preventDefault()
+
     _rangesEqual: (r1, r2) ->
       return false unless r1.startContainer is r2.startContainer
       return false unless r1.startOffset is r2.startOffset
