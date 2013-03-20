@@ -41,18 +41,20 @@
         if ( @cur_hyperlink && @cur_hyperlink.length )
           #modify
           url = @cur_hyperlink.attr('href')
-          title = @cur_hyperlink.attr('title')
-          label = @cur_hyperlink.text()
+          notes = @cur_hyperlink.attr('title')
+          title = @cur_hyperlink.text()
           $('#' + contentId + 'url').val(url)
+          $('#' + contentId + 'notes').val(notes)
           $('#' + contentId + 'title').val(title)
-          $('#' + contentId + 'label').val(label)
         else
           cur_selection = jQuery(range.extractContents()).text()
-          @cur_hyperlink = jQuery('<a href="https://refeus.de" title="" id="' + @tmpid + '"">' + cur_selection + '</a>');
+          if ( cur_selection == '' ) 
+            cur_selection = utils.tr('no title provided')
+          @cur_hyperlink = jQuery('<a href="https://refeus.de" id="' + @tmpid + '">' + cur_selection + '</a>');
           range.insertNode(@cur_hyperlink[0]);
           $('#' + contentId + 'url').val(@cur_hyperlink.attr('href'))
-          $('#' + contentId + 'title').val("")
-          $('#' + contentId + 'label').val(cur_selection) #TODO: current selection
+          $('#' + contentId + 'notes').val("")
+          $('#' + contentId + 'title').val(cur_selection)
           #console.log(@cur_hyperlink)
           @updateHyperlinkHTML(contentId)
         recalc = =>
@@ -60,21 +62,22 @@
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
       target.bind 'hide', =>
-        jQuery('img').each (index,item) =>
+        jQuery('a').each (index,item) =>
           jQuery(item).removeAttr('id')
-          jQuery(item).remove() if jQuery(item).attr('src') == ''
+
+          jQuery(item).remove() if jQuery(item).attr('href') == ''
       buttonset.append @dropdownform
       toolbar.append buttonset
 
     updateHyperlinkHTML: (contentId) ->
       hyperlink = $('#' + @tmpid)
       url = $('#' + contentId + 'url').val();
+      notes = $('#' + contentId + 'notes').val();
       title = $('#' + contentId + 'title').val();
-      label = $('#' + contentId + 'label').val();
       #console.log(url)
       hyperlink.attr('href',url)
-      hyperlink.attr('title',title)
-      hyperlink.text(label)
+      hyperlink.attr('title',notes)
+      hyperlink.text(title)
       return hyperlink[0].outerHTML #?
 
     recalcHTML: (contentId) ->
@@ -121,12 +124,16 @@
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
         window.getSelection().removeAllRanges()
+        modified = false
+        if ( $('#' + @tmpid).text() != utils.tr('no title provided') )
+            modified = true
         range = document.createRange()
         range.selectNode($('#' + @tmpid)[0])
         range_contents = jQuery(range.extractContents()).text();
         window.getSelection().addRange(range)
         range.deleteContents();
-        range.insertNode($('<span>' + range_contents + '</span>')[0])
+        if ( modified )
+          range.insertNode($('<span>' + range_contents + '</span>')[0])
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 
