@@ -151,6 +151,7 @@ http://hallojs.org
       @element.unbind "blur", @_deactivated
       @element.unbind "keyup paste change", @_checkModified
       @element.unbind "keyup", @_keys
+      @element.unbind "keydown", @_syskeys
       @element.unbind "keyup mouseup", @_checkSelection
       @bound = false
 
@@ -186,6 +187,7 @@ http://hallojs.org
         @element.bind "blur", this, @_deactivated
         @element.bind "keyup paste change", this, @_checkModified
         @element.bind "keyup", this, @_keys
+        @element.bind "keydown", this, @_syskeys
         @element.bind "keyup mouseup", this, @_checkSelection
         @bound = true
 
@@ -349,18 +351,6 @@ http://hallojs.org
     _checkModified: (event) ->
       widget = event.data
       widget.setModified() if widget.isModified()
-
-    _keys: (event) ->
-      widget = event.data
-      if event.keyCode == 27
-        old = widget.getContents()
-        widget.restoreOriginalContent(event)
-        widget._trigger "restored", null,
-          editable: widget
-          content: widget.getContents()
-          thrown: old
-
-        widget.turnOff()
 
     _keys: (event) ->
       widget = event.data
