@@ -9,6 +9,8 @@
       uuid: ''
       elements: [
         'new version'
+        'update from manage'
+        'update to manage'
       ]
       buttonCssClass: null
       current_version: null
@@ -20,15 +22,15 @@
     populateToolbar: (toolbar) ->
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       @options.in_document = @options.editable.element.closest('.Document').length > 0
-      return if ( @options.in_document )
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       setup= =>
         nugget = new DOMNugget()
         target.find('.version').remove()
+        return if @options.in_document
         @options.current_version = @options.editable.element.closest('.nugget').attr('id');
-        @options.in_document = @options.editable.element.closest('.Document').length > 0
         versions = nugget.getNuggetVersions(@options.editable.element)
+
         if versions.version
           display_name = versions.version.display_name
           target.append(@_addElement(display_name,versions.version))
@@ -50,6 +52,9 @@
       contentArea = jQuery "<div id=\"#{contentId}\"></div>"
 
       for element in @options.elements
+        if !@options.in_document
+          continue if element == 'update to manage'
+          continue if element == 'update from manage'
         el = @_addElement(element)
         contentArea.append el if el
       contentArea
@@ -58,11 +63,17 @@
       #console.log(element,version)
       element_text = element
       if ( element_text == 'new version' )
-        if ( window.action_list && window.action_list['hallojs_versionnew'] != undefined )
-          element_text =  window.action_list['hallojs_versionnew'].title
+        if ( window.action_list && window.action_list['hallojs_version_new_version'] != undefined )
+          element_text =  window.action_list['hallojs_version_new_version'].title
       if ( element_text == 'current version' )
-        if ( window.action_list && window.action_list['hallojs_versioncurrent'] != undefined )
-          element_text =  window.action_list['hallojs_versioncurrent'].title
+        if ( window.action_list && window.action_list['hallojs_version_current_version'] != undefined )
+          element_text =  window.action_list['hallojs_version_current_version'].title
+      if ( element_text == 'update to manage' )
+        if ( window.action_list && window.action_list['hallojs_version_update_to_manage'] != undefined )
+          element_text =  window.action_list['hallojs_version_update_to_manage'].title
+      if ( element_text == 'update from manage' )
+        if ( window.action_list && window.action_list['hallojs_version_update_from_manage'] != undefined )
+          element_text =  window.action_list['hallojs_version_update_from_manage'].title
       if ( element_text.length > 40 )
         element_text = element_text.substr(0,20) + '...' + element_text.substr(element_text.length-20,20)
       el = jQuery "<button class=\"version-selector\">#{element_text}</button>"
@@ -70,15 +81,29 @@
       el.addClass "version" if version
       this_editable = @options.editable
       el.bind "click", (ev) =>
-        nugget = new DOMNugget();
+        nugget = new DOMNugget()
         if ( element == 'new version' )
           @options.editable.element.blur()
-          make_current = !@options.in_document # do not make the new version current when editable is in document
+          make_current = true
+          if (@options.in_document)
+            make_current = false
           nugget.createNewVersion(@options.editable.element.closest('.nugget').attr('id'),@options.editable.element.html(),make_current).done (new_version) =>
             nugget.loadVersion(@options.editable.element,new_version.variant.loid).done =>
               nugget.updateSourceDescriptionData(@options.editable.element).done =>
                 nugget.resetCitations(@options.editable.element)
                 @options.editable.element.focus()
+        else if ( element == 'update from manage' )
+          @options.editable.element.blur()
+          content_loid = @options.editable.element.closest('.nugget').closest('.content').attr('id')
+          section_loid = @options.editable.element.closest('.nugget').closest('.Section').attr('id')
+          nugget.updateVersionReferenceFromVariation(section_loid,content_loid).done () =>
+            window.wkej.instance.SetModified()
+
+        else if ( element == 'update to manage' )
+          @options.editable.element.blur()
+          content_loid = @options.editable.element.closest('.nugget').closest('.content').attr('id')
+          nugget.updateVariationFromVersionReference(content_loid).done () =>
+            @options.editable.element.focus()
         else
           @options.editable.element.blur()
           nugget.loadVersion(@options.editable.element,version.variant_loid).done =>
