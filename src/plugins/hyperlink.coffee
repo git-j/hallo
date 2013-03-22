@@ -13,12 +13,10 @@
       editable: null
       toolbar: null
       uuid: ''
-      elements: [
-        'rows'
-        'cols'
-        'border'
-      ]
       buttonCssClass: null
+      edit_url: true
+      edit_title: true
+      use_form: false
 
     populateToolbar: (toolbar) ->
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
@@ -36,17 +34,19 @@
           if ( sel.containsNode(item,true) )
             @cur_hyperlink = jQuery(item)
             @cur_hyperlink.attr('id',@tmpid)
-            @action = 'update'
+            @action = 'modify'
             return false # break
         if ( @cur_hyperlink && @cur_hyperlink.length )
-          #modify
+          @action = 'modify'
           url = @cur_hyperlink.attr('href')
           notes = @cur_hyperlink.attr('title')
           title = @cur_hyperlink.text()
           $('#' + contentId + 'url').val(url)
           $('#' + contentId + 'notes').val(notes)
           $('#' + contentId + 'title').val(title)
+          @cur_hyperlink.attr('id',@tmpid)
         else
+          @action = 'insert'
           cur_selection = jQuery(range.extractContents()).text()
           if ( cur_selection == '' ) 
             cur_selection = utils.tr('no title provided')
@@ -57,14 +57,22 @@
           $('#' + contentId + 'title').val(cur_selection)
           #console.log(@cur_hyperlink)
           @updateHyperlinkHTML(contentId)
-        recalc = =>
-          @recalcHTML(target.attr('id'))
-        window.setTimeout recalc, 300
+        if ( !@options.use_form )
+          if ( @action == 'modify')
+            @_removeAction()
+          else
+            @_selectAction()
+          return false;
+        else
+          recalc = =>
+            @recalcHTML()
+          window.setTimeout recalc, 300
         return true
       @dropdownform = @_prepareButton setup, target
       target.bind 'hide', =>
         jQuery('a').each (index,item) =>
-          jQuery(item).removeAttr('id')
+          if ( ! window.__start_mini_activity )
+            jQuery(item).removeAttr('id')
 
           jQuery(item).remove() if jQuery(item).attr('href') == ''
       buttonset.append @dropdownform
@@ -81,13 +89,14 @@
       hyperlink.text(title)
       return hyperlink[0].outerHTML #?
 
-    recalcHTML: (contentId) ->
-      @html = @updateHyperlinkHTML(contentId)
+    recalcHTML: () ->
+      @html = @updateHyperlinkHTML(@_content_id)
       @options.editable.store()
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
       contentAreaUL = contentArea.find('ul')
+      @_content_id = contentId
 
 
       addInput = (type,element,default_value) =>
@@ -98,7 +107,7 @@
         else if ( default_value )
           el.find('input').val(default_value)
         recalc= =>
-          @recalcHTML(contentId)
+          @recalcHTML()
         el.find('input').bind('keyup change',recalc)
 
         el
@@ -110,34 +119,45 @@
 
         el.find('button').bind 'click', event_handler
         el
-      contentAreaUL.append addInput("text", "url", "")
+      if ( @options.edit_url )
+        contentAreaUL.append addInput("text", "url", "")
+      else
+        contentAreaUL.append addInput("hidden", "url", "")
+      
       contentAreaUL.append addInput("text", "notes", "")
-      contentAreaUL.append addInput("text", "title", "")
+      if ( @options.edit_title )
+        contentAreaUL.append addInput("text", "title", "")
+      else
+        contentAreaUL.append addInput("hidden", "title", "")
       this_editable = @options.editable
       contentAreaUL.append addButton "select nugget", =>
-        @dropdownform.hallodropdownform('hideForm')
-        window.__start_mini_activity = true
-        console.log(this_editable)
-        $('body').hallonuggetselector({'editable':this_editable,'hyperlink_id':@tmpid});
+        @_selectAction()
       contentAreaUL.append addButton "apply", =>
-        @recalcHTML(contentId)
-        $('#' + @tmpid).removeAttr('id')
-        @dropdownform.hallodropdownform('hideForm')
+        @_applyAction()
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        modified = false
-        if ( $('#' + @tmpid).text() != utils.tr('no title provided') )
-            modified = true
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        range_contents = jQuery(range.extractContents()).text();
-        window.getSelection().addRange(range)
-        range.deleteContents();
-        if ( modified )
-          range.insertNode($('<span>' + range_contents + '</span>')[0])
-        @dropdownform.hallodropdownform('hideForm')
+        @_removeAction()
       contentArea
-
+    _applyAction: () ->
+      @recalcHTML()
+      $('#' + @tmpid).removeAttr('id')
+      @dropdownform.hallodropdownform('hideForm')
+    _removeAction: () ->
+      window.getSelection().removeAllRanges()
+      modified = false
+      if ( $('#' + @tmpid).text() != utils.tr('no title provided') )
+        modified = true
+      range = document.createRange()
+      range.selectNode($('#' + @tmpid)[0])
+      range_contents = jQuery(range.extractContents()).text();
+      window.getSelection().addRange(range)
+      range.deleteContents();
+      if ( modified )
+        range.insertNode($('<span>' + range_contents + '</span>')[0])
+      @dropdownform.hallodropdownform('hideForm')
+    _selectAction: () ->
+      window.__start_mini_activity = true
+      @dropdownform.hallodropdownform('hideForm')
+      $('body').hallonuggetselector({'editable':@options.editable,'hyperlink_id':@tmpid});
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
       button_label = 'hyperlink'
