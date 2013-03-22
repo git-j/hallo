@@ -301,6 +301,8 @@ http://hallojs.org
 
     protectFocusFrom: (el) ->
       el.bind "mousedown", (event) =>
+        if ( jQuery('.dropdown-form:visible').length )
+          return
         event.preventDefault()
         @_protectToolbarFocus = true
         setTimeout =>
