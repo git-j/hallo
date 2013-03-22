@@ -65,8 +65,11 @@
       dfo.done (nugget) =>
         data = nugget.loid
         new_href = 'refeus://localhost/database/self/Variation/' + nugget.guid
-        jQuery('#' + @options.hyperlink_id).attr('href',new_href)
-        jQuery('#' + @options.hyperlink_id).removeAttr('id')
+        hyperlink = jQuery('#' + @options.hyperlink_id)
+        hyperlink.attr('href',new_href)
+        hyperlink.removeAttr('id')
+        if( hyperlink.text() == utils.tr('no title provided') )
+          hyperlink.text(nugget.display_name)
         @options.editable.store()
         @back()
 
