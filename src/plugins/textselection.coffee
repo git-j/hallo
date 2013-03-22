@@ -23,7 +23,7 @@
         # populate with available actions
         target.find('.element-selector').remove()
         selection = window.getSelection()
-        return if !selection.rangeCount
+        return false if !selection.rangeCount
         range = selection.getRangeAt()
         range_jq = $(range.cloneContents())
         range_ca = null
@@ -48,6 +48,7 @@
         target.append(@_addElement('indirect_citation')) if (has_selection && is_direct_citation)
         target.append(@_addElement('direct_citation')) if (has_selection && is_indirect_citation)
         target.append(@_addElement('remove_citation')) if (has_selection && is_citation)
+        return true
       buttonset.append target
       buttonset.append @_prepareButton setup, target
       toolbar.append buttonset

@@ -60,6 +60,7 @@
         recalc = =>
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
+        return true
       @dropdownform = @_prepareButton setup, target
       target.bind 'hide', =>
         jQuery('a').each (index,item) =>

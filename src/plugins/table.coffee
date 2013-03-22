@@ -27,7 +27,7 @@
       toolbar.append target
       setup= =>
         @tmpid='mod_' + (new Date()).getTime()
-        return if !window.getSelection().rangeCount
+        return false if !window.getSelection().rangeCount
         range = window.getSelection().getRangeAt()
 
         table = $(range.startContainer).closest('table')
@@ -68,6 +68,7 @@
         recalc = =>
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
+        return true
       @dropdownform = @_prepareButton setup, target
       target.bind 'hide', =>
         jQuery('table').each (index,item) =>

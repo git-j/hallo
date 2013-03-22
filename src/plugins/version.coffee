@@ -40,6 +40,7 @@
               target.append(@_addElement(display_name,subversion.version))
               setupSubVersions(subversion)
         setupSubVersions(versions)
+        return true
       buttonset.append target
       buttonset.append @_prepareButton setup, target
       toolbar.append buttonset

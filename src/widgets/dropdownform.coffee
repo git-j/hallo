@@ -43,7 +43,10 @@
         jQuery(item).trigger('hide')
 
       target = jQuery @options.target
-      @options.setup() if @options.setup
+      setup_success = @options.setup() if @options.setup
+      if ( ! setup_success )
+        @_hideTarget()
+        return
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()

@@ -27,6 +27,7 @@
       setup= =>
         console.log('check nugget') if @debug
         #TODO: evaluate problems and removal buttons to the form
+        return true
       @dropdownform = @_prepareButton setup, target
       buttonset.append @dropdownform
       toolbar.append buttonset

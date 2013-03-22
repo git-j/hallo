@@ -24,6 +24,7 @@
       target = @_prepareDropdown contentId
       setup= =>
         root.citehandler.get().setupSourceDescriptions(target, @options.editable, jQuery.proxy(@._addElement,@))
+        return true
       buttonset.append target
       buttonset.append @_prepareButton setup, target
       toolbar.append buttonset

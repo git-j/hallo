@@ -75,6 +75,7 @@
           @updateImageHTML(contentId)
         recalc = =>
           @recalcHTML(target.attr('id'))
+        return true
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
       target.bind 'hide', =>
