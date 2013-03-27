@@ -29,7 +29,7 @@ class _Citehandler
     target.find('.SourceDescription').remove()
     domnugget = new DOMNugget();
 
-    domnugget.getSourceDescriptions(editable.element.parent('.nugget')).done (sourcedescriptions) =>
+    domnugget.getSourceDescriptions(editable.element.closest('.nugget')).done (sourcedescriptions) =>
       jQuery.each sourcedescriptions, (index,item) =>
         target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
 
