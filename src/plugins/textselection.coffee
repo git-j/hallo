@@ -11,6 +11,7 @@
       buttonCssClass: null
       current_version: null
       in_document: false
+      is_nugget: true
 
     _create: ->
       @
@@ -43,8 +44,8 @@
         target.append(@_addElement('copy')) if has_selection
         target.append(@_addElement('cut')) if has_selection
         target.append(@_addElement('paste'))
-        target.append(@_addElement('as_name')) if has_selection
-        target.append(@_addElement('as_tag')) if has_selection
+        target.append(@_addElement('as_name')) if has_selection && @options.is_nugget
+        target.append(@_addElement('as_tag')) if has_selection && @options.is_nugget
         target.append(@_addElement('indirect_citation')) if (has_selection && is_direct_citation)
         target.append(@_addElement('direct_citation')) if (has_selection && is_indirect_citation)
         target.append(@_addElement('remove_citation')) if (has_selection && is_citation)
@@ -89,7 +90,6 @@
         else if ( element == 'paste' )
           document.execCommand('paste');
         else if ( element == 'as_name' )
-          console.log(element)
           if ( range_jq.text() != '' )
             nugget.rename(@options.editable.element, range_jq.text())
         else if ( element == 'as_tag' )
