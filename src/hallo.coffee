@@ -469,7 +469,6 @@ http://hallojs.org
         if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
           @setContents ''
         @options.store_callback(@getContents())
-
     _activated: (event) ->
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
@@ -479,13 +478,14 @@ http://hallojs.org
 
     _deactivated: (event) ->
       return if window.debug_hallotoolbar
-      return if event.data._keepActivated
 
       if event.data.options.store_callback
         contents = event.data.getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
           event.data.setContents ''
         event.data.options.store_callback(event.data.getContents())
+
+      return if event.data._keepActivated # always store before unfocusing
 
       if ( jQuery('.dropdown-form:visible').length )
         return
