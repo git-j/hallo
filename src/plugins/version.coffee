@@ -86,23 +86,18 @@
           @options.editable.element.blur()
           make_current = true
           if (@options.in_document)
-            make_current = false
-          nugget.createNewVersion(@options.editable.element.closest('.nugget').attr('id'),@options.editable.element.html(),make_current).done (new_version) =>
-            nugget.loadVersion(@options.editable.element,new_version.variant.loid).done =>
-              nugget.updateSourceDescriptionData(@options.editable.element).done =>
-                nugget.resetCitations(@options.editable.element)
-                @options.editable.element.focus()
+            @options.editable.element.blur()
+            nugget.updateVersionReferenceNewVersion(@options.editable.element)
+          else
+            nugget.createNewVersion(@options.editable.element)
+
         else if ( element == 'update from manage' )
           @options.editable.element.blur()
-          content_loid = @options.editable.element.closest('.nugget').closest('.content').attr('id')
-          section_loid = @options.editable.element.closest('.nugget').closest('.Section').attr('id')
-          nugget.updateVersionReferenceFromVariation(section_loid,content_loid).done () =>
-            window.wkej.instance.SetModified()
+          nugget.updateVersionReferenceFromVariation(@options.editable.element)
 
         else if ( element == 'update to manage' )
           @options.editable.element.blur()
-          content_loid = @options.editable.element.closest('.nugget').closest('.content').attr('id')
-          nugget.updateVariationFromVersionReference(content_loid).done () =>
+          nugget.updateVariationFromVersionReference(@options.editable.element).done () =>
             @options.editable.element.focus()
         else
           @options.editable.element.blur()
