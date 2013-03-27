@@ -1014,15 +1014,15 @@
         if (window.debug_hallotoolbar) {
           return;
         }
-        if (event.data._keepActivated) {
-          return;
-        }
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
           if (contents === '' || contents === ' ' || contents === '<br>' || contents === event.data.options.placeholder) {
             event.data.setContents('');
           }
           event.data.options.store_callback(event.data.getContents());
+        }
+        if (event.data._keepActivated) {
+          return;
         }
         if ((jQuery('.dropdown-form:visible').length)) {
           return;
@@ -2018,7 +2018,7 @@
 
       target.find('.SourceDescription').remove();
       domnugget = new DOMNugget();
-      return domnugget.getSourceDescriptions(editable.element.parent('.nugget')).done(function(sourcedescriptions) {
+      return domnugget.getSourceDescriptions(editable.element.closest('.nugget')).done(function(sourcedescriptions) {
         return jQuery.each(sourcedescriptions, function(index, item) {
           return target.append(add_element_cb(item.title, null, item.type, item.loid).addClass('SourceDescription'));
         });
@@ -2365,7 +2365,11 @@
             jQuery('body').css({
               'overflow': 'auto'
             });
-            return occ.UpdateNuggetSourceDescriptions();
+            if (_this.options && _this.options.editable && _this.options.editable.element) {
+              return occ.UpdateNuggetSourceDescriptions({
+                loid: _this.options.editable.element.attr('id')
+              });
+            }
           });
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
@@ -3515,7 +3519,9 @@
           }
           nugget = new DOMNugget();
           _this.options.editable.element.closest('.nugget').find('.auto-cite').remove();
-          occ.UpdateNuggetSourceDescriptions();
+          occ.UpdateNuggetSourceDescriptions({
+            loid: target_loid
+          });
           new_sd_node = $('#' + tmp_id);
           new_sd_node.removeAttr('id');
           nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
@@ -3872,7 +3878,8 @@
         uuid: '',
         buttonCssClass: null,
         current_version: null,
-        in_document: false
+        in_document: false,
+        is_nugget: true
       },
       _create: function() {
         return this;
@@ -3915,10 +3922,10 @@
             target.append(_this._addElement('cut'));
           }
           target.append(_this._addElement('paste'));
-          if (has_selection) {
+          if (has_selection && _this.options.is_nugget) {
             target.append(_this._addElement('as_name'));
           }
-          if (has_selection) {
+          if (has_selection && _this.options.is_nugget) {
             target.append(_this._addElement('as_tag'));
           }
           if (has_selection && is_direct_citation) {
@@ -3992,7 +3999,6 @@
           } else if (element === 'paste') {
             document.execCommand('paste');
           } else if (element === 'as_name') {
-            console.log(element);
             if (range_jq.text() !== '') {
               nugget.rename(_this.options.editable.element, range_jq.text());
             }
@@ -4154,34 +4160,24 @@
         }
         this_editable = this.options.editable;
         return el.bind("click", function(ev) {
-          var content_loid, make_current, nugget, section_loid;
+          var make_current, nugget;
 
           nugget = new DOMNugget();
           if (element === 'new version') {
             _this.options.editable.element.blur();
             make_current = true;
             if (_this.options.in_document) {
-              make_current = false;
+              _this.options.editable.element.blur();
+              return nugget.updateVersionReferenceNewVersion(_this.options.editable.element);
+            } else {
+              return nugget.createNewVersion(_this.options.editable.element);
             }
-            return nugget.createNewVersion(_this.options.editable.element.closest('.nugget').attr('id'), _this.options.editable.element.html(), make_current).done(function(new_version) {
-              return nugget.loadVersion(_this.options.editable.element, new_version.variant.loid).done(function() {
-                return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
-                  nugget.resetCitations(_this.options.editable.element);
-                  return _this.options.editable.element.focus();
-                });
-              });
-            });
           } else if (element === 'update from manage') {
             _this.options.editable.element.blur();
-            content_loid = _this.options.editable.element.closest('.nugget').closest('.content').attr('id');
-            section_loid = _this.options.editable.element.closest('.nugget').closest('.Section').attr('id');
-            return nugget.updateVersionReferenceFromVariation(section_loid, content_loid).done(function() {
-              return window.wkej.instance.SetModified();
-            });
+            return nugget.updateVersionReferenceFromVariation(_this.options.editable.element);
           } else if (element === 'update to manage') {
             _this.options.editable.element.blur();
-            content_loid = _this.options.editable.element.closest('.nugget').closest('.content').attr('id');
-            return nugget.updateVariationFromVersionReference(content_loid).done(function() {
+            return nugget.updateVariationFromVersionReference(_this.options.editable.element).done(function() {
               return _this.options.editable.element.focus();
             });
           } else {
