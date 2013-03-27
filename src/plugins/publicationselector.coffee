@@ -95,7 +95,7 @@
               $(item).find('.citation').remove()
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
-        occ.UpdateNuggetSourceDescriptions()
+        occ.UpdateNuggetSourceDescriptions({loid:target_loid})
         # launch sourcedescription editor with newly created sourcedescription
         new_sd_node=$('#' + tmp_id);
         new_sd_node.removeAttr('id')

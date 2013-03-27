@@ -88,7 +88,8 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
-          occ.UpdateNuggetSourceDescriptions();
+          if ( @options && @options.editable && @options.editable.element )
+            occ.UpdateNuggetSourceDescriptions({loid:@options.editable.element.attr('id')});
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
