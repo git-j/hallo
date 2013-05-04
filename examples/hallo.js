@@ -2057,9 +2057,14 @@
 
         _this.citation_data = current_citation_data;
         ov_data += '<ul>';
-        ov_data += '<li>' + utils.tr('citation in') + ' ' + _this.citation_data.citation_style + ': ' + _this.citation_data.cite + '</li>';
-        ov_data += '<li>' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
-        ov_data += '<li>' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
+        ov_data += '<li class="style">' + utils.tr('citation in') + ' ' + _this.citation_data.style_name + '</li>';
+        ov_data += '<li class="citation">' + _this.citation_data.cite + '</li>';
+        if (_this.citation_data.creates_footnote) {
+          ov_data += '<li class="footnote">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
+        }
+        if (_this.citation_data.creates_bibliography) {
+          ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
+        }
         ov_data += '</ul><ul>';
         ov_data += '<li><button class="edit view_button">' + utils.tr('edit') + '</button>';
         if (!_this.editable || _this.editable.nugget_only) {

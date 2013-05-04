@@ -54,9 +54,12 @@ class _Citehandler
       @citation_data = current_citation_data
       #TODO: nicer HTML for better styling
       ov_data+= '<ul>'
-      ov_data+= '<li>' + utils.tr('citation in') + ' ' + @citation_data.citation_style+ ': ' + @citation_data.cite + '</li>'
-      ov_data+= '<li>' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
-      ov_data+= '<li>' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
+      ov_data+= '<li class="style">' + utils.tr('citation in') + ' ' + @citation_data.style_name+ '</li>'
+      ov_data+= '<li class="citation">' + @citation_data.cite + '</li>'
+      if ( @citation_data.creates_footnote )
+        ov_data+= '<li class="footnote">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
+      if ( @citation_data.creates_bibliography )
+        ov_data+= '<li class="bibliography">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul>'
       ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button>'
       if ( !@editable || @editable.nugget_only )
