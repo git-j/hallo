@@ -42,6 +42,7 @@
           #modify
           url = @cur_image.attr('src')
           alt = @cur_image.attr('alt')
+          title = @cur_image.attr('title')
           width = @cur_image.attr('width')
           height = @cur_image.attr('height')
           width = 'auto' if !width || width == ''
@@ -58,6 +59,7 @@
             border = false
           $('#' + contentId + 'url').val(url)
           $('#' + contentId + 'alt').val(alt)
+          $('#' + contentId + 'title').val(title)
           $('#' + contentId + 'width').val(width)
           $('#' + contentId + 'height').val(height)
           $('#' + contentId + 'align').val(align)
@@ -65,8 +67,9 @@
         else
           @cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
           range.insertNode(@cur_image[0]);
-          $('#' + contentId + 'url').val(@cur_image.attr('src'))
+          $('#' + contentId + 'url').val("")
           $('#' + contentId + 'alt').val("")
+          $('#' + contentId + 'title').val("")
           $('#' + contentId + 'width').val("auto")
           $('#' + contentId + 'height').val("auto")
           $('#' + contentId + 'align').val("center")
@@ -89,6 +92,7 @@
       image = $('#' + @tmpid)
       url = $('#' + contentId + 'url').val();
       alt = $('#' + contentId + 'alt').val();
+      title = $('#' + contentId + 'title').val();
       width = $('#' + contentId + 'width').val();
       height = $('#' + contentId + 'height').val();
       align = $('#' + contentId + 'align').val();
@@ -97,8 +101,11 @@
       height = "auto" if ( height == '' )
       align = "center" if ( align == '' )
       #console.log(url)
+      if ( url == '' )
+          url = '../icons/types/PubArtwork.png'
       image.attr('src',url)
       image.attr('alt',alt)
+      image.attr('title',title)
       if width == 'auto'
         image.removeAttr('width')
       else
@@ -136,7 +143,8 @@
 
         el
       addButton = (element,event_handler) =>
-        el = jQuery "<li><button class=\"action_button\" id=\"" + @tmpid+element + "\">" + utils.tr(element) + "</button></li>"
+        elid="#{contentId}#{element}"
+        el = jQuery "<li><button class=\"action_button\" id=\"" + @elid + "\">" + utils.tr(element) + "</button></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -145,11 +153,20 @@
         el
       contentAreaUL.append addInput("text", "url", "")
       contentAreaUL.append addInput("text", "alt", "")
+      contentAreaUL.append addInput("text", "title", "")
       contentAreaUL.append addInput("text", "width", "auto")
       contentAreaUL.append addInput("text", "height", "auto")
       contentAreaUL.append addInput("text", "align", "center")
       contentAreaUL.append addInput("checkbox", "border", false)
 
+      contentAreaUL.append addButton "browse", =>
+        wkej.instance.insert_image_dfd = new $.Deferred();
+        wkej.instance.insert_image_dfd.done (path) =>
+          $('#' + contentId + 'url').val('file://' + path)
+          delete wkej.instance.insert_image_dfd
+          @updateImageHTML(contentId)
+        occ.SelectImage()
+        wkej.instance.insert_image_dfd.promise()
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
         window.getSelection().removeAllRanges()
