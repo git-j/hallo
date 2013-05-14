@@ -2184,6 +2184,14 @@
         this.widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
         this.widget.find('.nugget_selector_back').bind('click', function() {
+          var hyperlinked;
+
+          if (utils.tr('no title provided') === jQuery('#' + _this.options.hyperlink_id).text()) {
+            jQuery('#' + _this.options.hyperlink_id).remove();
+          } else {
+            hyperlinked = jQuery('#' + _this.options.hyperlink_id).html();
+            jQuery('#' + _this.options.hyperlink_id).replaceWith(jQuery('<span>' + hyperlinked + '</span>'));
+          }
           return _this.back();
         });
         this.widget.find('.nugget_selector_apply').bind('click', function() {
@@ -2230,16 +2238,16 @@
           if (hyperlink.text() === utils.tr('no title provided')) {
             hyperlink.text(nugget.display_name);
           }
-          _this.options.editable.store();
           return _this.back();
         });
       },
       back: function() {
         this.widget.remove();
         jQuery('#' + this.options.hyperlink_id).removeAttr('id');
-        return jQuery('body').css({
+        jQuery('body').css({
           'overflow': 'auto'
         });
+        return this.options.editable.store();
       },
       select: function(node) {
         this.current_node = jQuery(node).attr('id');
@@ -2429,13 +2437,13 @@
         if (omc && options.loid) {
           options.values[path] = data;
         }
-        if (path.indexOf("number_of_pages") === 0) {
+        if (path.indexOf("number_of_pages") === 0 && !isNaN(data) && !isNaN(options.publication.number_of_pages)) {
           try {
             user_number = parseInt(data);
             if (user_number <= options.publication.number_of_pages) {
               return jQuery('#' + path).attr('class', 'valid');
             } else {
-              utils.error(utils.tr('number_of_pages not in range'));
+              utils.info(utils.tr('number_of_pages not in range'));
               return jQuery('#' + path).attr('class', 'invalid');
             }
           } catch (_error) {
@@ -3667,7 +3675,7 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function() {
-          var align, alt, border, height, range, recalc, sel, url, width;
+          var align, alt, border, height, range, recalc, sel, title, url, width;
 
           if (!window.getSelection().rangeCount) {
             return;
@@ -3688,6 +3696,7 @@
           if (_this.cur_image && _this.cur_image.length) {
             url = _this.cur_image.attr('src');
             alt = _this.cur_image.attr('alt');
+            title = _this.cur_image.attr('title');
             width = _this.cur_image.attr('width');
             height = _this.cur_image.attr('height');
             if (!width || width === '') {
@@ -3716,6 +3725,7 @@
             }
             $('#' + contentId + 'url').val(url);
             $('#' + contentId + 'alt').val(alt);
+            $('#' + contentId + 'title').val(title);
             $('#' + contentId + 'width').val(width);
             $('#' + contentId + 'height').val(height);
             $('#' + contentId + 'align').val(align);
@@ -3723,8 +3733,9 @@
           } else {
             _this.cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
             range.insertNode(_this.cur_image[0]);
-            $('#' + contentId + 'url').val(_this.cur_image.attr('src'));
+            $('#' + contentId + 'url').val("");
             $('#' + contentId + 'alt').val("");
+            $('#' + contentId + 'title').val("");
             $('#' + contentId + 'width').val("auto");
             $('#' + contentId + 'height').val("auto");
             $('#' + contentId + 'align').val("center");
@@ -3750,11 +3761,12 @@
         return toolbar.append(buttonset);
       },
       updateImageHTML: function(contentId) {
-        var align, alt, border, height, image, url, width;
+        var align, alt, border, height, image, title, url, width;
 
         image = $('#' + this.tmpid);
         url = $('#' + contentId + 'url').val();
         alt = $('#' + contentId + 'alt').val();
+        title = $('#' + contentId + 'title').val();
         width = $('#' + contentId + 'width').val();
         height = $('#' + contentId + 'height').val();
         align = $('#' + contentId + 'align').val();
@@ -3768,8 +3780,12 @@
         if (align === '') {
           align = "center";
         }
+        if (url === '') {
+          url = '../icons/types/PubArtwork.png';
+        }
         image.attr('src', url);
         image.attr('alt', alt);
+        image.attr('title', title);
         if (width === 'auto') {
           image.removeAttr('width');
         } else {
@@ -3815,18 +3831,30 @@
           return el;
         };
         addButton = function(element, event_handler) {
-          var el;
+          var el, elid;
 
-          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.tmpid + element + "\">" + utils.tr(element) + "</button></li>");
+          elid = "" + contentId + element;
+          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.elid + "\">" + utils.tr(element) + "</button></li>");
           el.find('button').bind('click', event_handler);
           return el;
         };
         contentAreaUL.append(addInput("text", "url", ""));
         contentAreaUL.append(addInput("text", "alt", ""));
+        contentAreaUL.append(addInput("text", "title", ""));
         contentAreaUL.append(addInput("text", "width", "auto"));
         contentAreaUL.append(addInput("text", "height", "auto"));
         contentAreaUL.append(addInput("text", "align", "center"));
         contentAreaUL.append(addInput("checkbox", "border", false));
+        contentAreaUL.append(addButton("browse", function() {
+          wkej.instance.insert_image_dfd = new $.Deferred();
+          wkej.instance.insert_image_dfd.done(function(path) {
+            $('#' + contentId + 'url').val('file://' + path);
+            delete wkej.instance.insert_image_dfd;
+            return _this.updateImageHTML(contentId);
+          });
+          occ.SelectImage();
+          return wkej.instance.insert_image_dfd.promise();
+        }));
         contentAreaUL.append(addButton("apply", function() {
           var range;
 
