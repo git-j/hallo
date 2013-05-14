@@ -35,6 +35,11 @@
       @widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
       @widget.find('.nugget_selector_back').bind 'click', =>
+        if ( utils.tr('no title provided') == jQuery('#' + @options.hyperlink_id).text() )
+          jQuery('#' + @options.hyperlink_id).remove()
+        else
+          hyperlinked = jQuery('#' + @options.hyperlink_id).html()
+          jQuery('#' + @options.hyperlink_id).replaceWith(jQuery('<span>' + hyperlinked + '</span>'))
         @back()
       @widget.find('.nugget_selector_apply').bind 'click', =>
         @apply()
@@ -70,7 +75,6 @@
         hyperlink.removeAttr('id')
         if( hyperlink.text() == utils.tr('no title provided') )
           hyperlink.text(nugget.display_name)
-        @options.editable.store()
         @back()
 
 
@@ -78,6 +82,7 @@
       @widget.remove()
       jQuery('#' + @options.hyperlink_id).removeAttr('id')
       jQuery('body').css({'overflow':'auto'})
+      @options.editable.store()
 
     select: (node) ->
       @current_node = jQuery(node).attr('id')
