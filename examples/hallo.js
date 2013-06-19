@@ -459,9 +459,9 @@
       },
       refresh: function() {
         if (this.isChecked) {
-          return this.button.addClass('ui-state-active');
+          return this.button.addClass('ui-state-active_');
         } else {
-          return this.button.removeClass('ui-state-active');
+          return this.button.removeClass('ui-state-active_');
         }
       },
       checked: function(checked) {
@@ -1069,7 +1069,9 @@
           bold: true,
           italic: true,
           strikeThrough: false,
-          underline: false
+          underline: false,
+          superscript: false,
+          subscript: false
         },
         buttonCssClass: null
       },
@@ -2343,7 +2345,7 @@
             str_html_buttons = '<button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button>';
           }
           str_html_buttons += '<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>';
-          _this.widget.append('<div>' + str_html_buttons + '</div>');
+          _this.widget.append('<div  class="button_container">' + str_html_buttons + '</div>');
           if (jQuery('body').selectBox) {
             jQuery('#sourcedescriptioneditor_selectable').selectBox();
           }
