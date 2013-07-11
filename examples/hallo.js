@@ -98,9 +98,9 @@
       },
       refresh: function() {
         if (this.isChecked) {
-          return this.button.addClass('ui-state-active');
+          return this.button.addClass('ui-state-active_');
         } else {
-          return this.button.removeClass('ui-state-active');
+          return this.button.removeClass('ui-state-active_');
         }
       },
       checked: function(checked) {
@@ -1987,6 +1987,8 @@
 
     _instance = void 0;
 
+    window.citehandler = citehandler;
+
     citehandler.get = function(args) {
       return _instance != null ? _instance : _instance = new _Citehandler(args);
     };
@@ -2068,7 +2070,7 @@
           ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
         }
         ov_data += '</ul><ul>';
-        ov_data += '<li><button class="edit view_button">' + utils.tr('edit') + '</button>';
+        ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button>';
         if (!_this.editable || _this.editable.nugget_only) {
           _this.editable = {};
           _this.editable.element = element.closest('.nugget');
@@ -2182,7 +2184,7 @@
         });
         jQuery('body').append(this.widget);
         this.widget.append('<div id="nugget_list" style="background-color:white; margin-bottom: 4px"></div>');
-        this.widget.append('<button class="nugget_selector_back view_button">' + utils.tr('back') + '</button>');
+        this.widget.append('<button class="nugget_selector_back action_button">' + utils.tr('back') + '</button>');
         this.widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
         this.widget.find('.nugget_selector_back').bind('click', function() {
@@ -2342,10 +2344,10 @@
           _this.widget.append(inputs);
           str_html_buttons = '';
           if (_this.options.back) {
-            str_html_buttons = '<button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button>';
+            str_html_buttons = '<button id="sourcedescriptioneditor_back" class="action_button">' + utils.tr('back') + '</button>';
           }
           str_html_buttons += '<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>';
-          _this.widget.append('<div  class="button_container">' + str_html_buttons + '</div>');
+          _this.widget.append('<div class="button_container">' + str_html_buttons + '</div>');
           if (jQuery('body').selectBox) {
             jQuery('#sourcedescriptioneditor_selectable').selectBox();
           }
@@ -2503,7 +2505,7 @@
         this.widget.append('<div id="publication_list"></div>');
         this.widget.append('<div id="nugget_list"></div>');
         this.widget.append('<div id="nugget_content"></div>');
-        this.widget.append('<button class="quote_selector_back view_button">' + utils.tr('back') + '</button>');
+        this.widget.append('<button class="quote_selector_back action_button">' + utils.tr('back') + '</button>');
         this.widget.append('<button class="quote_selector_next action_button">' + utils.tr('next') + '</button>');
         this.widget.append('<button class="quote_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
@@ -3041,16 +3043,19 @@
         return btn;
       },
       _create_overlay: function(id) {
-        var _this = this;
+        var container,
+          _this = this;
 
         this.overlay = jQuery("<div id=\"" + id + "\"></div>");
-        this.overlay.append(this._create_form_button('Cancel', function() {
+        this.overlay.append(this._create_plain(this.editable_element.html()));
+        this.overlay.append('<div class="button_container"></div>');
+        container = this.overlay.find('.button_container');
+        container.append(this._create_form_button('Cancel', function() {
           return _this.cancel();
         }));
-        this.overlay.append(this._create_form_button('Apply', function() {
+        container.append(this._create_form_button('Apply', function() {
           return _this.commit();
         }));
-        this.overlay.append(this._create_plain(this.editable_element.html()));
         this._overlay_resize();
         jQuery(window).bind('resize', function() {
           _this._overlay_resize();
@@ -3099,7 +3104,7 @@
         height = $(window).height() - this.toolbar.offset().top;
         text_dim = {
           'position': 'fixed',
-          'top': '34px',
+          'top': '5px',
           'left': '8px',
           'width': $(window).width(),
           'height': ($(window).height() - 48) + 'px',
@@ -3453,7 +3458,7 @@
         });
         jQuery('body').append(this.widget);
         this.widget.append('<div id="publication_list" style="background-color:white; margin-bottom: 4px"></div>');
-        this.widget.append('<button class="publication_selector_back view_button">' + utils.tr('back') + '</button>');
+        this.widget.append('<button class="publication_selector_back action_button">' + utils.tr('back') + '</button>');
         this.widget.append('<button class="publication_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
         this.widget.find('.publication_selector_back').bind('click', function() {
@@ -3850,6 +3855,9 @@
         contentAreaUL.append(addButton("browse", function() {
           wkej.instance.insert_image_dfd = new $.Deferred();
           wkej.instance.insert_image_dfd.done(function(path) {
+            if (path.indexOf(':') === 1) {
+              path = '/' + path;
+            }
             $('#' + contentId + 'url').val('file://' + path);
             delete wkej.instance.insert_image_dfd;
             return _this.updateImageHTML(contentId);
