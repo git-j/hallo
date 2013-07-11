@@ -162,6 +162,8 @@
       contentAreaUL.append addButton "browse", =>
         wkej.instance.insert_image_dfd = new $.Deferred();
         wkej.instance.insert_image_dfd.done (path) =>
+          if ( path.indexOf(':') == 1 )
+            path = '/' + path
           $('#' + contentId + 'url').val('file://' + path)
           delete wkej.instance.insert_image_dfd
           @updateImageHTML(contentId)
