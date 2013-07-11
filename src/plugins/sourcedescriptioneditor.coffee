@@ -61,9 +61,9 @@
         @widget.append(inputs)
         str_html_buttons = ''
         if @options.back
-          str_html_buttons = '<button id="sourcedescriptioneditor_back" class="view_button">' + utils.tr('back') + '</button>'
+          str_html_buttons = '<button id="sourcedescriptioneditor_back" class="action_button">' + utils.tr('back') + '</button>'
         str_html_buttons+= '<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>'
-        @widget.append('<div  class="button_container">' + str_html_buttons + '</div>')
+        @widget.append('<div class="button_container">' + str_html_buttons + '</div>')
         jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
         jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
           new_input = jQuery(ev.target).val()

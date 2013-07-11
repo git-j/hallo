@@ -7,6 +7,7 @@ root = exports ? this
 
 class root.citehandler
   _instance = undefined # Must be declared here to force the closure on the class
+  window.citehandler = @ # export for initialisation in edit*
   @get: (args) -> # Must be a static method
     _instance ?= new _Citehandler args
 
@@ -25,12 +26,13 @@ class _Citehandler
       'data_cb': jQuery.proxy(@_makeTip,@)
     )
   setupSourceDescriptions: (target, editable, add_element_cb) ->
-    #debug.log('setup sourcedescriptions...')
+    # debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
     domnugget = new DOMNugget();
 
     domnugget.getSourceDescriptions(editable.element.closest('.nugget')).done (sourcedescriptions) =>
       jQuery.each sourcedescriptions, (index,item) =>
+        # debug.log('setup sourcedescriptions...',index,item)
         target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
 
   _updateSettings: ->
@@ -61,7 +63,7 @@ class _Citehandler
       if ( @citation_data.creates_bibliography )
         ov_data+= '<li class="bibliography">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul>'
-      ov_data+= '<li><button class="edit view_button">' + utils.tr('edit') + '</button>'
+      ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button>'
       if ( !@editable || @editable.nugget_only )
         @editable = {}
         @editable.element = element.closest('.nugget')

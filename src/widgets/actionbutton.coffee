@@ -74,9 +74,9 @@
 
     refresh: ->
       if @isChecked
-        @button.addClass 'ui-state-active'
+        @button.addClass 'ui-state-active_'
       else
-        @button.removeClass 'ui-state-active'
+        @button.removeClass 'ui-state-active_'
 
     checked: (checked) ->
       @isChecked = checked

@@ -68,11 +68,13 @@
       btn
     _create_overlay: (id) ->
       @overlay = jQuery "<div id=\"#{id}\"></div>"
-      @overlay.append @_create_form_button 'Cancel', =>
-        @cancel()
-      @overlay.append @_create_form_button 'Apply', =>
-        @commit()
       @overlay.append @_create_plain(@editable_element.html())
+      @overlay.append '<div class="button_container"></div>'
+      container = @overlay.find('.button_container')
+      container.append @_create_form_button 'Cancel', =>
+        @cancel()
+      container.append @_create_form_button 'Apply', =>
+        @commit()
       @_overlay_resize()
       jQuery(window).bind 'resize', =>
         @_overlay_resize()
@@ -115,7 +117,7 @@
       height = $(window).height() - @toolbar.offset().top
       text_dim =
         'position': 'fixed'
-        'top': '34px'
+        'top': '5px'
         'left': '8px'
         'width': $(window).width()
         'height': ($(window).height() - 48) + 'px'

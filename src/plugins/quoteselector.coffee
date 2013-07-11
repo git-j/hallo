@@ -40,7 +40,7 @@
       @widget.append('<div id="publication_list"></div>');
       @widget.append('<div id="nugget_list"></div>');
       @widget.append('<div id="nugget_content"></div>');
-      @widget.append('<button class="quote_selector_back view_button">' + utils.tr('back') + '</button>');
+      @widget.append('<button class="quote_selector_back action_button">' + utils.tr('back') + '</button>');
       @widget.append('<button class="quote_selector_next action_button">' + utils.tr('next') + '</button>');
       @widget.append('<button class="quote_selector_apply action_button">' + utils.tr('apply') + '</button>');
       @widget.css @options.default_css
