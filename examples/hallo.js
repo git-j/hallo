@@ -417,21 +417,53 @@
         }
         this.element.append(this.button);
         queryState = function(event) {
-          var e;
+          var e, parent, range, state;
 
           if (!_this.options.command) {
             return;
           }
           try {
-            return _this.checked(document.queryCommandState(_this.options.command));
+            if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
+              range = window.getSelection().getRangeAt();
+              parent = $(range.startContainer).parent();
+              state = false;
+              if (parent[0].nodeName === 'SUB' && _this.options.command === 'subscript') {
+                state = true;
+              }
+              if (parent[0].nodeName === 'SUP' && _this.options.command === 'superscript') {
+                state = true;
+              }
+              return _this.checked(state);
+            } else {
+              return _this.checked(document.queryCommandState(_this.options.command));
+            }
           } catch (_error) {
             e = _error;
           }
         };
         if (this.options.command) {
           this.button.bind('click', function(event) {
+            var parent, range, state;
+
             jQuery('.misspelled').remove();
-            _this.options.editable.execute(_this.options.command);
+            if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
+              range = window.getSelection().getRangeAt();
+              parent = $(range.startContainer).parent();
+              state = false;
+              if (parent[0].nodeName === 'SUB' && _this.options.command === 'subscript') {
+                state = true;
+              }
+              if (parent[0].nodeName === 'SUP' && _this.options.command === 'superscript') {
+                state = true;
+              }
+              if (!state) {
+                _this.options.editable.execute(_this.options.command);
+              } else {
+                _this.options.editable.execute('removeformat');
+              }
+            } else {
+              _this.options.editable.execute(_this.options.command);
+            }
             queryState;
             return false;
           });

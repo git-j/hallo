@@ -43,14 +43,39 @@
       queryState = (event) =>
         return unless @options.command
         try
-          @checked document.queryCommandState @options.command
+          # HACK for qt-webkit
+          if ( @options.command == 'subscript' || @options.command == 'superscript' )
+            range = window.getSelection().getRangeAt()
+            parent = $(range.startContainer).parent()
+            state = false
+            if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
+              state = true
+            if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
+              state = true
+            @checked state
+          else
+            @checked document.queryCommandState @options.command
         catch e
           return
 
       if @options.command
         @button.bind 'click', (event) =>
           jQuery('.misspelled').remove()
-          @options.editable.execute @options.command
+          # HACK for qt-webkit
+          if ( @options.command == 'subscript' || @options.command == 'superscript' )
+            range = window.getSelection().getRangeAt()
+            parent = $(range.startContainer).parent()
+            state = false
+            if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
+              state = true
+            if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
+              state = true
+            if ( !state )
+              @options.editable.execute @options.command
+            else
+              @options.editable.execute 'removeformat'
+          else
+            @options.editable.execute @options.command
           queryState
           return false
 
