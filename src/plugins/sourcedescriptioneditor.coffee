@@ -80,17 +80,31 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox()
         jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
+          num_updates = 0
           jQuery.each @options.values, (key, value) =>
-            omc.storePublicationDescriptionAttribute(@options.loid,key,value)
-            #console.log(@options.loid,key,value)
+            num_updates = num_updates + 1
+          dfd_stored = jQuery.Deferred()
+          # console.log(num_updates,@options.values)
+          jQuery.each @options.values, (key, value) =>
+            omc.storePublicationDescriptionAttribute(@options.loid,key,value).done =>
+              # console.log(num_updates)
+              num_updates = num_updates - 1
+              if ( num_updates == 0 )
+                dfd_stored.resolve()
+            # console.log(@options.loid,key,value)
           @options.values = {}
-          nugget.updateSourceDescriptionData(@options.element.closest('.nugget')).done =>
-            nugget.resetCitations(@options.element.closest('.nugget'))
+          dfd_stored.done =>
+            # console.log('updating sourcedescription after all attributes are stored')
+            if ( @options.nugget_loid )
+              update_nugget = jQuery('#' + @options.nugget_loid )
+              # console.log(update_nugget)
+              nugget.updateSourceDescriptionData(update_nugget).done =>
+                nugget.resetCitations(update_nugget)
+                occ.UpdateNuggetSourceDescriptions
+                  loid:@options.nugget_loid
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
-          if ( @options && @options.editable && @options.editable.element )
-            occ.UpdateNuggetSourceDescriptions({loid:@options.editable.element.attr('id')});
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
