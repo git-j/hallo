@@ -57,6 +57,7 @@
     _hideTarget: ->
       target = jQuery @options.target
       target.removeClass 'open'
+      jQuery("select",target).selectBox('destroy')
       target.hide()
       @restoreContentPosition
 
