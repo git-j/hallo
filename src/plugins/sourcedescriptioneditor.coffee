@@ -16,6 +16,7 @@
       back: true
       data: null
       loid: null
+      nugget_loid: null
       has_changed: false
       publication: {}
       values: {}

@@ -77,7 +77,13 @@ class _Citehandler
 
       target.append(ov_data)
       sourcedescriptioneditor= =>
-        jQuery('body').hallosourcedescriptioneditor({'loid':@citation_data.loid,'data':@citation_data,'element':element,'tip_element':target,'back':true})
+        jQuery('body').hallosourcedescriptioneditor
+          'loid':@citation_data.loid
+          'data':@citation_data
+          'element':element
+          'tip_element':target
+          'back':true
+          'nugget_loid':@editable.element.closest('.Text').attr('id')
       target.find('.edit').bind 'click', sourcedescriptioneditor
       element.bind 'click', sourcedescriptioneditor
       target.find('.remove').bind 'click', (ev) =>
