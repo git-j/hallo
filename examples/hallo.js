@@ -190,6 +190,7 @@
 
         target = jQuery(this.options.target);
         target.removeClass('open');
+        jQuery("select", target).selectBox('destroy');
         target.hide();
         return this.restoreContentPosition;
       },
@@ -1991,6 +1992,418 @@
     });
   })(jQuery);
 
+  (function(jQuery) {
+    return jQuery.widget('IKS.hallocharacterselect', {
+      dropdownform: null,
+      tmpid: 0,
+      html: null,
+      options: {
+        editable: null,
+        toolbar: null,
+        uuid: '',
+        buttonCssClass: null,
+        select: true,
+        use_form: false,
+        max_recent: 8
+      },
+      populateToolbar: function(toolbar) {
+        var buttonset, contentId, setup, target,
+          _this = this;
+
+        buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
+        contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
+        target = this._prepareDropdown(contentId);
+        toolbar.append(target);
+        setup = function() {
+          var range, recalc, sel, selected_character;
+
+          _this.tmpid = 'mod_' + (new Date()).getTime();
+          sel = window.getSelection();
+          range = sel.getRangeAt();
+          selected_character = '&#64';
+          _this.cur_character = jQuery('<span id="' + _this.tmpid + '">' + selected_character + '</span>');
+          range.insertNode(_this.cur_character[0]);
+          recalc = function() {
+            var selectbox;
+
+            _this.recalcHTML();
+            selectbox = $('#' + contentId + 'group');
+            if (selectbox.length) {
+              if (window._character_select_range) {
+                selectbox.selectBox('value', window._character_select_range);
+              }
+              _this.recalcRange(selectbox.selectBox('value'));
+            }
+            return _this.updateCharacterSelectRecent();
+          };
+          window.setTimeout(recalc, 300);
+          return true;
+        };
+        this.dropdownform = this._prepareButton(setup, target);
+        target.bind('hide', function() {
+          return jQuery('a').each(function(index, item) {
+            if (!window.__start_mini_activity) {
+              jQuery(item).removeAttr('id');
+            }
+            if (jQuery(item).attr('href') === '') {
+              return jQuery(item).remove();
+            }
+          });
+        });
+        buttonset.append(this.dropdownform);
+        return toolbar.append(buttonset);
+      },
+      updateCharacterSelectRecent: function(contentId) {
+        var form, recent,
+          _this = this;
+
+        form = $('#' + this._content_id);
+        recent = form.find('.character_recent');
+        recent.html('');
+        if ($.isArray(window._character_select_recent)) {
+          $.each(window._character_select_recent, function(index, value) {
+            var pos;
+
+            if (index < _this.options.max_recent) {
+              pos = value.charCodeAt(0);
+              return recent.append('<span class="character" rel="' + pos + '">&#' + pos + ';</span>');
+            }
+          });
+        }
+        return this.updateCharacterButtons();
+      },
+      updateCharacterSelect: function(contentId) {
+        var characters, column, form, pos, _i, _ref, _ref1;
+
+        form = $('#' + this._content_id);
+        characters = form.find('.characters');
+        characters.html('');
+        column = 1;
+        for (pos = _i = _ref = this.selected_range_start, _ref1 = this.selected_range_end; _ref <= _ref1 ? _i < _ref1 : _i > _ref1; pos = _ref <= _ref1 ? ++_i : --_i) {
+          characters.append('<span class="character" rel="' + pos + '">&#' + pos + ';</span>');
+          if (column % 10 === 0) {
+            characters.append('<br/>');
+          }
+          column = column + 1;
+        }
+        return this.updateCharacterButtons();
+      },
+      updateCharacterButtons: function(contentId) {
+        var all_chars, characters, form, selected_character,
+          _this = this;
+
+        form = $('#' + this._content_id);
+        characters = form.find('.characters');
+        if (typeof this.selected_range_start === 'undefined') {
+          this.selected_range_start = 64;
+        }
+        selected_character = '&#' + this.selected_range_start + ';';
+        all_chars = form.find('.character');
+        all_chars.css({
+          'width': '32px',
+          'height': '32px',
+          'line-height': '32px',
+          'border': '1px solid black',
+          'display': 'inline-block',
+          'text-align': 'center',
+          'cursor': 'pointer',
+          '-webkit-user-select': 'none'
+        });
+        characters.css({
+          'overflow-y': 'auto',
+          'overflow-x': 'hidden',
+          'padding-right': '20px',
+          'max-height': '192px',
+          'margin-left': '-1px'
+        });
+        all_chars.unbind('click');
+        all_chars.unbind('dblclick');
+        all_chars.unbind('mouseover');
+        all_chars.unbind('mouseout');
+        all_chars.bind('click', function(event) {
+          var character, target;
+
+          character = $('#' + _this.tmpid);
+          target = $(event.target).closest('span');
+          _this.selected_character_index = target.attr('rel');
+          character.html('&#' + _this.selected_character_index + ';');
+          all_chars.removeClass('selected');
+          target.addClass('selected');
+          _this.html = character[0].outerHTML;
+          return _this.options.editable.store();
+        });
+        all_chars.bind('dblclick', function(event) {
+          return _this._insertAction();
+        });
+        all_chars.bind('mouseover', function(event) {
+          var target;
+
+          target = $(event.target).closest('span');
+          return $('#' + _this._content_id).find('.character_preview').html(target.html());
+        });
+        return all_chars.bind('mouseout', function(event) {
+          var target;
+
+          target = $(event.target).closest('span');
+          return $('#' + _this._content_id).find('.character_preview').html('');
+        });
+      },
+      updateCharacterHTML: function(contentId) {
+        var character, selected_character;
+
+        character = $('#' + this.tmpid);
+        if (typeof this.selected_character_index === 'undefined') {
+          this.selected_character_index = 64;
+        }
+        selected_character = '&#' + this.selected_character_index + ';';
+        character.html(selected_character);
+        return character[0].outerHTML;
+      },
+      recalcHTML: function() {
+        this.html = this.updateCharacterHTML(this._content_id);
+        return this.options.editable.store();
+      },
+      recalcRange: function(char_range) {
+        var char_range_elements, range_end, range_start;
+
+        char_range_elements = char_range.split(/-/);
+        range_start = parseInt(char_range_elements[0], 16);
+        range_end = parseInt(char_range_elements[1], 16);
+        if (range_start < 33) {
+          range_start = 33;
+        }
+        this.selected_range_start = range_start;
+        this.selected_range_end = range_end;
+        this.selected_character_index = range_start;
+        this.updateCharacterSelect();
+        return this.recalcHTML();
+      },
+      _prepareDropdown: function(contentId) {
+        var addButton, addSelect, contentArea, contentAreaUL, this_editable,
+          _this = this;
+
+        contentArea = jQuery("<div id=\"" + contentId + "\"><ul></ul></div>");
+        contentAreaUL = contentArea.find('ul');
+        this._content_id = contentId;
+        addSelect = function(element, elements) {
+          var el, elid, recalc, selectbox;
+
+          elid = "" + contentId + element;
+          el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><select id=\"" + elid + "\"/></li>"));
+          selectbox = el.find('select');
+          jQuery.each(elements, function(label, value) {
+            return selectbox.append('<option value="' + value + '">' + label + '</option>');
+          });
+          recalc = function() {
+            var char_range;
+
+            char_range = selectbox.selectBox('value');
+            window._character_select_range = char_range;
+            return _this.recalcRange(char_range);
+          };
+          selectbox.bind('keyup change', recalc);
+          selectbox.selectBox();
+          return el;
+        };
+        addButton = function(element, event_handler) {
+          var el;
+
+          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.tmpid + element + "\" title=\"" + utils.tr_action_tooltip(element) + "\">" + utils.tr_action_title(element) + "</button></li>");
+          el.find('button').bind('click', event_handler);
+          return el;
+        };
+        if (this.options.select) {
+          contentAreaUL.append(addSelect("group", this._blockNames()));
+        }
+        contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>');
+        contentAreaUL.find('.character_preview').css({
+          'width': '64px',
+          'height': '64px',
+          'line-height': '64px',
+          'font-size': '400%',
+          'vertical-align': 'middle',
+          'text-align': 'center',
+          'float': 'left'
+        });
+        contentAreaUL.find('.character_recent').css({
+          'height': '32px',
+          'line-height': '32px',
+          'font-size': '200%',
+          'vertical-align': 'middle',
+          'text-align': 'center'
+        });
+        this_editable = this.options.editable;
+        contentAreaUL.append(addButton("Apply", function() {
+          return _this._applyAction();
+        }));
+        contentAreaUL.append(addButton("Insert", function() {
+          return _this._insertAction();
+        }));
+        contentAreaUL.append(addButton("Cancel", function() {
+          return _this._cancelAction();
+        }));
+        return contentArea;
+      },
+      _applyAction: function() {
+        var character;
+
+        this.recalcHTML();
+        character = $('#' + this.tmpid);
+        this._addRecent(character.html());
+        character.replaceWith(character.html());
+        return this.dropdownform.hallodropdownform('hideForm');
+      },
+      _insertAction: function() {
+        var character, character_content;
+
+        this.recalcHTML();
+        character = $('#' + this.tmpid);
+        character_content = $('<span>' + character.html() + '</span>');
+        character_content.insertBefore(character);
+        this._addRecent(character.html());
+        character_content.replaceWith(character.html());
+        return character.html('');
+      },
+      _cancelAction: function() {
+        var range, range_contents;
+
+        window.getSelection().removeAllRanges();
+        range = document.createRange();
+        range.selectNode($('#' + this.tmpid)[0]);
+        range_contents = jQuery(range.extractContents()).text();
+        window.getSelection().addRange(range);
+        range.deleteContents();
+        return this.dropdownform.hallodropdownform('hideForm');
+      },
+      _prepareButton: function(setup, target) {
+        var buttonElement, button_label;
+
+        buttonElement = jQuery('<span></span>');
+        button_label = 'characterselect';
+        if (window.action_list && window.action_list['hallojs_characterselect'] !== void 0) {
+          button_label = window.action_list['hallojs_characterselect'].title;
+        }
+        buttonElement.hallodropdownform({
+          uuid: this.options.uuid,
+          editable: this.options.editable,
+          label: button_label,
+          command: 'characterselect',
+          icon: 'icon-text-height',
+          target: target,
+          setup: setup,
+          cssClass: this.options.buttonCssClass
+        });
+        return buttonElement;
+      },
+      _addRecent: function(charcode) {
+        var already_recent,
+          _this = this;
+
+        if (!$.isArray(window._character_select_recent)) {
+          window._character_select_recent = [];
+        }
+        already_recent = false;
+        $.each(window._character_select_recent, function(index, value) {
+          if (value === charcode) {
+            return already_recent = true;
+          }
+        });
+        if (!already_recent) {
+          window._character_select_recent.push(charcode);
+        }
+        return this.updateCharacterSelectRecent();
+      },
+      _blockNames: function() {
+        var blocks;
+
+        blocks = {
+          'Basic Latin': '0000-007F',
+          'Latin-1 Supplement': '0080-00FF',
+          'Latin Extended-A': '0100-017F',
+          'Latin Extended-B': '0180-024F',
+          'IPA Extensions': '0250-02AF',
+          'Spacing Modifier Letters': '02B0-02FF',
+          'Greek and Coptic': '0370-03FF',
+          'Cyrillic': '0400-04FF',
+          'Cyrillic Supplement': '0500-052F',
+          'Armenian': '0530-058F',
+          'Hebrew': '0590-05FF',
+          'Arabic': '0600-06FF',
+          'NKo': '07C0-07FF',
+          'Thai': '0E00-0E7F',
+          'Lao': '0E80-0EFF',
+          'Georgian': '10A0-10FF',
+          'Ethiopic': '1200-137F',
+          'Cherokee': '13A0-13FF',
+          'Unified Canadian Aboriginal Syllabics': '1400-167F',
+          'Ogham': '1680-169F',
+          'Runic': '16A0-16FF',
+          'Phonetic Extensions': '1D00-1D7F',
+          'Phonetic Extensions Supplement': '1D80-1DBF',
+          'Latin Extended Additional': '1E00-1EFF',
+          'Greek Extended': '1F00-1FFF',
+          'Superscripts and Subscripts': '2070-209F',
+          'Currency Symbols': '20A0-20CF',
+          'Combining Diacritical Marks for Symbols': '20D2-20F1',
+          'Letterlike Symbols': '2100-214F',
+          'Number Forms': '2150-218F',
+          'Arrows': '2190-21FF',
+          'Mathematical Operators': '2200-22FF',
+          'Miscellaneous Technical': '2300-23FF',
+          'Control Pictures': '2400-243F',
+          'Optical Character Recognition': '2440-245F',
+          'Enclosed Alphanumerics': '2460-24FF',
+          'Box Drawing': '2500-257F',
+          'Block Elements': '2580-259F',
+          'Geometric Shapes': '25A0-25FF',
+          'Miscellaneous Symbols': '2600-26FF',
+          'Dingbats': '2700-27BF',
+          'Miscellaneous Mathematical Symbols-A': '27C0-27EF',
+          'Supplemental Arrows-A': '27F0-27FF',
+          'Braille Patterns': '2800-28FF',
+          'Supplemental Arrows-B': '2900-297F',
+          'Miscellaneous Mathematical Symbols-B': '2980-29FF',
+          'Supplemental Mathematical Operators': '2A00-2AFF',
+          'Miscellaneous Symbols and Arrows': '2B00-2BFF',
+          'Latin Extended-C': '2C60-2C7F',
+          'Georgian Supplement': '2D00-2D2F',
+          'Tifinagh': '2D30-2D7F',
+          'Supplemental Punctuation': '2E00-2E7F',
+          'CJK Radicals Supplement': '2E80-2EFF',
+          'Kangxi Radicals': '2F00-2FDF',
+          'Ideographic Description Characters': '2FF0-2FFF',
+          'CJK Symbols and Punctuation': '3000-303F',
+          'Hiragana': '3040-309F',
+          'Katakana': '30A0-30FF',
+          'Bopomofo': '3100-312F',
+          'Hangul Compatibility Jamo': '3130-318F',
+          'Bopomofo Extended': '31A0-31BF',
+          'CJK Strokes': '31C0-31EF',
+          'Enclosed CJK Letters and Months': '3200-32FF',
+          'Yijing Hexagram Symbols': '4DC0-4DFF',
+          'Cyrillic Extended-B': 'A640-A69F',
+          'Modifier Tone Letters': 'A700-A71F',
+          'Latin Extended-D': 'A720-A7FF',
+          'Alphabetic Presentation Forms': 'FB00-FB4F',
+          'Arabic Presentation Forms-A': 'FB50-FDFF',
+          'Vertical Forms': 'FE10-FE1F',
+          'CJK Compatibility Forms': 'FE30-FE4F',
+          'Small Form Variants': 'FE50-FE6F',
+          'Arabic Presentation Forms-B': 'FE70-FEFF',
+          'Halfwidth and Fullwidth Forms': 'FF00-FFEF',
+          'Old Italic': '10300-1032F',
+          'Tai Xuan Jing Symbols': '1D300-1D35F',
+          'Mathematical Alphanumeric Symbols': '1D400-1D7FF',
+          'Domino Tiles': '1F030-1F09F',
+          'Playing Cards': '1F0A0-1F0FF',
+          'Miscellaneous Symbols And Pictographs': '1F300-1F5FF',
+          'Emoticons': '1F600-1F64F'
+        };
+        return blocks;
+      }
+    });
+  })(jQuery);
+
   jQuery.extend(jQuery.fn, {
     selectText: function() {
       var element, range, selection;
@@ -2123,7 +2536,8 @@
             'data': _this.citation_data,
             'element': element,
             'tip_element': target,
-            'back': true
+            'back': true,
+            'nugget_loid': _this.editable.element.closest('.Text').attr('id')
           });
         };
         target.find('.edit').bind('click', sourcedescriptioneditor);
@@ -2308,6 +2722,7 @@
         back: true,
         data: null,
         loid: null,
+        nugget_loid: null,
         has_changed: false,
         publication: {},
         values: {},
@@ -2401,24 +2816,41 @@
             return jQuery('#sourcedescriptioneditor_selectable').selectBox();
           });
           jQuery('#sourcedescriptioneditor_apply').bind('click', function() {
+            var dfd_stored, num_updates;
+
             _this.widget.focus();
+            num_updates = 0;
             jQuery.each(_this.options.values, function(key, value) {
-              return omc.storePublicationDescriptionAttribute(_this.options.loid, key, value);
+              return num_updates = num_updates + 1;
+            });
+            dfd_stored = jQuery.Deferred();
+            jQuery.each(_this.options.values, function(key, value) {
+              return omc.storePublicationDescriptionAttribute(_this.options.loid, key, value).done(function() {
+                num_updates = num_updates - 1;
+                if (num_updates === 0) {
+                  return dfd_stored.resolve();
+                }
+              });
             });
             _this.options.values = {};
-            nugget.updateSourceDescriptionData(_this.options.element.closest('.nugget')).done(function() {
-              return nugget.resetCitations(_this.options.element.closest('.nugget'));
+            dfd_stored.done(function() {
+              var update_nugget;
+
+              if (_this.options.nugget_loid) {
+                update_nugget = jQuery('#' + _this.options.nugget_loid);
+                return nugget.updateSourceDescriptionData(update_nugget).done(function() {
+                  nugget.resetCitations(update_nugget);
+                  return occ.UpdateNuggetSourceDescriptions({
+                    loid: _this.options.nugget_loid
+                  });
+                });
+              }
             });
             jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             _this.widget.remove();
-            jQuery('body').css({
+            return jQuery('body').css({
               'overflow': 'auto'
             });
-            if (_this.options && _this.options.editable && _this.options.editable.element) {
-              return occ.UpdateNuggetSourceDescriptions({
-                loid: _this.options.editable.element.attr('id')
-              });
-            }
           });
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
@@ -3588,7 +4020,8 @@
                   'loid': sd_loid,
                   'data': citation_data,
                   'element': new_sd_node,
-                  'back': false
+                  'back': false,
+                  'nugget_loid': target_loid
                 });
               });
             }
