@@ -49,7 +49,7 @@
           utils.getJavaScript('lib/refeus/Utilities/List.js')
       ).done =>
         @list = new List()
-        @list.init($('#nugget_list'),omc.NuggetExtendList)
+        @list.init($('#nugget_list'),omc.getNuggetExtendList)
         @list.setupItemActions($('#nugget_list'),{
           'node_dblclick': (node) =>
             @select(node)

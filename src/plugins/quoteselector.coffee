@@ -135,7 +135,7 @@
     loadNugget: (loid) ->
       content = $('#nugget_content')
       content.show();
-      omc.NuggetContent(loid).done (node_data) =>
+      omc.getNuggetContent(loid).done (node_data) =>
         if ( node_data && node_data.indexOf('<![CDATA[') >= 0 )
           node_data = utils.replaceCDATA(node_data)
         content.html(node_data);
@@ -150,7 +150,7 @@
 
     loadPublications: (loid) ->
       list = new List();
-      list.init($('#publication_list'),omc.PublicationList);
+      list.init($('#publication_list'),omc.getPublicationList);
       list.setupItemActions($('#publication_list'),{
         'node_dblclick': (node) =>
           @selectPublication(node)
@@ -164,7 +164,7 @@
     loadPublicationNuggets: (loid) ->
       list = new List();
       data_fn = ->
-        return omc.SourceDescriptionNuggetList(loid)
+        return omc.getSourceDescriptionNuggetList(loid)
       list.init($('#nugget_list'),data_fn);
       list.setupItemActions($('#nugget_list'),{
         'node_dblclick': (node) =>

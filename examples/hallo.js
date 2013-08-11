@@ -2655,7 +2655,7 @@
         }
         jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
           _this.list = new List();
-          _this.list.init($('#nugget_list'), omc.NuggetExtendList);
+          _this.list.init($('#nugget_list'), omc.getNuggetExtendList);
           return _this.list.setupItemActions($('#nugget_list'), {
             'node_dblclick': function(node) {
               _this.select(node);
@@ -3088,7 +3088,7 @@
 
         content = $('#nugget_content');
         content.show();
-        return omc.NuggetContent(loid).done(function(node_data) {
+        return omc.getNuggetContent(loid).done(function(node_data) {
           var text;
 
           if (node_data && node_data.indexOf('<![CDATA[') >= 0) {
@@ -3111,7 +3111,7 @@
           _this = this;
 
         list = new List();
-        list.init($('#publication_list'), omc.PublicationList);
+        list.init($('#publication_list'), omc.getPublicationList);
         list.setupItemActions($('#publication_list'), {
           'node_dblclick': function(node) {
             _this.selectPublication(node);
@@ -3129,7 +3129,7 @@
 
         list = new List();
         data_fn = function() {
-          return omc.SourceDescriptionNuggetList(loid);
+          return omc.getSourceDescriptionNuggetList(loid);
         };
         list.init($('#nugget_list'), data_fn);
         list.setupItemActions($('#nugget_list'), {
@@ -3939,7 +3939,7 @@
         }
         jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
           _this.list = new List();
-          _this.list.init($('#publication_list'), omc.PublicationList);
+          _this.list.init($('#publication_list'), omc.getPublicationList);
           return _this.list.setupItemActions($('#publication_list'), {
             'node_dblclick': function(node) {
               _this.select(node);
@@ -3958,7 +3958,7 @@
 
         publication_loid = this.current_node.replace(/node_/, '');
         target_loid = this.options.editable.element.closest('.Text').attr('id').replace(/node/, '');
-        dfo = omc.AssociatePublication(target_loid, publication_loid);
+        dfo = omc.associateNuggetPublication(target_loid, publication_loid);
         dfo.fail(function(error) {
           _this.widget.remove();
           return jQuery('body').css({

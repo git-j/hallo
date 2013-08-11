@@ -44,7 +44,7 @@
           utils.getJavaScript('lib/refeus/Utilities/List.js')
       ).done =>
         @list = new List();
-        @list.init($('#publication_list'),omc.PublicationList);
+        @list.init($('#publication_list'),omc.getPublicationList);
         @list.setupItemActions($('#publication_list'),{
           'node_dblclick': (node) =>
             @select(node)
@@ -57,7 +57,7 @@
     apply:  ->
       publication_loid = @current_node.replace(/node_/,'')
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
-      dfo = omc.AssociatePublication(target_loid,publication_loid)
+      dfo = omc.associateNuggetPublication(target_loid,publication_loid)
       dfo.fail (error) =>
         @widget.remove()
         jQuery('body').css({'overflow':'auto'})
