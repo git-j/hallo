@@ -57,11 +57,8 @@
 
 
     _create_form_button: (name,event_handler) ->
-      button_label = name
-      button_tooltip = name
-      if ( window.action_list && window.action_list['hallojs_plaintext_' + name] != undefined )
-        button_label = window.action_list['hallojs_plaintext_' + name].title
-        button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip
+      button_label = utils.tr_action_title(name);
+      button_tooltip = utils.tr_action_tooltip(name);
       btn = jQuery "<button class=\"action_button\" title=\"#{button_tooltip}\">#{button_label}</button>"
       btn.bind 'click', event_handler
       btn.addClass('action_button')
