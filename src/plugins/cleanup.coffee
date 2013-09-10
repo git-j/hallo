@@ -63,6 +63,7 @@
           dom.fixNesting(@options.editable.element)
           dom.fixDeprecated(@options.editable.element)
           dom.fixAttributes(@options.editable.element)
+          dom.removeGarbage(_this.options.editable.element);
           @options.editable.element.html(@options.editable.element.html().replace(/&nbsp;/g,' '));
 
         #@options.editable.element.find('.cite').remove()
