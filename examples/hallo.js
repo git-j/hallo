@@ -418,26 +418,13 @@
         }
         this.element.append(this.button);
         queryState = function(event) {
-          var e, parent, range, state;
+          var e;
 
           if (!_this.options.command) {
             return;
           }
           try {
-            if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
-              range = window.getSelection().getRangeAt();
-              parent = $(range.startContainer).parent();
-              state = false;
-              if (parent[0].nodeName === 'SUB' && _this.options.command === 'subscript') {
-                state = true;
-              }
-              if (parent[0].nodeName === 'SUP' && _this.options.command === 'superscript') {
-                state = true;
-              }
-              return _this.checked(state);
-            } else {
-              return _this.checked(document.queryCommandState(_this.options.command));
-            }
+            return _this.checked(document.queryCommandState(_this.options.command));
           } catch (_error) {
             e = _error;
           }
@@ -990,6 +977,9 @@
         var force_focus,
           _this = this;
 
+        if ((jQuery('.inEditMode').length)) {
+          jQuery('.inEditMode').hallo('turnOff');
+        }
         if (this.getContents() === this.options.placeholder) {
           force_focus = function() {
             var content_node, new_range;
@@ -1637,6 +1627,245 @@
   })(jQuery);
 
   (function(jQuery) {
+    return jQuery.widget('IKS.halloformula', {
+      dropdownform: null,
+      tmpid: 0,
+      html: null,
+      has_mathjax: typeof MathJax !== 'undefined',
+      options: {
+        editable: null,
+        toolbar: null,
+        uuid: '',
+        rows: 6,
+        cols: 32,
+        buttonCssClass: null,
+        "default": '\\zeta(s) = \\sum_{n=1}^\\infty \\frac{1}{n^s}',
+        mathjax_alternative: '<a href="http://mathurl.com/">MathURL.com</a>',
+        mathjax_base_alternative: '<a href="http://www.sciweavers.org/free-online-latex-equation-editor">sciweavers.org</a>',
+        mathjax_delim_left: '\\(math\\(',
+        mathjax_delim_right: '\\)math\\)',
+        mathjax_inline_delim_left: '\\(inline_math\\(',
+        mathjax_inline_delim_right: '\\)inline_math\\)',
+        inline: true
+      },
+      populateToolbar: function(toolbar) {
+        var buttonset, contentId, setup, target,
+          _this = this;
+
+        buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
+        contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
+        target = this._prepareDropdown(contentId);
+        toolbar.append(target);
+        setup = function() {
+          var latex_formula, range, recalc, sel;
+
+          if (!window.getSelection().rangeCount) {
+            return;
+          }
+          _this.tmpid = 'mod_' + (new Date()).getTime();
+          sel = window.getSelection();
+          range = sel.getRangeAt();
+          _this.cur_formula = null;
+          _this.action = 'insert';
+          _this.options.editable.element.find('.formula').each(function(index, item) {
+            if (sel.containsNode(item, true)) {
+              _this.cur_formula = jQuery(item);
+              _this.cur_formula.attr('id', _this.tmpid);
+              _this.action = 'update';
+              return false;
+            }
+          });
+          if (!_this.has_mathjax) {
+            return true;
+          }
+          if (_this.cur_formula && _this.cur_formula.length) {
+            latex_formula = _this.cur_formula.attr('title');
+            console.log('modify', latex_formula, _this.cur_formula);
+            $('#' + contentId + 'latex').val(latex_formula);
+          } else {
+            _this.cur_formula = jQuery('<span class="formula" id="' + _this.tmpid + '" contenteditable="false"/>');
+            _this.cur_formula.find('.formula').attr('title', _this.options["default"]);
+            range.insertNode(_this.cur_formula[0]);
+            $('#' + contentId + 'latex').val(_this.options["default"]);
+            _this.updateFormulaHTML(contentId);
+          }
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            _this.recalcPreview(contentId);
+            return _this.recalcMath();
+          };
+          window.setTimeout(recalc, 300);
+          return true;
+        };
+        this.dropdownform = this._prepareButton(setup, target);
+        target.bind('hide', function() {
+          return jQuery('.formula').each(function(index, item) {
+            jQuery(item).removeAttr('id');
+            if (jQuery(item).attr('title') === '') {
+              return jQuery(item).remove();
+            }
+          });
+        });
+        buttonset.append(this.dropdownform);
+        return toolbar.append(buttonset);
+      },
+      updateFormulaHTML: function(contentId) {
+        var formula, inline, latex_formula;
+
+        formula = $('#' + this.tmpid);
+        latex_formula = $('#' + contentId + 'latex').val();
+        inline = $('#' + contentId + 'inline').is(':checked');
+        formula.removeClass('inline');
+        if (inline) {
+          formula.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
+          formula.addClass('inline');
+        } else {
+          formula.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
+        }
+        formula.attr('title', latex_formula);
+        return formula[0].outerHTML;
+      },
+      recalcMath: function() {
+        if (this.has_mathjax) {
+          return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+        }
+      },
+      recalcHTML: function(contentId) {
+        this.html = this.updateFormulaHTML(contentId);
+        return this.options.editable.store();
+      },
+      recalcPreview: function(contentId) {
+        var latex_formula, preview;
+
+        preview = jQuery('#' + contentId + ' .preview');
+        if (preview.length === 0) {
+          return;
+        }
+        latex_formula = $('#' + contentId + 'latex').val();
+        if (preview.hasClass('inline')) {
+          return preview.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
+        } else {
+          return preview.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
+        }
+      },
+      _prepareDropdown: function(contentId) {
+        var addArea, addButton, addInput, contentArea, contentAreaUL, contentInfoText,
+          _this = this;
+
+        contentArea = jQuery("<div id=\"" + contentId + "\"><ul></ul></div>");
+        contentAreaUL = contentArea.find('ul');
+        addArea = function(element, default_value) {
+          var el, elid, recalc, textarea;
+
+          elid = "" + contentId + element;
+          el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><textarea id=\"" + elid + "\" rows=\"" + _this.options.rows + "\" cols=\"" + _this.options.cols + "\"><textarea></li>"));
+          textarea = el.find('textarea');
+          textarea.val(default_value);
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            _this.recalcPreview(contentId);
+            return _this.recalcMath();
+          };
+          textarea.bind('keyup change', recalc);
+          return el;
+        };
+        addInput = function(type, element, default_value) {
+          var el, elid, recalc;
+
+          elid = "" + contentId + element;
+          el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><input type=\"" + type + "\" id=\"" + elid + "\"/></li>"));
+          if (el.find('input').is('input[type="checkbox"]') && default_value === "true") {
+            el.find('input').attr('checked', true);
+          } else if (default_value) {
+            el.find('input').val(default_value);
+          }
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            _this.recalcPreview(contentId);
+            return _this.recalcMath();
+          };
+          el.find('input').bind('keyup change', recalc);
+          return el;
+        };
+        addButton = function(element, event_handler) {
+          var el, elid;
+
+          elid = "" + contentId + element;
+          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.elid + "\">" + utils.tr(element) + "</button></li>");
+          el.find('button').bind('click', event_handler);
+          return el;
+        };
+        if (this.has_mathjax) {
+          contentAreaUL.append(addArea("latex", this.options["default"]));
+          contentAreaUL.append(addInput("checkbox", "inline", this.options.inline));
+          contentInfoText = jQuery('<li>' + utils.tr('compose formula') + this.options.mathjax_alternative + '</li>');
+        } else {
+          contentInfoText = jQuery('<li>' + utils.tr('compose formula base') + this.options.mathjax_alternative + '<br/>' + this.options.mathjax_base_alternative + '</li>');
+        }
+        contentInfoText.find('a').each(function(index, item) {
+          var link;
+
+          link = jQuery(item);
+          return link.bind('click', function(event) {
+            event.preventDefault();
+            return wke.openUrlInBrowser(link.attr('href'));
+          });
+        });
+        contentAreaUL.append(contentInfoText);
+        if (this.has_mathjax) {
+          contentInfoText = jQuery('<li><span class="formula preview">' + this.options.mathjax_delim_left + this.options["default"] + this.options.mathjax_delim_right + '</span></li>');
+          contentAreaUL.append(contentInfoText);
+        }
+        contentAreaUL.append(addButton("apply", function() {
+          var range;
+
+          _this.recalcHTML(contentId);
+          window.getSelection().removeAllRanges();
+          range = document.createRange();
+          range.selectNode($('#' + _this.tmpid)[0]);
+          window.getSelection().addRange(range);
+          console.log('insert', _this.html);
+          document.execCommand('insertHTML', false, _this.html);
+          _this.recalcMath();
+          $('#' + _this.tmpid).removeAttr('id');
+          return _this.dropdownform.hallodropdownform('hideForm');
+        }));
+        contentAreaUL.append(addButton("remove", function() {
+          var range;
+
+          window.getSelection().removeAllRanges();
+          range = document.createRange();
+          range.selectNode($('#' + _this.tmpid)[0]);
+          window.getSelection().addRange(range);
+          document.execCommand('delete', false);
+          return _this.dropdownform.hallodropdownform('hideForm');
+        }));
+        return contentArea;
+      },
+      _prepareButton: function(setup, target) {
+        var buttonElement, button_label;
+
+        buttonElement = jQuery('<span></span>');
+        button_label = 'formula';
+        if (window.action_list && window.action_list['hallojs_formula'] !== void 0) {
+          button_label = window.action_list['hallojs_formula'].title;
+        }
+        buttonElement.hallodropdownform({
+          uuid: this.options.uuid,
+          editable: this.options.editable,
+          label: button_label,
+          command: 'formula',
+          icon: 'icon-text-height',
+          target: target,
+          setup: setup,
+          cssClass: this.options.buttonCssClass
+        });
+        return buttonElement;
+      }
+    });
+  })(jQuery);
+
+  (function(jQuery) {
     return jQuery.widget('IKS.hallotipoverlay', {
       options: {
         editable: null,
@@ -1849,6 +2078,7 @@
             dom.fixNesting(_this.options.editable.element);
             dom.fixDeprecated(_this.options.editable.element);
             dom.fixAttributes(_this.options.editable.element);
+            dom.removeGarbage(_this.options.editable.element);
             _this.options.editable.element.html(_this.options.editable.element.html().replace(/&nbsp;/g, ' '));
           }
           _this.dropdownform.hallodropdownform('hideForm');
@@ -2245,12 +2475,19 @@
         return contentArea;
       },
       _applyAction: function() {
-        var character;
+        var character, range, selection_area;
 
         this.recalcHTML();
-        character = $('#' + this.tmpid);
+        character = jQuery('#' + this.tmpid);
+        selection_area = jQuery('<span class="selection"></span>');
+        selection_area.insertAfter(character);
         this._addRecent(character.html());
         character.replaceWith(character.html());
+        window.getSelection().removeAllRanges();
+        range = document.createRange();
+        range.selectNode(selection_area[0]);
+        range.deleteContents();
+        window.getSelection().addRange(range);
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _insertAction: function() {
@@ -2271,8 +2508,8 @@
         range = document.createRange();
         range.selectNode($('#' + this.tmpid)[0]);
         range_contents = jQuery(range.extractContents()).text();
-        window.getSelection().addRange(range);
         range.deleteContents();
+        window.getSelection().addRange(range);
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _prepareButton: function(setup, target) {
@@ -2303,13 +2540,16 @@
           window._character_select_recent = [];
         }
         already_recent = false;
+        while (window._character_select_recent.length > this.options.max_recent) {
+          window._character_select_recent.pop();
+        }
         $.each(window._character_select_recent, function(index, value) {
           if (value === charcode) {
             return already_recent = true;
           }
         });
         if (!already_recent) {
-          window._character_select_recent.push(charcode);
+          window._character_select_recent.unshift(charcode);
         }
         return this.updateCharacterSelectRecent();
       },
@@ -3453,6 +3693,7 @@
         if (this.debug) {
           console.log('cancel');
         }
+        jQuery(this.selection_marker).unwrap();
         return this.restore();
       },
       commit: function() {
@@ -3461,12 +3702,23 @@
         return this.restore();
       },
       execute: function() {
+        var range, sel, sel_html, selection_identifier, selection_pos_end, selection_pos_start, selm_end, selm_start;
+
         jQuery('body').css({
           'overflow': 'hidden'
         });
         this.editable_element.css({
           'opacity': '0.5'
         });
+        sel = window.getSelection();
+        this.selection_marker = 'content_selection_marker';
+        if (sel.rangeCount > 0) {
+          range = sel.getRangeAt();
+          selection_identifier = jQuery('<' + this.selection_marker + '></' + this.selection_marker + '>');
+          selection_identifier.append(range.extractContents());
+          range.deleteContents();
+          range.insertNode(selection_identifier[0]);
+        }
         jQuery('.misspelled').remove();
         this.id = "" + this.options.uuid + "-" + this.widgetName + "-area";
         this.editable_element = this.options.editable.element;
@@ -3475,6 +3727,21 @@
         }
         this.editable_element.parent().append(this._create_overlay(this.id));
         this.textarea.focus();
+        sel_html = this.textarea.val();
+        selm_start = '<' + this.selection_marker + '>';
+        selm_end = '</' + this.selection_marker + '>';
+        selection_pos_start = sel_html.indexOf(selm_start);
+        if (selection_pos_start >= 0) {
+          sel_html = sel_html.replace(new RegExp(selm_start, 'g'), '');
+        }
+        selection_pos_end = sel_html.indexOf(selm_end);
+        if (selection_pos_end >= 0) {
+          sel_html = sel_html.replace(new RegExp(selm_end, 'g'), '');
+        }
+        this.textarea.val(sel_html);
+        if (selection_pos_start >= 0 && selection_pos_end >= 0) {
+          this._setSelectionRange(this.textarea.get(0), selection_pos_start, selection_pos_end);
+        }
         return this._setup_syntax_highlight();
       },
       restore: function() {
@@ -3492,15 +3759,28 @@
         }
         return this.editable_element = this.options.editable.element;
       },
+      _setSelectionRange: function(input, selection_start, selection_end) {
+        var range;
+
+        if (input.setSelectionRange) {
+          input.focus();
+          return input.setSelectionRange(selection_start, selection_end);
+        } else if (input.createTextRange) {
+          range = input.createTextRange();
+          range.collapse(true);
+          range.moveEnd('character', selection_end);
+          range.moveStart('character', selection_start);
+          return range.select();
+        }
+      },
+      _setCaretToPos: function(input, pos) {
+        return this._setSelectionRange(input, pos, pos);
+      },
       _create_form_button: function(name, event_handler) {
         var btn, button_label, button_tooltip;
 
-        button_label = name;
-        button_tooltip = name;
-        if (window.action_list && window.action_list['hallojs_plaintext_' + name] !== void 0) {
-          button_label = window.action_list['hallojs_plaintext_' + name].title;
-          button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip;
-        }
+        button_label = utils.tr_action_title(name);
+        button_tooltip = utils.tr_action_tooltip(name);
         btn = jQuery("<button class=\"action_button\" title=\"" + button_tooltip + "\">" + button_label + "</button>");
         btn.bind('click', event_handler);
         btn.addClass('action_button');
