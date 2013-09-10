@@ -441,6 +441,9 @@ http://hallojs.org
       return false
 
     turnOn: () ->
+      if ( jQuery('.inEditMode').length )
+        #avoid multiple instances that fail to turn of their toolbars
+        jQuery('.inEditMode').hallo('turnOff')
       if this.getContents() is this.options.placeholder
         #this.setContents ' '
         force_focus = =>
