@@ -44,17 +44,17 @@
         return unless @options.command
         try
           # HACK for qt-webkit
-          if ( @options.command == 'subscript' || @options.command == 'superscript' )
-            range = window.getSelection().getRangeAt()
-            parent = $(range.startContainer).parent()
-            state = false
-            if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
-              state = true
-            if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
-              state = true
-            @checked state
-          else
-            @checked document.queryCommandState @options.command
+          #if ( @options.command == 'subscript' || @options.command == 'superscript' )
+          #  range = window.getSelection().getRangeAt()
+          #  parent = $(range.startContainer).parent()
+          #  state = false
+          #  if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
+          #    state = true
+          #  if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
+          #    state = true
+          #  @checked state
+          #else
+          @checked document.queryCommandState @options.command
         catch e
           return
 
