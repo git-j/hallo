@@ -211,9 +211,17 @@
       contentArea
     _applyAction: () ->
       @recalcHTML()
-      character = $('#' + @tmpid)
+      character = jQuery('#' + @tmpid)
+      selection_area = jQuery('<span class="selection"></span>')
+      selection_area.insertAfter(character)
+
       @_addRecent(character.html())
       character.replaceWith(character.html())
+      window.getSelection().removeAllRanges()
+      range = document.createRange()
+      range.selectNode(selection_area[0])
+      range.deleteContents()
+      window.getSelection().addRange(range)
       @dropdownform.hallodropdownform('hideForm')
 
     _insertAction: () ->
@@ -230,9 +238,10 @@
       range = document.createRange()
       range.selectNode($('#' + @tmpid)[0])
       range_contents = jQuery(range.extractContents()).text();
-      window.getSelection().addRange(range)
       range.deleteContents();
+      window.getSelection().addRange(range)
       @dropdownform.hallodropdownform('hideForm')
+
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
       button_label = 'characterselect'
@@ -252,11 +261,13 @@
       if ( ! $.isArray(window._character_select_recent) )
         window._character_select_recent = []
       already_recent = false
+      while ( window._character_select_recent.length > @options.max_recent )
+        window._character_select_recent.pop()
       $.each window._character_select_recent, (index,value) =>
         if ( value == charcode )
           already_recent = true
       if ( !already_recent )
-        window._character_select_recent.push(charcode)
+        window._character_select_recent.unshift(charcode)
       @updateCharacterSelectRecent()
 
     _blockNames: () ->
