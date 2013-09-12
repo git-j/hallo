@@ -25,6 +25,11 @@
       toolbar.append target
       setup= =>
         # return if !window.getSelection().rangeCount
+        jQuery(target).find('select').each (index,item) =>
+          jQuery(item).selectBox()
+        target.bind 'hide', =>
+          jQuery(target).find('select').each (index,item) =>
+            jQuery(item).selectBox('destroy')
         @tmpid='mod_' + (new Date()).getTime()
         sel = window.getSelection()
         range = sel.getRangeAt()
@@ -42,18 +47,12 @@
           selectbox = $('#' + contentId + 'group')
           if ( selectbox.length )
             if ( window._character_select_range )
-              selectbox.selectBox('value',window._character_select_range)
-            @recalcRange(selectbox.selectBox('value'))
+              selectbox.val(window._character_select_range) #selectBox('value',window._character_select_range)
+            @recalcRange selectbox.val() #selectBox('value'))
           @updateCharacterSelectRecent()
         window.setTimeout recalc, 300
         return true
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
-        jQuery('a').each (index,item) =>
-          if ( ! window.__start_mini_activity )
-            jQuery(item).removeAttr('id')
-
-          jQuery(item).remove() if jQuery(item).attr('href') == ''
       buttonset.append @dropdownform
       toolbar.append buttonset
 
@@ -164,11 +163,11 @@
         jQuery.each elements,(label,value) =>
           selectbox.append('<option value="' + value + '">' + label + '</option>')
         recalc= =>
-          char_range = selectbox.selectBox('value')
+          char_range = selectbox.val() #selectBox('value')
           window._character_select_range = char_range
           @recalcRange(char_range)
         selectbox.bind('keyup change',recalc)
-        selectbox.selectBox()
+        # selectbox.selectBox()
         el
 
       addButton = (element,event_handler) =>
