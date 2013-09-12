@@ -2,6 +2,31 @@
 #     (c) 2011 Henri Bergius, IKS Consortium
 #     Hallo may be freely distributed under the MIT license
 #     Plugin to minimalistic enter a nice-looking formula
+# in the page head: 
+# <!-- math processing -->
+# <script type="text/x-mathjax-config">
+#   MathJax.Hub.Config({
+#     tex2jax: {
+#         inlineMath: [['\\(inline_math\\(','\\)inline_math\\)']]
+#       , displayMath: [['\\(math\\(','\\)math\\)']]
+#       , preview:[["img",{src:"icons/throbber.gif"}]]
+#       , showMathMenu: false
+#       }
+#   });
+# </script>
+# <script type="text/javascript" src="MathJax.js?config=TeX_HTML"></script>
+# unpack the MathJax library into the root of you server, maybe patch
+# BASE.JAX(~@666)    config: {root: "lib/mathjax"}, // URL of root directory to load from
+# and something about the webfontDir was weird with my configuration
+# requires utilities for wke (webkitedit):
+#  openUrlInBrowser
+# leaves the editable in a broken-undo-state
+# requires on-store (.formula.html('') or svg transformation)
+# requires on-load (.formula.html(.formula.attr('title')))
+# MathJax.Hub.Queue(['Typeset',MathJax.Hub])
+# depends on the dropdownform widget plugin
+
+
 ((jQuery) ->
   jQuery.widget 'IKS.halloformula',
     dropdownform: null
@@ -15,7 +40,7 @@
       rows: 6
       cols: 32
       buttonCssClass: null
-      default: '\\zeta(s) = \\sum_{n=1}^\\infty \\frac{1}{n^s}'
+      default: '\\zeta(s) = \\sum_{n=1}^\\infty {\\frac{1}{n^s}}'
       mathjax_alternative: '<a href="http://mathurl.com/">MathURL.com</a>'
       mathjax_base_alternative: '<a href="http://www.sciweavers.org/free-online-latex-equation-editor">sciweavers.org</a>'
       mathjax_delim_left: '\\(math\\('
@@ -46,14 +71,18 @@
           return true
         if ( @cur_formula && @cur_formula.length )
           #modify
-          latex_formula = @cur_formula.attr('title')
-          console.log('modify',latex_formula,@cur_formula)
+          latex_formula = decodeURIComponent(@cur_formula.attr('title'))
+          # console.log('modify',latex_formula,@cur_formula)
           $('#' + contentId + 'latex').val(latex_formula)
+          $('#' + contentId + 'inline').attr('checked',@cur_formula.hasClass('inline'))
         else
           @cur_formula = jQuery('<span class="formula" id="' + @tmpid + '" contenteditable="false"/>')
-          @cur_formula.find('.formula').attr('title',@options.default)
+          @cur_formula.find('.formula').attr('title',encodeURIComponent(@options.default))
+          if ( @options.inline )
+            @cur_formula.find('.formula').addClass('inline')
           range.insertNode(@cur_formula[0]);
           $('#' + contentId + 'latex').val(@options.default)
+          $('#' + contentId + 'inline').attr('checked',@options.inline)
           #console.log(@cur_formula)
           @updateFormulaHTML(contentId)
         recalc = =>
@@ -63,15 +92,18 @@
         window.setTimeout recalc, 300
         return true
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
-        jQuery('.formula').each (index,item) =>
-          jQuery(item).removeAttr('id')
-          jQuery(item).remove() if jQuery(item).attr('title') == ''
+      @dropdownform.hallodropdownform 'bindShow', '.formula'
       buttonset.append @dropdownform
       toolbar.append buttonset
 
+
     updateFormulaHTML: (contentId) ->
       formula = $('#' + @tmpid)
+      if ( !formula.length )
+        console.error('expected identifier not found',@tmpid)
+        console.error(@options.editable)
+        console.error(@options.editable.element.html())
+        return
       latex_formula = $('#' + contentId + 'latex').val();
       inline = $('#' + contentId + 'inline').is(':checked');
       #if ( formula.html() == '' )
@@ -81,12 +113,14 @@
         formula.addClass('inline')
       else
         formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
-      formula.attr('title',latex_formula)
+      encoded_latex = encodeURIComponent(latex_formula)
+      formula.attr('title',encoded_latex)
+      console.log(latex_formula,encoded_latex,formula[0].outerHTML)
       return formula[0].outerHTML
 
     recalcMath: () ->
       if ( @has_mathjax )
-        MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
+        MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
     recalcHTML: (contentId) ->
       @html = @updateFormulaHTML(contentId)
