@@ -41,16 +41,22 @@
 
       @element.append @button
 
-    _showTarget: ->
+    bindShowHandler: (event) ->
+      @_showTarget(event.target)
+    bindShow: (selector) ->
+      event_name = 'click'
+      jQuery(selector).live event_name, =>
+        @bindShowHandler()
+
+    _showTarget: (select_target) ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
       target = jQuery @options.target
-      @options.setup() if @options.setup
+      @options.editable.storeContentPosition()
+      @options.setup(select_target) if @options.setup
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()
-      target.bind 'hide', =>
-        @_hideTarget()
 
 
 
@@ -58,6 +64,7 @@
       target = jQuery @options.target
       target.removeClass 'open'
       target.hide()
+      @options.editable.restoreContentPosition()
 
     _updateTargetPosition: ->
       target = jQuery @options.target

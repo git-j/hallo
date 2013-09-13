@@ -37,34 +37,46 @@
         @_hideTarget()
 
       @element.append @button
+    bindShowHandler: (event) ->
+      @_showTarget(event.target)
+    bindShow: (selector) ->
+      event_name = 'click'
+      if ( window._life_map && window._life_map[selector + event_name + @bindShowHandler] )
+        return
+      if ( typeof window._life_map == 'undefined' )
+        window._life_map = {}
+      window._life_map[selector + event_name + @bindShowHandler] = true;
+      jQuery(selector).live event_name, =>
+        @bindShowHandler(event)
 
-    _showTarget: ->
+    _showTarget: (select_target) ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
 
       target = jQuery @options.target
-      setup_success = @options.setup() if @options.setup
+      @options.editable.storeContentPosition()
+      setup_success = @options.setup(select_target) if @options.setup
       if ( ! setup_success )
         @_hideTarget()
         return
       @_updateTargetPosition()
       target.addClass 'open'
       target.show()
-      target.find('input:first').focus()
-      target.bind 'hide', =>
-        @_hideTarget()
-
+      if ( target.find('textarea').length )
+        target.find('textarea:first').focus()
+      else
+        target.find('input:first').focus()
     _hideTarget: ->
       target = jQuery @options.target
       target.removeClass 'open'
       jQuery("select",target).selectBox('destroy')
       target.hide()
-      @restoreContentPosition
+      @options.editable.restoreContentPosition()
 
     hideForm: ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
-      @restoreContentPosition
+      @options.editable.restoreContentPosition()
 
     _updateTargetPosition: ->
       target = jQuery @options.target
