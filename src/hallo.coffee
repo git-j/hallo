@@ -494,7 +494,7 @@ http://hallojs.org
     _activated: (event) ->
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
-          jQuery(item).trigger('hide')
+          jQuery(item).hallodropdownform('hideForm')
         event.data.turnOff()
       event.data.turnOn()
       event.data.restoreContentPosition()

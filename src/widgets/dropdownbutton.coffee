@@ -36,9 +36,6 @@
       target.bind 'click', =>
         @_hideTarget()
 
-      @options.editable.element.bind 'hallodeactivated', =>
-        @_hideTarget()
-
       @element.append @button
 
     bindShowHandler: (event) ->
@@ -62,9 +59,10 @@
 
     _hideTarget: ->
       target = jQuery @options.target
-      target.removeClass 'open'
-      target.hide()
-      @options.editable.restoreContentPosition()
+      if ( target.hasClass('open'))
+        target.removeClass 'open'
+        target.hide()
+        @options.editable.restoreContentPosition()
 
     _updateTargetPosition: ->
       target = jQuery @options.target

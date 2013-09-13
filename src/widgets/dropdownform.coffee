@@ -33,9 +33,6 @@
           return
         @_showTarget()
 
-      @options.editable.element.bind 'hallodeactivated', =>
-        @_hideTarget()
-
       @element.append @button
     bindShowHandler: (event) ->
       @_showTarget(event.target)
@@ -68,10 +65,11 @@
         target.find('input:first').focus()
     _hideTarget: ->
       target = jQuery @options.target
-      target.removeClass 'open'
-      jQuery("select",target).selectBox('destroy')
-      target.hide()
-      @options.editable.restoreContentPosition()
+      if ( target.hasClass 'open' )
+        target.removeClass 'open'
+        jQuery("select",target).selectBox('destroy')
+        target.hide()
+        @options.editable.restoreContentPosition()
 
     hideForm: ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
