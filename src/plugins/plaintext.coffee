@@ -26,10 +26,18 @@
     cancel: () ->
       console.log('cancel') if @debug
       jQuery(@selection_marker).unwrap()
+      dom = new DOMNugget()
+      dom.prepareTextForEdit(@editable_element)
+      if ( typeof MathJax == 'object' )
+        MathJax.Hub.Queue(['Typeset',MathJax.Hub])
       @restore()
     commit: () ->
       @editable_element.html(@textarea.val())
       @options.editable.store()
+      dom = new DOMNugget()
+      dom.prepareTextForEdit(@editable_element)
+      if ( typeof MathJax == 'object' )
+        MathJax.Hub.Queue(['Typeset',MathJax.Hub])
       @restore()
     execute: () ->
       jQuery('body').css
