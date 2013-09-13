@@ -25,19 +25,24 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= =>
-        return if !window.getSelection().rangeCount
+      setup= (select_target) =>
+        return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
         @tmpid='mod_' + (new Date()).getTime()
-        sel = window.getSelection()
-        range = sel.getRangeAt()
-        @cur_image = null
-        @action = 'insert'
-        @options.editable.element.find('img').each (index,item) =>
-          if ( sel.containsNode(item,true) )
-            @cur_image = jQuery(item)
-            @cur_image.attr('id',@tmpid)
-            @action = 'update'
-            return false # break
+        if ( typeof select_target != 'undefined' )
+          @cur_image = $(select_target)
+          @cur_image.attr('id',@tmpid)
+          @action = 'update'
+        else
+          sel = window.getSelection()
+          range = sel.getRangeAt()
+          @cur_image = null
+          @action = 'insert'
+          @options.editable.element.find('img').each (index,item) =>
+            if ( sel.containsNode(item,true) )
+              @cur_image = jQuery(item)
+              @cur_image.attr('id',@tmpid)
+              @action = 'update'
+              return false # break
         if ( @cur_image && @cur_image.length )
           #modify
           url = @cur_image.attr('src')
@@ -81,10 +86,7 @@
         return true
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
-        jQuery('img').each (index,item) =>
-          jQuery(item).removeAttr('id')
-          jQuery(item).remove() if jQuery(item).attr('src') == ''
+      @dropdownform.hallodropdownform 'bindShow', 'img'
       buttonset.append @dropdownform
       toolbar.append buttonset
 
