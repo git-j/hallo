@@ -91,6 +91,7 @@ http://hallojs.org
     _keepActivated: false
     originalHref: null
     undoHistory: []
+    selection_marker: 'content_selection_marker'
 
     options:
       editable: true
@@ -485,7 +486,6 @@ http://hallojs.org
       if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
         @setContents @options.placeholder
     store: () ->
-      @storeContentPosition()
       if @options.store_callback
         contents = @getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
@@ -501,7 +501,7 @@ http://hallojs.org
 
     _deactivated: (event) ->
       return if window.debug_hallotoolbar
-
+      event.data.storeContentPosition()
       if event.data.options.store_callback
         contents = event.data.getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
@@ -553,33 +553,30 @@ http://hallojs.org
         window.getSelection().removeAllRanges()
         range = document.createRange()
         range.selectNode(stored_selection[0])
+        window.getSelection().removeAllRanges()
         window.getSelection().addRange(range)
-        stored_selection.each (index,item) =>
-          marker = jQuery(item)
-          if ( marker.html() == '' )
-            marker.remove()
-          else
-            marker.replaceWith(marker.html())
         @undoWaypoint()
 
     storeContentPosition: ->
       @undoWaypoint()
       sel = window.getSelection()
-      @selection_marker = 'content_selection_marker'
       console.log(sel.rangeCount)
       if ( sel.rangeCount > 0 )
         range = sel.getRangeAt()
-        jQuery(@selection_marker).each (index,item) =>
-          marker = jQuery(item)
-          if ( marker.html() == '' )
-            marker.remove()
-          else
-            marker.replaceWith(marker.html())
-        selection_identifier = jQuery('<' + @selection_marker + '></' + @selection_marker + '>')
+        tmp_id = 'range' + Date.now()
+        selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
         selection_identifier.append(range.extractContents())
         range.deleteContents()
         range.insertNode(selection_identifier[0])
-        # undo impossible....
+        jQuery(@selection_marker).each (index,item) =>
+          marker = jQuery(item)
+          if ( marker.attr('id') == tmp_id )
+            marker.removeAttr('id')
+          else
+            if ( marker.html() == '' )
+              marker.remove()
+            else
+              marker.replaceWith(marker.html())
         console.log('selection added',@element.html())
 
 
