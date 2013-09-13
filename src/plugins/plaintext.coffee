@@ -56,10 +56,13 @@
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element = @options.editable.element
-      console.log(@editable_element.html()) if debug
+      console.log('execute::editable html',@editable_element.html()) if @debug
       @editable_element.parent().append @_create_overlay(@id)
       @textarea.focus()
       sel_html = @textarea.val();
+      sel_html = sel_html.replace(/<p/g,'\n<p')
+      sel_html = sel_html.replace(/<div/g,'\n<div')
+      sel_html = sel_html.replace(/<br/g,'\n<br')
       selm_start = '<' + @selection_marker + '>'
       selm_end = '</' + @selection_marker + '>'
       selection_pos_start = sel_html.indexOf(selm_start)
@@ -70,7 +73,7 @@
         sel_html = sel_html.replace(new RegExp(selm_end,'g'),'')
       @textarea.val(sel_html)
       if ( selection_pos_start >= 0 && selection_pos_end >= 0)
-        @_setSelectionRange(@textarea.get(0),selection_pos_start,selection_pos_end)
+        @options.editable.setSelectionRange(@textarea.get(0),selection_pos_start,selection_pos_end)
       @_setup_syntax_highlight()
 
     restore: () ->
@@ -107,6 +110,8 @@
       btn
     _create_overlay: (id) ->
       @overlay = jQuery "<div id=\"#{id}\"></div>"
+      dom = new DOMNugget()
+      dom.prepareTextForStorage(@editable_element);
       @overlay.append @_create_plain(@editable_element.html())
       @overlay.append '<div class="button_container"></div>'
       container = @overlay.find('.button_container')
