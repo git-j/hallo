@@ -88,19 +88,6 @@
       return if ! @options.editable.element
       @editable_element = @options.editable.element
 
-    _setSelectionRange: (input, selection_start, selection_end) ->
-      if ( input.setSelectionRange )
-        input.focus();
-        input.setSelectionRange(selection_start, selection_end);
-      else if ( input.createTextRange )
-        range = input.createTextRange();
-        range.collapse(true);
-        range.moveEnd('character', selection_end);
-        range.moveStart('character', selection_start);
-        range.select();
-    _setCaretToPos: (input, pos) ->
-      @_setSelectionRange(input, pos, pos);
-
     _create_form_button: (name,event_handler) ->
       button_label = utils.tr_action_title(name);
       button_tooltip = utils.tr_action_tooltip(name);

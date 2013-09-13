@@ -90,6 +90,7 @@ http://hallojs.org
     selection: null
     _keepActivated: false
     originalHref: null
+    undoHistory: []
 
     options:
       editable: true
@@ -104,6 +105,7 @@ http://hallojs.org
       forceStructured: true
       checkTouch: true
       touchScreen: null
+      maxUndoEntries: 10
 
     _create: ->
       @id = @_generateUUID()
@@ -217,6 +219,22 @@ http://hallojs.org
     restoreSelection: (range) ->
       sel = rangy.getSelection()
       sel.setSingleRange(range)
+
+    _setSelectionRange: (input, selection_start, selection_end) ->
+      # set the selection range in a textarea/editable
+      if ( input.setSelectionRange )
+        input.focus();
+        input.setSelectionRange(selection_start, selection_end);
+      else if ( input.createTextRange )
+        range = input.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', selection_end);
+        range.moveStart('character', selection_start);
+        range.select();
+
+    setCaretToPos: (input, pos) ->
+      # move the cursor, no need for a selection
+      @_setSelectionRange(input, pos, pos);
 
     replaceSelection: (cb) ->
       if navigator.appName is 'Microsoft Internet Explorer'
@@ -467,6 +485,7 @@ http://hallojs.org
       if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
         @setContents @options.placeholder
     store: () ->
+      @storeContentPosition()
       if @options.store_callback
         contents = @getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
@@ -478,6 +497,7 @@ http://hallojs.org
           jQuery(item).trigger('hide')
         event.data.turnOff()
       event.data.turnOn()
+      event.data.restoreContentPosition()
 
     _deactivated: (event) ->
       return if window.debug_hallotoolbar
@@ -513,5 +533,54 @@ http://hallojs.org
 
     checkTouch: ->
       @options.touchScreen = !!('createTouch' of document)
+
+    undoWaypoint: ->
+      waypoint = 
+        'date': Date.now()
+        'content': jQuery(@element).html()
+      if ( @undoHistory.length )
+        if ( waypoint.content == @undoHistory[@undoHistory.length - 1].content )
+          return
+      @undoHistory.push(waypoint)
+      while @undoHistory.length > @options.maxUndoEntries
+        @undoHistory.shift()
+      console.log('undo waypoint',@undoHistory)
+
+    restoreContentPosition: ->
+      stored_selection = jQuery(@selection_marker)
+      if ( stored_selection.length )
+        console.log('selection to restore:',stored_selection)
+        window.getSelection().removeAllRanges()
+        range = document.createRange()
+        range.selectNode(stored_selection[0])
+        window.getSelection().addRange(range)
+        stored_selection.each (index,item) =>
+          marker = jQuery(item)
+          if ( marker.html() == '' )
+            marker.remove()
+          else
+            marker.replaceWith(marker.html())
+        @undoWaypoint()
+
+    storeContentPosition: ->
+      @undoWaypoint()
+      sel = window.getSelection()
+      @selection_marker = 'content_selection_marker'
+      console.log(sel.rangeCount)
+      if ( sel.rangeCount > 0 )
+        range = sel.getRangeAt()
+        jQuery(@selection_marker).each (index,item) =>
+          marker = jQuery(item)
+          if ( marker.html() == '' )
+            marker.remove()
+          else
+            marker.replaceWith(marker.html())
+        selection_identifier = jQuery('<' + @selection_marker + '></' + @selection_marker + '>')
+        selection_identifier.append(range.extractContents())
+        range.deleteContents()
+        range.insertNode(selection_identifier[0])
+        # undo impossible....
+        console.log('selection added',@element.html())
+
 
 )(jQuery)
