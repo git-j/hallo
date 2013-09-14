@@ -194,6 +194,19 @@ http://hallojs.org
         @element.bind "keydown", this, @_syskeys
         @element.bind "keyup mouseup", this, @_checkSelection
         @bound = true
+      if ( typeof window._live == 'undefined' )
+        window._live = {}
+      unless window._live['.editableclick']
+        window._live['.editableclick'] = true
+        jQuery('[contenteditable=false]').live "click", (event) =>
+          target = event.target
+          if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
+            return
+          window.getSelection().removeAllRanges()
+          range = document.createRange()
+          range.selectNode(target)
+          window.getSelection().addRange(range)
+
 
       @_forceStructured() if @options.forceStructured
 
