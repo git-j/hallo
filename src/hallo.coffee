@@ -92,6 +92,7 @@ http://hallojs.org
     originalHref: null
     undoHistory: []
     selection_marker: 'content_selection_marker'
+    auto_store_timeout: 3000
 
     options:
       editable: true
@@ -373,6 +374,12 @@ http://hallojs.org
       widget = event.data
       widget.setModified() if widget.isModified()
 
+    _ignoreKeys: (code) ->
+      # cursor movements
+      return true if ( code >= 33 && code <= 40 )
+      return true if ( code == 20 ) #caps
+
+      return false
     _keys: (event) ->
       widget = event.data
       #if event.keyCode == 27
@@ -383,15 +390,28 @@ http://hallojs.org
       #        content: widget.getContents()
       #        thrown: old
       #    widget.turnOff()
+      return if widget._ignoreKeys(event.keyCode)
       if event.keyCode == 66 && event.ctrlKey #b
           document.execCommand("bold",false)
       if event.keyCode == 73 && event.ctrlKey #i
           document.execCommand("italic",false)
       if event.keyCode == 85 && event.ctrlKey #u
           document.execCommand("underline",false)
+      if ( !event.ctrlKey && !event.shiftKey && event.keyCode != 17 && event.keycode != 16 )
+        # helps but gets _slow_ widget.element[0].blur()
+        # widget.element[0].focus()
+        # sel.addRange(new_range)
+        if ( widget.autostore_timer )
+          window.clearTimeout(widget.autostore_timer)
+        widget.autostore_timer = window.setTimeout =>
+          widget.storeContentPosition()
+          widget.store()
+          widget.restoreContentPosition()
+        , widget.auto_store_timeout
 
     _syskeys: (event) ->
       widget = event.data
+      return if widget._ignoreKeys(event.keyCode)
       if event.keyCode == 9 && !event.shiftKey  #tab
         range = window.getSelection().getRangeAt()
         li = $(range.startContainer).closest('li')
@@ -486,12 +506,15 @@ http://hallojs.org
       if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
         @setContents @options.placeholder
     store: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       if @options.store_callback
         contents = @getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
           @setContents ''
         @options.store_callback(@getContents())
     _activated: (event) ->
+      # console.log('hallo activated')
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
           jQuery(item).hallodropdownform('hideForm')
