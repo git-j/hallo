@@ -222,7 +222,7 @@ http://hallojs.org
       sel = rangy.getSelection()
       sel.setSingleRange(range)
 
-    _setSelectionRange: (input, selection_start, selection_end) ->
+    setSelectionRange: (input, selection_start, selection_end) ->
       # set the selection range in a textarea/editable
       if ( input.setSelectionRange )
         input.focus();
@@ -272,6 +272,7 @@ http://hallojs.org
         range.insertNode($('<span>' + replacement + '</span>')[0]) if replacement
         sel.removeAllRanges();
         sel.addRange(range);
+        @storeContentPosition()
 
     removeAllSelections: () ->
       if navigator.appName is 'Microsoft Internet Explorer'
@@ -567,12 +568,13 @@ http://hallojs.org
       @undoHistory.push(waypoint)
       while @undoHistory.length > @options.maxUndoEntries
         @undoHistory.shift()
-      console.log('undo waypoint',@undoHistory)
+      # console.log('undo waypoint',@undoHistory)
 
     restoreContentPosition: ->
-      stored_selection = jQuery(@selection_marker)
+      console.log('restoreContentPosition')
+      stored_selection = @element.find(@selection_marker)
       if ( stored_selection.length )
-        console.log('selection to restore:',stored_selection)
+        # console.log('selection to restore:',stored_selection)
         window.getSelection().removeAllRanges()
         range = document.createRange()
         range.selectNode(stored_selection[0])
@@ -581,17 +583,14 @@ http://hallojs.org
         @undoWaypoint()
 
     storeContentPosition: ->
+      console.log('storeContentPosition')
       @undoWaypoint()
       sel = window.getSelection()
-      console.log(sel.rangeCount)
+      # console.log('ranges to store:' + sel.rangeCount)
       if ( sel.rangeCount > 0 )
         range = sel.getRangeAt()
         tmp_id = 'range' + Date.now()
-        selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
-        selection_identifier.append(range.extractContents())
-        range.deleteContents()
-        range.insertNode(selection_identifier[0])
-        jQuery(@selection_marker).each (index,item) =>
+        @element.find(@selection_marker).each (index,item) =>
           marker = jQuery(item)
           if ( marker.attr('id') == tmp_id )
             marker.removeAttr('id')
@@ -599,8 +598,29 @@ http://hallojs.org
             if ( marker.html() == '' )
               marker.remove()
             else
+              console.log(marker.html())
               marker.replaceWith(marker.html())
-        console.log('selection added',@element.html())
+        console.log('before:' + @element.html()) if @debug
+        selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
+        try
+          range.surroundContents(selection_identifier[0])
+        catch e
+          # utils.info(utils.tr('warning selected block contents'))
+          range.collapse(false) # to end
+          range.insertNode(selection_identifier[0])
+          sel.removeAllRanges()
+          sel.addRange(range)
+        console.log('after:' + @element.html()) if @debug
+        # console.log('selection added',@element.html())
+
+    setContentPosition: (jq_node) ->
+      sel = window.getSelection()
+      sel.removeAllRanges()
+      range = document.createRange()
+      range.selectNode(jq_node[0])
+      sel.addRange(range)
+      @storeContentPosition()
+
 
 
 )(jQuery)
