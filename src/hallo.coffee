@@ -333,6 +333,27 @@ http://hallojs.org
     # Execute a contentEditable command
     execute: (command, value) ->
       @undoWaypoint()
+      if ( command.indexOf('justify') == 0 )
+        # when <p style="text-align:left"><span style="text-align:left">test</span></p>
+        # is in the content, after aligning the content to the right, it is no longer
+        # possible to align it left, as execCommand only changes the closest p/div
+        # this implementation uses the current cursor position and removes all alignment
+        # related style attributes from the content before executing the command
+        # this action breaks the default undo
+        @storeContentPosition()
+        selection = @element.find(@selection_marker)
+        while ( selection.length )
+          if ( selection.attr('contenteditable') == 'true' )
+            break
+          style_attr = selection.attr('style')
+          if ( typeof style_attr != 'undefined' )
+            style_attr = style_attr.replace(/text-align:[^;]*/,'')
+            style_attr = style_attr.trim()
+            if ( style_attr == '' || style_attr == ';' )
+              selection.removeAttr('style')
+            else
+              selection.attr('style',style_attr)
+          selection = selection.parent()
       if document.execCommand command, false, value
         @element.trigger "change"
 
