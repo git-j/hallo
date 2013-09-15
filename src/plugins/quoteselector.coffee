@@ -2,6 +2,7 @@
 #     (c) 2011 Henri Bergius, IKS Consortium
 #     Hallo may be freely distributed under the MIT license
 # This plugin handles the selection of a publication, a nugget associated to the publication and a portion of the nugget text
+# Currently Unused
 ((jQuery) ->
   jQuery.widget 'IKS.halloquoteselector',
     widget: null
@@ -71,11 +72,11 @@
 
     updateInformation: ->
       if ( @activity.step == 0 )
-        $('#information').html(utils.tr('activity quote select publication'))
+        jQuery('#information').html(utils.tr('activity quote select publication'))
       if ( @activity.step == 1 )
-        $('#information').html(utils.tr('activity quote select nugget'))
+        jQuery('#information').html(utils.tr('activity quote select nugget'))
       if ( @activity.step == 2 )
-        $('#information').html(utils.tr('activity quote select nugget text'))
+        jQuery('#information').html(utils.tr('activity quote select nugget text'))
 
 
     apply:  ->
@@ -86,23 +87,24 @@
         nugget.split(@options.editable.element,@options.editable.element.find('.selection'),new_version.loid).done (loids) =>
           console.log(loids);
           console.log('TODO: update document');
+      @cleanup()
 
+    cleanup: ->
       @widget.remove()
       jQuery('body').css({'overflow':'auto'})
 
 
     back: ->
       if ( @activity.step == 0 )
-        @widget.remove()
-        jQuery('body').css({'overflow':'auto'})
+        @cleanup()
         return
       else if ( @activity.step == 1 )
-        $('#nugget_list').hide()
-        $('#publication_list').show()
+        jQuery('#nugget_list').hide()
+        jQuery('#publication_list').show()
         @activity.step = 0
       else if ( @activity.step == 2 )
-        $('#nugget_content').hide()
-        $('#nugget_list').show()
+        jQuery('#nugget_content').hide()
+        jQuery('#nugget_list').show()
         @activity.step = 1
 
       @updateButtons()
@@ -113,12 +115,12 @@
       if ( @activity.step == 0 )
         return if !@activity.publication
         @loadPublicationNuggets(@activity.publication)
-        $('#publication_list').hide()
+        jQuery('#publication_list').hide()
         @activity.step = 1
       else if ( @activity.step == 1 )
         return if !@activity.nugget
         @loadNugget(@activity.nugget)
-        $('#nugget_list').hide()
+        jQuery('#nugget_list').hide()
         @activity.step = 2
       @updateButtons()
       @updateInformation()
@@ -133,7 +135,7 @@
       @activity.nugget_label = jQuery(node).text()
 
     loadNugget: (loid) ->
-      content = $('#nugget_content')
+      content = jQuery('#nugget_content')
       content.show();
       omc.NuggetContent(loid).done (node_data) =>
         if ( node_data && node_data.indexOf('<![CDATA[') >= 0 )
@@ -150,39 +152,39 @@
 
     loadPublications: (loid) ->
       list = new List();
-      list.init($('#publication_list'),omc.PublicationList);
-      list.setupItemActions($('#publication_list'),{
+      list.init(jQuery('#publication_list'),omc.PublicationList);
+      list.setupItemActions(jQuery('#publication_list'),{
         'node_dblclick': (node) =>
           @selectPublication(node)
           @next()
         'node_select': (node) =>
           @selectPublication(node)
       })
-      $('#publication_list').show();
+      jQuery('#publication_list').show();
 
 
     loadPublicationNuggets: (loid) ->
       list = new List();
       data_fn = ->
         return omc.SourceDescriptionNuggetList(loid)
-      list.init($('#nugget_list'),data_fn);
-      list.setupItemActions($('#nugget_list'),{
+      list.init(jQuery('#nugget_list'),data_fn);
+      list.setupItemActions(jQuery('#nugget_list'),{
         'node_dblclick': (node) =>
           @selectNugget(node)
           @next()
         'node_select': (node) =>
           @selectNugget(node)
-          #return if ( $(node).parents('.context').length )
-          #return if ( $(node).find('.context').is(':visible') )
-          #citation_data = '{' + $(node).find('.citation_data').text() + '}';
+          #return if ( jQuery(node).parents('.context').length )
+          #return if ( jQuery(node).find('.context').is(':visible') )
+          #citation_data = '{' + jQuery(node).find('.citation_data').text() + '}';
           #citation_data = citation_data.replace(/{,/,'{')
           #endnotes = @nugget.endnotes(citation_data);
-          #endnotes = endnotes.replace(/\[1\]/,'[' + ($(node).index()+1) + ']')
-          #$(node).find('.citation_data_processed').html(endnotes).show()
-          $('.context:visible').hide()
-          $(node).find('.context').show()
+          #endnotes = endnotes.replace(/\[1\]/,'[' + (jQuery(node).index()+1) + ']')
+          #jQuery(node).find('.citation_data_processed').html(endnotes).show()
+          jQuery('.context:visible').hide()
+          jQuery(node).find('.context').show()
       })
-      $('#nugget_list').show()
+      jQuery('#nugget_list').show()
 
 
     _createInput: (identifier, label, value) ->
