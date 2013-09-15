@@ -77,6 +77,7 @@ class _Citehandler
 
       target.append(ov_data)
       sourcedescriptioneditor= =>
+        console.warn('@editable.undoWaypoint()')
         jQuery('body').hallosourcedescriptioneditor
           'loid':@citation_data.loid
           'data':@citation_data
@@ -90,6 +91,7 @@ class _Citehandler
         #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
+        console.warn('@editable.undoWaypoint()')
         loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
         #console.log(loid);
 
