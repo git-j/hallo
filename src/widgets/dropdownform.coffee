@@ -23,6 +23,7 @@
       target.css 'position', 'absolute'
       target.addClass 'dropdown-menu'
       target.addClass 'dropdown-form'
+      target.addClass 'dropdown-form-' + @options.command
 
       target.hide()
       @button = @_prepareButton() unless @button
@@ -36,7 +37,7 @@
 
       @element.append @button
     bindShowHandler: (event) ->
-      console.log('show handler',event) if @debug
+      console.log('dropdownform show handler',event) if @debug
       @_showTarget(event.target)
     bindShow: (selector) ->
       event_name = 'click'
@@ -45,12 +46,21 @@
       if ( typeof window._life_map == 'undefined' )
         window._life_map = {}
       window._life_map[selector + event_name + @bindShowHandler] = true;
-      console.log('bind',event_name,selector) if @debug
+      console.log('dropdownfor bindShow',event_name,selector) if @debug
       jQuery(selector).live event_name, =>
+        console.log(event.target) if @debug
+        # find the toolbar and reset the button/@options.target members
+        # they were destroyed when the user changes the editable
+        toolbar = jQuery('.hallotoolbar').eq(0)
+        return if ( !toolbar.length )
+        @options.target = toolbar.find('.dropdown-form-' + @options.command)
+        return if ( !@options.target.length )
+        @button = toolbar.find('.' + @options.command + '_button')
+        return if ( !@button.length )
         @bindShowHandler(event)
 
     _showTarget: (select_target) ->
-      console.log('target show') if @debug
+      console.log('dropdownform target show',select_target) if @debug
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
 
@@ -91,8 +101,10 @@
       target = jQuery('#' + target_id)
       button_id = jQuery(@button).attr('id')
       button = jQuery('#' + button_id)
+      button_position = button.position()
+      top = button_position.top
+      left = button_position.left
 
-      {top, left} = button.position()
       top += button.outerHeight()
       target.css 'top', top
       last_button = target.closest('.hallotoolbar').find('button:last')
