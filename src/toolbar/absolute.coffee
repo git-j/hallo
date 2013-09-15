@@ -6,6 +6,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.halloToolbarAbsolute',
     toolbar: null
+    debug: false
 
     options:
       parentElement: 'body'
@@ -13,6 +14,7 @@
       toolbar: null
 
     _create: ->
+      console.log('toolbar created') if @debug
       @toolbar = @options.toolbar
       @toolbar.show()
       jQuery(@options.parentElement).append @toolbar
@@ -65,6 +67,7 @@
     _bindEvents: ->
       # catch deactivate -> remove/cleanup
       @element.bind 'hallodeactivated', (event, data) =>
+        console.log('toolbar deactivated') if @debug
         @toolbar.remove()
         @destroy()
 ) jQuery
