@@ -330,6 +330,7 @@ http://hallojs.org
 
     # Execute a contentEditable command
     execute: (command, value) ->
+      @undoWaypoint()
       if document.execCommand command, false, value
         @element.trigger "change"
 
