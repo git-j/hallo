@@ -22,7 +22,7 @@
 #  openUrlInBrowser
 # leaves the editable in a broken-undo-state
 # requires on-store (.formula.html('') or svg transformation)
-# requires on-load (.formula.html(.formula.attr('title')))
+# requires on-load (.formula.html(.formula.attr('rel')))
 # MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 # depends on the dropdownform widget plugin
 
@@ -71,13 +71,13 @@
           return true
         if ( @cur_formula && @cur_formula.length )
           #modify
-          latex_formula = decodeURIComponent(@cur_formula.attr('title'))
+          latex_formula = decodeURIComponent(@cur_formula.attr('rel'))
           # console.log('modify',latex_formula,@cur_formula)
           $('#' + contentId + 'latex').val(latex_formula)
           $('#' + contentId + 'inline').attr('checked',@cur_formula.hasClass('inline'))
         else
           @cur_formula = jQuery('<span class="formula" id="' + @tmpid + '" contenteditable="false"/>')
-          @cur_formula.find('.formula').attr('title',encodeURIComponent(@options.default))
+          @cur_formula.find('.formula').attr('rel',encodeURIComponent(@options.default))
           if ( @options.inline )
             @cur_formula.find('.formula').addClass('inline')
           range.insertNode(@cur_formula[0]);
@@ -114,7 +114,7 @@
       else
         formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
       encoded_latex = encodeURIComponent(latex_formula)
-      formula.attr('title',encoded_latex)
+      formula.attr('rel',encoded_latex)
       formula.attr('contenteditable','false')
       # console.log(latex_formula,encoded_latex,formula[0].outerHTML)
       return formula[0].outerHTML
