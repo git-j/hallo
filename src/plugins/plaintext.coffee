@@ -58,8 +58,6 @@
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element = @options.editable.element
-      selection_marker = @editable_element.find(@options.editable.selection_marker);
-      selection_marker.removeAttr('id')
       console.log('execute::editable html',@editable_element.html()) if @debug
       overlay = @_create_overlay(@id)
       @editable_element.parent().append overlay
@@ -108,10 +106,18 @@
       btn.bind 'click', event_handler
       btn.addClass('action_button')
       btn
+    _prepare_plain_content: ->
+      dom = new DOMNugget()
+      citeproc = new ICiteProc()
+      citeproc.restoreTextForCitation(@editable_element);
+      dom.prepareTextForStorage(@editable_element)
+      selection_marker = @editable_element.find(@options.editable.selection_marker)
+      selection_marker.removeAttr('id')
+      @editable_element.find('.auto-cite').remove()
+
     _create_overlay: (id) ->
       @overlay = jQuery "<div id=\"#{id}\"></div>"
-      dom = new DOMNugget()
-      dom.prepareTextForStorage(@editable_element);
+      @_prepare_plain_content()
       @overlay.append @_create_plain(@editable_element.html())
       @overlay.append '<div class="button_container"></div>'
       container = @overlay.find('.button_container')
