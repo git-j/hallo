@@ -644,16 +644,16 @@ http://hallojs.org
       if ( sel.rangeCount > 0 )
         range = sel.getRangeAt()
         tmp_id = 'range' + Date.now()
+        @element.find(@selection_marker).removeAttr('id')
+        remove_queue = [];
         @element.find(@selection_marker).each (index,item) =>
           marker = jQuery(item)
-          if ( marker.attr('id') == tmp_id )
-            marker.removeAttr('id')
+          if ( marker.html() == '' )
+            remove_queue.push(marker)
           else
-            if ( marker.html() == '' )
-              marker.remove()
-            else
-              console.log(marker.html())
-              marker.replaceWith(marker.html())
+            marker.replaceWith(marker.html())
+        for marker in remove_queue
+          marker.remove()
         console.log('before:' + @element.html()) if @debug
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
         try
