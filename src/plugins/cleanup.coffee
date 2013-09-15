@@ -50,6 +50,7 @@
         el.find('button').bind 'click', event_handler
         el
       contentAreaUL.append addButton "clean_html", =>
+        @options.editable.storeContentPosition()
         console.log('cleanhtml') if @debug
         jQuery('.misspelled').remove()
         dom = new IDOM()
@@ -71,18 +72,21 @@
         @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element)
+          nugget.resetCitations(@options.editable.element).done =>
+            @options.editable.restoreContentPosition()
 
 
       contentAreaUL.append addButton "clean_plain", =>
         jQuery('.misspelled').remove()
+        @options.editable.storeContentPosition()
         dom = new IDOM()
         dom.plainTextParagraphs(@options.editable.element)
         @dropdownform.hallodropdownform('hideForm')
         @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element)
+          nugget.resetCitations(@options.editable.element).done => 
+            @options.editable.restoreContentPosition()
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'

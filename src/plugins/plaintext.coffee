@@ -25,63 +25,76 @@
 
     cancel: () ->
       console.log('cancel') if @debug
-      jQuery(@selection_marker).unwrap()
-      dom = new DOMNugget()
-      dom.prepareTextForEdit(@editable_element)
-      if ( typeof MathJax == 'object' )
-        MathJax.Hub.Queue(['Typeset',MathJax.Hub])
       @restore()
     commit: () ->
-      @editable_element.html(@textarea.val())
+      selection_pos_start = @textarea[0].selectionStart
+      selection_pos_end = @textarea[0].selectionEnd
+      textarea_content = @textarea.val()
+      textarea_selected_content = textarea_content.substring(0,selection_pos_start)
+      textarea_selected_content+= '<' + @options.editable.selection_marker + '>'
+      if ( selection_pos_start != selection_pos_end)
+        textarea_selected_content+= textarea_content.substring(selection_pos_start,selection_pos_end)
+      textarea_selected_content+= '</' + @options.editable.selection_marker + '>'
+      textarea_selected_content+= textarea_content.substring(selection_pos_end)
+      if ( jQuery('<div>' + textarea_selected_content + '</div>').find(@options.editable.selection_marker).length )
+        # the html is not destroyed by the selection
+        @editable_element.html(textarea_selected_content)
+      else
+        #simple1: <b>te|xt</b>
+        #simple2: <i><b|>text</b></i>
+        #medium: <b class="somethi|ng">text</b>
+        #complex: <b class="<some><thi|ng>">text</b>
+        #TODO implement ways for this situation
+        @editable_element.html('<' + @options.editable.selection_marker + '></' + @options.editable.selection_marker + '>' + textarea_content)
       @options.editable.store()
-      dom = new DOMNugget()
-      dom.prepareTextForEdit(@editable_element)
-      if ( typeof MathJax == 'object' )
-        MathJax.Hub.Queue(['Typeset',MathJax.Hub])
       @restore()
     execute: () ->
       jQuery('body').css
         'overflow':'hidden'
       @editable_element.css
         'opacity': '0.5'
-      sel = window.getSelection()
-      @selection_marker = 'content_selection_marker'
-      if ( sel.rangeCount > 0 )
-        range = sel.getRangeAt()
-        selection_identifier = jQuery('<' + @selection_marker + '></' + @selection_marker + '>')
-        selection_identifier.append(range.extractContents())
-        range.deleteContents()
-        range.insertNode(selection_identifier[0])
+      @options.editable.storeContentPosition()
 
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element = @options.editable.element
+      selection_marker = @editable_element.find(@options.editable.selection_marker);
+      selection_marker.removeAttr('id')
       console.log('execute::editable html',@editable_element.html()) if @debug
-      @editable_element.parent().append @_create_overlay(@id)
-      @textarea.focus()
-      sel_html = @textarea.val();
-      sel_html = sel_html.replace(/<p/g,'\n<p')
-      sel_html = sel_html.replace(/<div/g,'\n<div')
-      sel_html = sel_html.replace(/<br/g,'\n<br')
-      selm_start = '<' + @selection_marker + '>'
-      selm_end = '</' + @selection_marker + '>'
-      selection_pos_start = sel_html.indexOf(selm_start)
-      if ( selection_pos_start >= 0)
-        sel_html = sel_html.replace(new RegExp(selm_start,'g'),'')
-      selection_pos_end = sel_html.indexOf(selm_end)
-      if ( selection_pos_end >= 0 )
-        sel_html = sel_html.replace(new RegExp(selm_end,'g'),'')
-      @textarea.val(sel_html)
-      if ( selection_pos_start >= 0 && selection_pos_end >= 0)
-        @options.editable.setSelectionRange(@textarea.get(0),selection_pos_start,selection_pos_end)
-      @_setup_syntax_highlight()
+      overlay = @_create_overlay(@id)
+      @editable_element.parent().append overlay
+      overlay.fadeIn 100, =>
+        @textarea.focus()
+        sel_html = @textarea.val();
+        # 8< prepareTextForStorage
+        #sel_html = sel_html.replace(/<p/g,'\n<p')
+        #sel_html = sel_html.replace(/<div/g,'\n<div')
+        #sel_html = sel_html.replace(/<br/g,'\n<br')
+        selm_start = '<' + @options.editable.selection_marker + '>'
+        selm_end = '</' + @options.editable.selection_marker + '>'
+        selection_pos_start = sel_html.indexOf(selm_start)
+        if ( selection_pos_start >= 0)
+          sel_html = sel_html.replace(new RegExp(selm_start,'g'),'')
+        selection_pos_end = sel_html.indexOf(selm_end)
+        if ( selection_pos_end >= 0 )
+          sel_html = sel_html.replace(new RegExp(selm_end,'g'),'')
+        @textarea.val(sel_html)
+        if ( selection_pos_start >= 0 && selection_pos_end >= 0)
+          @options.editable.setSelectionRange(@textarea.get(0),selection_pos_start,selection_pos_end)
+        @_setup_syntax_highlight()
 
     restore: () ->
       jQuery('body').css
         'overflow':'auto'
       @editable_element.css
         'opacity': '1'
-      @overlay.remove()
+      @overlay.fadeOut 100, =>
+        @overlay.remove()
+        dom = new DOMNugget()
+        dom.prepareTextForEdit(@editable_element)
+        if ( typeof MathJax == 'object' )
+          MathJax.Hub.Queue(['Typeset',MathJax.Hub])
+        @options.editable.restoreContentPosition()
 
     setup: () ->
       # on activate toolbar (focus in)
@@ -117,6 +130,9 @@
       @_plain_resize()
       @textarea.bind 'blur', =>
         @textarea.focus()
+      @textarea.bind 'keyup', (event)=>
+        if ( event.keyCode == 27 )
+          @cancel()
       @textarea
     _setup_syntax_highlight: () ->
        #return if !CodeMirror

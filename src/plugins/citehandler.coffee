@@ -101,28 +101,15 @@ class _Citehandler
         selection = window.getSelection()
         if ( citation.length )
           citation_html = citation.html()
-          #TODO: start undo transaction
           #not that simple: citation.selectText()
-          range = document.createRange()
-          range.selectNodeContents(citation[0])
-          selection.removeAllRanges()
-          selection.addRange(range)
-          #console.log('before:',@editable.element.html());
-          if ( document.execCommand('delete',false) )
-            document.execCommand('insertHTML',false,citation_html)
-          #console.log('after::',@editable.element.html(),citation_html);
+          citation.replaceWith(citation_html)
+          console.log(citation.html())
         if ( element.closest('.cite').length )
           cite =  element.closest('.cite')
-          cite.attr('contenteditable',true)
           #not that simple: element.closest('.cite').selectText()
-          range = document.createRange()
-          range.selectNodeContents(cite[0])
-          selection.removeAllRanges()
-          selection.addRange(range)
-          if( ! document.execCommand('delete',false) )
-            #fallback in case the selection did not work
-            $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html)
-            $('.sourcedescription-' + loid).remove()
+          cite.remove()
+          $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html)
+          $('.sourcedescription-' + loid).remove()
           #console.log('citation removed')
           $('.cite').attr('contenteditable',false)
         jQuery('#' + @overlay_id).remove()
@@ -133,8 +120,10 @@ class _Citehandler
         if ( @editable.element )
           @editable.element.find('.auto-cite').remove()
           nugget.updateSourceDescriptionData(@editable.element).done =>
-            nugget.resetCitations(@editable.element)
-        #TODO: stop undo transaction
+            nugget.resetCitations(@editable.element).done =>
+              @editable.element.hallo('disable')
+              console.warn('@editable.undoWaypoint()')
+
       if !@citation_data.processed
         target.find('.edit').remove()
         target.find('.remove').closest('ul').prev('ul').remove();

@@ -115,7 +115,8 @@
         formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
       encoded_latex = encodeURIComponent(latex_formula)
       formula.attr('title',encoded_latex)
-      console.log(latex_formula,encoded_latex,formula[0].outerHTML)
+      formula.attr('contenteditable','false')
+      # console.log(latex_formula,encoded_latex,formula[0].outerHTML)
       return formula[0].outerHTML
 
     recalcMath: () ->
@@ -194,21 +195,11 @@
       
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        console.log('insert',@html)
-        document.execCommand 'insertHTML',false, @html
         @recalcMath()
         $('#' + @tmpid).removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'delete',false
+        $('#' + @tmpid).remove()
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 

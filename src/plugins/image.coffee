@@ -5,6 +5,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.halloimage',
     dropdownform: null
+    debug: true
     tmpid: 0
     selected_row: null
     selected_cell: null
@@ -26,6 +27,7 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= (select_target) =>
+        console.log('setup image form',select_target) if @debug
         return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
         @tmpid='mod_' + (new Date()).getTime()
         if ( typeof select_target != 'undefined' )
@@ -166,26 +168,23 @@
         wkej.instance.insert_image_dfd.done (path) =>
           if ( path.indexOf(':') == 1 )
             path = '/' + path
-          $('#' + contentId + 'url').val('file://' + path)
+          path = 'file://' + path
+          # TODO: update App::mediaPath('images') if applicable
+          # to refeus://localhost/...
+          $('#' + contentId + 'url').val(path)
           delete wkej.instance.insert_image_dfd
           @updateImageHTML(contentId)
         occ.SelectImage()
         wkej.instance.insert_image_dfd.promise()
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'insertHTML',false, @html
-        $('#' + @tmpid).removeAttr('id')
+        image = $('#' + @tmpid)
+        @options.editable.setContentPosition(image)
+        image.removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'delete',false
+        image = $('#' + @tmpid)
+        image.remove()
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 

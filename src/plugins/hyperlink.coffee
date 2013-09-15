@@ -142,22 +142,23 @@
       $('#' + @tmpid).removeAttr('id')
       @dropdownform.hallodropdownform('hideForm')
     _removeAction: () ->
-      window.getSelection().removeAllRanges()
       modified = false
       if ( $('#' + @tmpid).text() != utils.tr('no title provided') )
         modified = true
-      range = document.createRange()
-      range.selectNode($('#' + @tmpid)[0])
-      range_contents = jQuery(range.extractContents()).text();
-      window.getSelection().addRange(range)
-      range.deleteContents();
       if ( modified )
-        range.insertNode($('<span>' + range_contents + '</span>')[0])
+        $('#' + @tmpid).replaceWith($('#' + @tmpid).text())
+
+      else
+        $('#' + @tmpid).remove()
+
       @dropdownform.hallodropdownform('hideForm')
     _selectAction: () ->
-      window.__start_mini_activity = true
+      current_hyperlink = jQuery('#' + @tmpid)
+      current_hyperlink.removeAttr('id')
+      current_hyperlink.addClass(@tmpid)
+      current_hyperlink.addClass('nugget_select_target')
       @dropdownform.hallodropdownform('hideForm')
-      $('body').hallonuggetselector({'editable':@options.editable,'hyperlink_id':@tmpid});
+      $('body').hallonuggetselector({'editable':@options.editable,'hyperlink_class':@tmpid});
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
       button_label = 'hyperlink'
