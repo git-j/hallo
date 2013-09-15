@@ -444,6 +444,7 @@ http://hallojs.org
           document.execCommand("outdent",false)
           event.preventDefault()
 
+
     _rangesEqual: (r1, r2) ->
       return false unless r1.startContainer is r2.startContainer
       return false unless r1.startOffset is r2.startOffset
@@ -552,6 +553,7 @@ http://hallojs.org
         return
 
       unless event.data._protectToolbarFocus is true
+        # console.log('hallo deactivated')
         event.data.turnOff()
       else
         setTimeout ->
