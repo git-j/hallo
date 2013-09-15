@@ -157,6 +157,7 @@ http://hallojs.org
       @element.unbind "keyup", @_keys
       @element.unbind "keydown", @_syskeys
       @element.unbind "keyup mouseup", @_checkSelection
+      @element.unbind "paste", @_paste
       @bound = false
 
       jQuery(@element).removeClass 'isModified'
@@ -193,6 +194,7 @@ http://hallojs.org
         @element.bind "keyup", this, @_keys
         @element.bind "keydown", this, @_syskeys
         @element.bind "keyup mouseup", this, @_checkSelection
+        @element.bind "paste", this, @_paste
         @bound = true
       if ( typeof window._live == 'undefined' )
         window._live = {}
@@ -389,6 +391,21 @@ http://hallojs.org
       widget = event.data
       widget.setModified() if widget.isModified()
 
+    _paste: (event) ->
+      event.preventDefault()
+      pdata = event.originalEvent.clipboardData.getData('text/html')
+      pdata = pdata.replace(/<script/g,'<xscript').replace(/<\/script/,'</xscript')
+
+      jq_temp = jQuery('<div>' + pdata + '</div>')
+      dom = new IDOM()
+      dom.clean(jq_temp);
+      html = jq_temp.html();
+      sel = window.getSelection()
+      range = sel.getRangeAt()
+      range.deleteContents()
+      range.insertNode(jq_temp[0])
+
+      
     _ignoreKeys: (code) ->
       # cursor movements
       return true if ( code >= 33 && code <= 40 )
