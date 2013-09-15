@@ -4,6 +4,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.hallodropdownform',
     button: null
+    debug: false
 
     options:
       uuid: ''
@@ -35,6 +36,7 @@
 
       @element.append @button
     bindShowHandler: (event) ->
+      console.log('show handler',event) if @debug
       @_showTarget(event.target)
     bindShow: (selector) ->
       event_name = 'click'
@@ -43,27 +45,34 @@
       if ( typeof window._life_map == 'undefined' )
         window._life_map = {}
       window._life_map[selector + event_name + @bindShowHandler] = true;
+      console.log('bind',event_name,selector) if @debug
       jQuery(selector).live event_name, =>
         @bindShowHandler(event)
 
     _showTarget: (select_target) ->
+      console.log('target show') if @debug
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
 
-      target = jQuery @options.target
+      target_id = jQuery(@options.target).attr('id')
+      target = jQuery('#' + target_id)
       @options.editable.storeContentPosition()
       setup_success = @options.setup(select_target) if @options.setup
+      console.log('setup success:',setup_success) if @debug
       if ( ! setup_success )
         @_hideTarget()
         return
-      @_updateTargetPosition()
       target.addClass 'open'
       target.show()
+      # must be visible for correct positions
+      @_updateTargetPosition()
       if ( target.find('textarea').length )
         target.find('textarea:first').focus()
       else
         target.find('input:first').focus()
+ 
     _hideTarget: ->
+      console.log('target remove') if @debug
       target = jQuery @options.target
       if ( target.hasClass 'open' )
         target.removeClass 'open'
@@ -73,15 +82,20 @@
 
     hideForm: ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
+        console.log('index',index) if @debug
         jQuery(item).trigger('hide')
       @options.editable.restoreContentPosition()
 
     _updateTargetPosition: ->
-      target = jQuery @options.target
-      {top, left} = @button.position()
-      top += @button.outerHeight()
+      target_id = jQuery(@options.target).attr('id')
+      target = jQuery('#' + target_id)
+      button_id = jQuery(@button).attr('id')
+      button = jQuery('#' + button_id)
+
+      {top, left} = button.position()
+      top += button.outerHeight()
       target.css 'top', top
-      last_button = @options.target.closest('.hallotoolbar').find('button:last')
+      last_button = target.closest('.hallotoolbar').find('button:last')
       if last_button.length
         last_button_pos =last_button.position().left
         last_button_pos+=last_button.width()
@@ -89,6 +103,8 @@
         target.css 'left', left - target.width()+last_button.width()
       else
         target.css 'left', left
+      console.log('target position:',target.position(),top,left,last_button) if @debug
+      console.log(target.width(),last_button.width()) if @debug
 
     _prepareButton: ->
       id = "#{@options.uuid}-#{@options.command}"
