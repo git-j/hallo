@@ -42,20 +42,40 @@
       @element.append @button
       queryState = (event) =>
         return unless @options.command
+        return unless ( (event.keyCode >= 33 && event.keyCode <= 40) || event.type == 'mouseup' || event.type == 'hallomodified')
         try
           # HACK for qt-webkit
-          #if ( @options.command == 'subscript' || @options.command == 'superscript' )
-          #  range = window.getSelection().getRangeAt()
-          #  parent = $(range.startContainer).parent()
-          #  state = false
-          #  if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
-          #    state = true
-          #  if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
-          #    state = true
-          #  @checked state
-          #else
-          @checked document.queryCommandState @options.command
+          if ( @options.command == 'subscript' || @options.command == 'superscript' )
+            # broken command state for sub/sup
+            range = window.getSelection().getRangeAt()
+            parent = range.startContainer.parentNode
+            state = false
+            if parent.nodeName == 'SUB' && @options.command == 'subscript'
+              state = true
+            if parent.nodeName == 'SUP' && @options.command == 'superscript'
+              state = true
+            @checked state
+          else if ( @options.command.indexOf('justify') == 0 )
+            # broken justify
+            range = window.getSelection().getRangeAt()
+            node = range.startContainer
+            state = false
+            while ( node )
+              break if ( node.contentEditable == 'true' )
+              if ( typeof node.attributes == 'object' && node.attributes != null)
+                for attribute in node.attributes
+                  if attribute.nodeName == 'style' && attribute.nodeValue.indexOf('text-align') >= 0
+                    style = attribute.nodeValue
+                    style = style.replace(/.*text-align:([^;]*).*/,'$1').trim()
+                    state = true if ( @options.command.toLowerCase() == 'justify' + style )
+                    break
+                break if state
+              node = node.parentNode
+            @checked state
+          else
+            @checked document.queryCommandState @options.command
         catch e
+          console.error(e)
           return
 
       if @options.command
@@ -64,11 +84,11 @@
           # HACK for qt-webkit
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
             range = window.getSelection().getRangeAt()
-            parent = $(range.startContainer).parent()
+            node  = $(range.startContainer)
             state = false
-            if parent[0].nodeName == 'SUB' && @options.command == 'subscript'
+            if node.closest('SUB').length && @options.command == 'subscript'
               state = true
-            if parent[0].nodeName == 'SUP' && @options.command == 'superscript'
+            if node.closest('SUP').length && @options.command == 'superscript'
               state = true
             if ( !state )
               @options.editable.execute @options.command
