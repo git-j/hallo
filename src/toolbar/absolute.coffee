@@ -56,6 +56,7 @@
     setPosition: ->
       @toolbar.css 'position', 'fixed'
       @toolbar.css 'z-index', '99999' # more than tip-overlay
+      @toolbar.css 'top', '0' # for chrome debugging
       return unless @options.parentElement is 'body'
 
     _updatePosition: (position) ->
