@@ -89,13 +89,16 @@
         editableElement.unbind 'keyup paste change mouseup hallomodified', queryState
 
     enable: ->
-      @button.removeAttr 'disabled'
+      # @button.removeAttr 'disabled'
+      @button.removeClass('disabled')
 
     disable: ->
-      @button.attr 'disabled', 'true'
+      # @button.attr 'disabled', 'true'
+      @button.addClass('disabled')
 
     isEnabled: ->
-      return @button.attr('disabled') != 'true'
+      # return @button.attr('disabled') != 'true'
+      return @button.hasClass('disabled') != 'true'
 
     refresh: ->
       if @isChecked
