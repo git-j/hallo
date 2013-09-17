@@ -54,19 +54,26 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= =>
+      setup= (select_target) =>
         return if !window.getSelection().rangeCount
         @tmpid='mod_' + (new Date()).getTime()
         sel = window.getSelection()
         range = sel.getRangeAt()
         @cur_formula = null
         @action = 'insert'
-        @options.editable.element.find('.formula').each (index,item) =>
-          if ( sel.containsNode(item,true) )
-            @cur_formula = jQuery(item)
+        if ( typeof select_target == 'object' )
+          selected_formula = jQuery(select_target).closest('.formula')
+          if ( selected_formula.length )
+            @cur_formula = selected_formula
             @cur_formula.attr('id',@tmpid)
             @action = 'update'
-            return false # break
+        if ( @action == 'insert' )
+          @options.editable.element.find('.formula').each (index,item) =>
+            if ( sel.containsNode(item,true) )
+              @cur_formula = jQuery(item)
+              @cur_formula.attr('id',@tmpid)
+              @action = 'update'
+              return false # break
         if ( ! @has_mathjax )
           return true
         if ( @cur_formula && @cur_formula.length )
