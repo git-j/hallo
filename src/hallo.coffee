@@ -415,6 +415,11 @@ http://hallojs.org
     _paste: (event) ->
       event.preventDefault()
       pdata = event.originalEvent.clipboardData.getData('text/html')
+      if (typeof pdata == 'undefined' )
+        pdata = event.originalEvent.clipboardData.getData('text/plain')
+      if (typeof pdata == 'undefined' )
+        utils.error(utils.tr('invalid clipboard data'))
+        return
       pdata = pdata.replace(/<script/g,'<xscript').replace(/<\/script/,'</xscript')
 
       jq_temp = jQuery('<div>' + pdata + '</div>')
