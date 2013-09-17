@@ -656,7 +656,7 @@ http://hallojs.org
           if ( marker.html() == '' )
             remove_queue.push(marker)
           else
-            marker.replaceWith(marker.html())
+            marker.contents().unwrap()
         for marker in remove_queue
           marker.remove()
         console.log('before:' + @element.html()) if @debug
