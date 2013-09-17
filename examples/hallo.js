@@ -127,7 +127,7 @@
   (function(jQuery) {
     return jQuery.widget('IKS.hallodropdownform', {
       button: null,
-      debug: true,
+      debug: false,
       options: {
         uuid: '',
         label: null,
@@ -208,7 +208,8 @@
         });
       },
       _showTarget: function(select_target) {
-        var setup_success, target, target_id;
+        var setup_success, target, target_id,
+          _this = this;
 
         if (this.debug) {
           console.log('dropdownform target show', select_target);
@@ -233,10 +234,13 @@
         target.show();
         this._updateTargetPosition();
         if ((target.find('textarea').length)) {
-          return target.find('textarea:first').focus();
+          target.find('textarea:first').focus();
         } else {
-          return target.find('input:first').focus();
+          target.find('input:first').focus();
         }
+        return target.bind('hide', function() {
+          return _this._hideTarget();
+        });
       },
       _hideTarget: function() {
         var target;
@@ -1057,6 +1061,13 @@
 
         event.preventDefault();
         pdata = event.originalEvent.clipboardData.getData('text/html');
+        if (typeof pdata === 'undefined') {
+          pdata = event.originalEvent.clipboardData.getData('text/plain');
+        }
+        if (typeof pdata === 'undefined') {
+          utils.error(utils.tr('invalid clipboard data'));
+          return;
+        }
         pdata = pdata.replace(/<script/g, '<xscript').replace(/<\/script/, '</xscript');
         jq_temp = jQuery('<div>' + pdata + '</div>');
         dom = new IDOM();
@@ -1369,7 +1380,7 @@
             if (marker.html() === '') {
               return remove_queue.push(marker);
             } else {
-              return marker.replaceWith(marker.html());
+              return marker.contents().unwrap();
             }
           });
           for (_i = 0, _len = remove_queue.length; _i < _len; _i++) {
@@ -1974,8 +1985,8 @@
         contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
-        setup = function() {
-          var latex_formula, range, recalc, sel;
+        setup = function(select_target) {
+          var latex_formula, range, recalc, sel, selected_formula;
 
           if (!window.getSelection().rangeCount) {
             return;
@@ -1985,14 +1996,24 @@
           range = sel.getRangeAt();
           _this.cur_formula = null;
           _this.action = 'insert';
-          _this.options.editable.element.find('.formula').each(function(index, item) {
-            if (sel.containsNode(item, true)) {
-              _this.cur_formula = jQuery(item);
+          if (typeof select_target === 'object') {
+            selected_formula = jQuery(select_target).closest('.formula');
+            if (selected_formula.length) {
+              _this.cur_formula = selected_formula;
               _this.cur_formula.attr('id', _this.tmpid);
               _this.action = 'update';
-              return false;
             }
-          });
+          }
+          if (_this.action === 'insert') {
+            _this.options.editable.element.find('.formula').each(function(index, item) {
+              if (sel.containsNode(item, true)) {
+                _this.cur_formula = jQuery(item);
+                _this.cur_formula.attr('id', _this.tmpid);
+                _this.action = 'update';
+                return false;
+              }
+            });
+          }
           if (!_this.has_mathjax) {
             return true;
           }
