@@ -80,6 +80,8 @@
         target.find('textarea:first').focus()
       else
         target.find('input:first').focus()
+      target.bind 'hide', =>
+        @_hideTarget()
  
     _hideTarget: ->
       console.log('target remove') if @debug
