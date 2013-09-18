@@ -79,17 +79,21 @@
         if ( @cur_formula && @cur_formula.length )
           #modify
           latex_formula = decodeURIComponent(@cur_formula.attr('rel'))
+          title = decodeURIComponent(@cur_formula.attr('title'))
           # console.log('modify',latex_formula,@cur_formula)
           $('#' + contentId + 'latex').val(latex_formula)
+          $('#' + contentId + 'title').val(title)
           $('#' + contentId + 'inline').attr('checked',@cur_formula.hasClass('inline'))
         else
           @cur_formula = jQuery('<span class="formula" id="' + @tmpid + '" contenteditable="false"/>')
           @cur_formula.find('.formula').attr('rel',encodeURIComponent(@options.default))
+          @cur_formula.find('.formula').attr('title','')
           if ( @options.inline )
             @cur_formula.find('.formula').addClass('inline')
           range.insertNode(@cur_formula[0]);
           $('#' + contentId + 'latex').val(@options.default)
           $('#' + contentId + 'inline').attr('checked',@options.inline)
+          $('#' + contentId + 'title').val()
           #console.log(@cur_formula)
           @updateFormulaHTML(contentId)
         recalc = =>
@@ -113,6 +117,7 @@
         return
       latex_formula = $('#' + contentId + 'latex').val();
       inline = $('#' + contentId + 'inline').is(':checked');
+      title = $('#' + contentId + 'title').val();
       #if ( formula.html() == '' )
       formula.removeClass('inline')
       if ( inline )
@@ -121,7 +126,9 @@
       else
         formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
       encoded_latex = encodeURIComponent(latex_formula)
+      encoded_title = encodeURIComponent(title)
       formula.attr('rel',encoded_latex)
+      formula.attr('title',encoded_title)
       formula.attr('contenteditable','false')
       # console.log(latex_formula,encoded_latex,formula[0].outerHTML)
       return formula[0].outerHTML
@@ -159,7 +166,7 @@
         textarea.bind('keyup change',recalc)
 
         el
-      addInput = (type,element,default_value) =>
+      addInput = (type,element,default_value,recalc_preview) =>
         elid="#{contentId}#{element}"
         el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
         if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
@@ -168,8 +175,9 @@
           el.find('input').val(default_value)
         recalc= =>
           @recalcHTML(contentId)
-          @recalcPreview(contentId)
-          @recalcMath()
+          if ( recalc_preview )
+            @recalcPreview(contentId)
+            @recalcMath()
         el.find('input').bind('keyup change',recalc)
 
         el
@@ -184,7 +192,8 @@
         el
       if ( @has_mathjax )
         contentAreaUL.append addArea("latex", @options.default)
-        contentAreaUL.append addInput("checkbox","inline", @options.inline)
+        contentAreaUL.append addInput("checkbox","inline", @options.inline,true)
+        contentAreaUL.append addInput("text","title", @options.title,false)
         contentInfoText = jQuery '<li>' + utils.tr('compose formula') + @options.mathjax_alternative + '</li>'
       else
         contentInfoText = jQuery '<li>' + utils.tr('compose formula base') + @options.mathjax_alternative + '<br/>' +  @options.mathjax_base_alternative + '</li>'

@@ -1986,7 +1986,7 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target) {
-          var latex_formula, range, recalc, sel, selected_formula;
+          var latex_formula, range, recalc, sel, selected_formula, title;
 
           if (!window.getSelection().rangeCount) {
             return;
@@ -2019,17 +2019,21 @@
           }
           if (_this.cur_formula && _this.cur_formula.length) {
             latex_formula = decodeURIComponent(_this.cur_formula.attr('rel'));
+            title = decodeURIComponent(_this.cur_formula.attr('title'));
             $('#' + contentId + 'latex').val(latex_formula);
+            $('#' + contentId + 'title').val(title);
             $('#' + contentId + 'inline').attr('checked', _this.cur_formula.hasClass('inline'));
           } else {
             _this.cur_formula = jQuery('<span class="formula" id="' + _this.tmpid + '" contenteditable="false"/>');
             _this.cur_formula.find('.formula').attr('rel', encodeURIComponent(_this.options["default"]));
+            _this.cur_formula.find('.formula').attr('title', '');
             if (_this.options.inline) {
               _this.cur_formula.find('.formula').addClass('inline');
             }
             range.insertNode(_this.cur_formula[0]);
             $('#' + contentId + 'latex').val(_this.options["default"]);
             $('#' + contentId + 'inline').attr('checked', _this.options.inline);
+            $('#' + contentId + 'title').val();
             _this.updateFormulaHTML(contentId);
           }
           recalc = function() {
@@ -2046,7 +2050,7 @@
         return toolbar.append(buttonset);
       },
       updateFormulaHTML: function(contentId) {
-        var encoded_latex, formula, inline, latex_formula;
+        var encoded_latex, encoded_title, formula, inline, latex_formula, title;
 
         formula = $('#' + this.tmpid);
         if (!formula.length) {
@@ -2057,6 +2061,7 @@
         }
         latex_formula = $('#' + contentId + 'latex').val();
         inline = $('#' + contentId + 'inline').is(':checked');
+        title = $('#' + contentId + 'title').val();
         formula.removeClass('inline');
         if (inline) {
           formula.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
@@ -2065,7 +2070,9 @@
           formula.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
         }
         encoded_latex = encodeURIComponent(latex_formula);
+        encoded_title = encodeURIComponent(title);
         formula.attr('rel', encoded_latex);
+        formula.attr('title', encoded_title);
         formula.attr('contenteditable', 'false');
         return formula[0].outerHTML;
       },
@@ -2113,7 +2120,7 @@
           textarea.bind('keyup change', recalc);
           return el;
         };
-        addInput = function(type, element, default_value) {
+        addInput = function(type, element, default_value, recalc_preview) {
           var el, elid, recalc;
 
           elid = "" + contentId + element;
@@ -2125,8 +2132,10 @@
           }
           recalc = function() {
             _this.recalcHTML(contentId);
-            _this.recalcPreview(contentId);
-            return _this.recalcMath();
+            if (recalc_preview) {
+              _this.recalcPreview(contentId);
+              return _this.recalcMath();
+            }
           };
           el.find('input').bind('keyup change', recalc);
           return el;
@@ -2141,7 +2150,8 @@
         };
         if (this.has_mathjax) {
           contentAreaUL.append(addArea("latex", this.options["default"]));
-          contentAreaUL.append(addInput("checkbox", "inline", this.options.inline));
+          contentAreaUL.append(addInput("checkbox", "inline", this.options.inline, true));
+          contentAreaUL.append(addInput("text", "title", this.options.title, false));
           contentInfoText = jQuery('<li>' + utils.tr('compose formula') + this.options.mathjax_alternative + '</li>');
         } else {
           contentInfoText = jQuery('<li>' + utils.tr('compose formula base') + this.options.mathjax_alternative + '<br/>' + this.options.mathjax_base_alternative + '</li>');
