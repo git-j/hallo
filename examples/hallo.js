@@ -1909,25 +1909,12 @@
         contentAreaUL.append(addInput("checkbox", "heading", "true"));
         contentAreaUL.append(addInput("checkbox", "border", "true"));
         contentAreaUL.append(addButton("apply", function() {
-          var range;
-
           _this.recalcHTML(contentId);
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('insertHTML', false, _this.html);
           $('#' + _this.tmpid).removeAttr('id');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
-          var range;
-
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('delete', false);
+          $('#' + _this.tmpid).remove();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;

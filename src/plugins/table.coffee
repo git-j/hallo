@@ -169,19 +169,10 @@
 
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'insertHTML',false, @html
         $('#' + @tmpid).removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'delete',false
+        $('#' + @tmpid).remove()
         @dropdownform.hallodropdownform('hideForm')
       #requires DOM-modification
       #contentAreaUL.append addButton "insertRow", =>
