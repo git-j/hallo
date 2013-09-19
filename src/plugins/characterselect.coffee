@@ -213,7 +213,7 @@
       character = jQuery('#' + @tmpid)
 
       @_addRecent(character.html())
-      character.replaceWith(character.html())
+      character.contents().unwrap()
       @dropdownform.hallodropdownform('hideForm')
 
     _insertAction: () ->

@@ -41,8 +41,7 @@
         if ( utils.tr('no title provided') == @hyperlink.text() )
           @hyperlink.remove()
         else
-          hyperlinked = @hyperlink.html()
-          @hyperlink.replaceWith(jQuery('<span>' + hyperlinked + '</span>'))
+          @hyperlink.contents().unwrap().wrapAll('<span></span>')
         @back()
       @widget.find('.nugget_selector_apply').bind 'click', =>
         @apply()

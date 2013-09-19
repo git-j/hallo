@@ -91,7 +91,7 @@
           selection_nodes =  @options.editable.element.find(@options.editable.selection_marker)
           selection_nodes.each (index,item) =>
             sel_item = jQuery(item)
-            sel_item.replaceWith(sel_item.html())
+            sel_item.contents().unwrap()
             # TODO: reevaluate
             #if ( sel_item.text() == ' ' )
             #  sel_item.find('.citation').remove()

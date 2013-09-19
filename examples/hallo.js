@@ -1516,11 +1516,12 @@
         return contentArea;
       },
       _keep_selection_replace_callback: function(parent, old) {
-        var has_block_contents, nr, range, replacement;
+        var dom, has_block_contents, nr, range, replacement;
 
         console.error('unsuppored function');
         replacement = false;
-        has_block_contents = utils.hasBlockElement(old);
+        dom = new IDOM();
+        has_block_contents = dom.hasBlockElement(old);
         if (old.html() !== "" && !has_block_contents) {
           replacement = "<span class=\"selection\">" + old.html() + "</span>";
         } else {
@@ -1828,7 +1829,7 @@
               return;
             }
             if (!heading) {
-              return $(cell).replaceWith('<td>' + $(cell).html() + '</td>');
+              return $(cell).contents().unwrap().wrapAll('<td></td>').parent();
             }
           });
           $(row).find('td').each(function(cindx, cell) {
@@ -1838,7 +1839,7 @@
               return;
             }
             if (heading && rindx === 0) {
-              return $(cell).replaceWith('<th>' + $(cell).html() + '</th>');
+              return $(cell).contents().unwrap().wrapAll('<th></th>').parent();
             }
           });
           if (icol < cols) {
@@ -2808,7 +2809,7 @@
         this.recalcHTML();
         character = jQuery('#' + this.tmpid);
         this._addRecent(character.html());
-        character.replaceWith(character.html());
+        character.contents().unwrap();
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _insertAction: function() {
@@ -3107,8 +3108,7 @@
           selection = window.getSelection();
           if (citation.length) {
             citation_html = citation.html();
-            citation.replaceWith(citation_html);
-            console.log(citation.html());
+            citation.contents().unwrap();
           }
           if ((element.closest('.cite').length)) {
             cite = element.closest('.cite');
@@ -3184,13 +3184,10 @@
         this.widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
         this.widget.find('.nugget_selector_back').bind('click', function() {
-          var hyperlinked;
-
           if (utils.tr('no title provided') === _this.hyperlink.text()) {
             _this.hyperlink.remove();
           } else {
-            hyperlinked = _this.hyperlink.html();
-            _this.hyperlink.replaceWith(jQuery('<span>' + hyperlinked + '</span>'));
+            _this.hyperlink.contents().unwrap().wrapAll('<span></span>');
           }
           return _this.back();
         });
@@ -4638,7 +4635,7 @@
               var sel_item;
 
               sel_item = jQuery(item);
-              return sel_item.replaceWith(sel_item.html());
+              return sel_item.contents().unwrap();
             });
           }
           nugget = new DOMNugget();

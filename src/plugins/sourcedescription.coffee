@@ -43,7 +43,8 @@
     _keep_selection_replace_callback: (parent, old) ->
       console.error('unsuppored function')
       replacement = false
-      has_block_contents = utils.hasBlockElement(old)
+      dom = new IDOM()
+      has_block_contents = dom.hasBlockElement(old)
       if old.html() != "" && ! has_block_contents
         replacement = "<span class=\"selection\">" + old.html() + "</span>"
       else

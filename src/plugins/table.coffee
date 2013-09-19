@@ -103,15 +103,14 @@
             $(cell).remove()
             return
           if ( !heading )
-            $(cell).replaceWith('<td>' + $(cell).html() + '</td>')
+            $(cell).contents().unwrap().wrapAll('<td></td>').parent()
         $(row).find('td').each (cindx,cell) =>
           icol = cindx + 1
           if icol > cols 
             $(cell).remove()
             return
           if heading && rindx == 0
-            $(cell).replaceWith('<th>' + $(cell).html() + '</th>')
-
+            $(cell).contents().unwrap().wrapAll('<th></th>').parent()
         if ( icol < cols )
           icol = icol + 1
           for c in[icol..cols] by 1

@@ -104,8 +104,8 @@ class _Citehandler
         if ( citation.length )
           citation_html = citation.html()
           #not that simple: citation.selectText()
-          citation.replaceWith(citation_html)
-          console.log(citation.html())
+          citation.contents().unwrap();
+          #console.log(citation.html())
         if ( element.closest('.cite').length )
           cite =  element.closest('.cite')
           #not that simple: element.closest('.cite').selectText()
