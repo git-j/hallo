@@ -462,10 +462,18 @@ http://hallojs.org
         if ( widget.autostore_timer )
           window.clearTimeout(widget.autostore_timer)
         widget.autostore_timer = window.setTimeout =>
+
           widget.storeContentPosition()
           widget.store()
           widget.restoreContentPosition()
         , widget.auto_store_timeout
+
+    _select_cell_fn: (cell) ->
+      sel = window.getSelection()
+      range = document.createRange()
+      range.selectNode(cell)
+      sel.removeAllRanges()
+      sel.addRange(range)
 
     _syskeys: (event) ->
       widget = event.data
@@ -478,6 +486,22 @@ http://hallojs.org
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
           document.execCommand("indent",false)
           event.preventDefault()
+          return
+        td = $(range.startContainer).closest('td,th')
+        if ( td.length )
+          table = td.closest('table')
+          use_next = false
+          tds = table.find('td,th')
+          tds.each (index,item) =>
+            if ( use_next )
+              use_next = false
+              widget._select_cell_fn(item)
+            if ( item != td[0] )
+              return # continue
+            use_next = true
+          if ( use_next )
+            widget._select_cell_fn(tds[0])
+          event.preventDefault()
       if event.keyCode == 9 && event.shiftKey  #shift+tab
         range = window.getSelection().getRangeAt()
         li = $(range.startContainer).closest('li')
@@ -486,6 +510,21 @@ http://hallojs.org
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
           document.execCommand("outdent",false)
           event.preventDefault()
+          return
+        td = $(range.startContainer).closest('td,th')
+        if ( td.length )
+          table = td.closest('table')
+          use_prev = false
+          tds = table.find('td,th')
+          tds.each (index,item) =>
+            if ( item != td[0] )
+              return # continue
+            if ( index > 0 )
+              widget._select_cell_fn(tds[index-1])
+            else
+              widget._select_cell_fn(tds[tds.length-1])
+          event.preventDefault()
+
 
 
     _rangesEqual: (r1, r2) ->
