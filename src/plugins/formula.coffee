@@ -33,6 +33,7 @@
     tmpid: 0
     html: null
     has_mathjax: typeof MathJax != 'undefined'
+    debug: false
     options:
       editable: null
       toolbar: null
@@ -54,9 +55,15 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= (select_target) =>
+      setup= (select_target,target_id) =>
         return if !window.getSelection().rangeCount
-        @tmpid='mod_' + (new Date()).getTime()
+        contentId = target_id
+        # target_id != parent-function:contentId
+        # as the setup function is called by live()
+        # and subsequent activations will lead to a different this here
+        # and in the keyup/click handlers in _prepareDropdown
+
+        @tmpid = 'mod_' + (new Date()).getTime()
         sel = window.getSelection()
         range = sel.getRangeAt()
         @cur_formula = null
@@ -71,30 +78,34 @@
           @options.editable.element.find('.formula').each (index,item) =>
             if ( sel.containsNode(item,true) )
               @cur_formula = jQuery(item)
-              @cur_formula.attr('id',@tmpid)
               @action = 'update'
               return false # break
-        if ( ! @has_mathjax )
-          return true
         if ( @cur_formula && @cur_formula.length )
           #modify
           latex_formula = decodeURIComponent(@cur_formula.attr('rel'))
           title = decodeURIComponent(@cur_formula.attr('title'))
-          # console.log('modify',latex_formula,@cur_formula)
+          console.log('modify',latex_formula,@cur_formula) if @debug
           $('#' + contentId + 'latex').val(latex_formula)
           $('#' + contentId + 'title').val(title)
           $('#' + contentId + 'inline').attr('checked',@cur_formula.hasClass('inline'))
+          @cur_formula.attr('id',@tmpid)
+          @cur_formula.html('')
         else
           @cur_formula = jQuery('<span class="formula" id="' + @tmpid + '" contenteditable="false"/>')
           @cur_formula.find('.formula').attr('rel',encodeURIComponent(@options.default))
           @cur_formula.find('.formula').attr('title','')
           if ( @options.inline )
             @cur_formula.find('.formula').addClass('inline')
-          range.insertNode(@cur_formula[0]);
+          #range.insertNode(@cur_formula[0])
+          @cur_formula.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
+          range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
+
           $('#' + contentId + 'latex').val(@options.default)
           $('#' + contentId + 'inline').attr('checked',@options.inline)
           $('#' + contentId + 'title').val()
-          #console.log(@cur_formula)
+          console.log('insert',@cur_formula) if @debug
           @updateFormulaHTML(contentId)
         recalc = =>
           @recalcHTML(contentId)
@@ -109,6 +120,7 @@
 
 
     updateFormulaHTML: (contentId) ->
+      console.log('update formula',contentId,@tmpid,this) if @debug
       formula = $('#' + @tmpid)
       if ( !formula.length )
         console.error('expected identifier not found',@tmpid)
@@ -118,15 +130,24 @@
       latex_formula = $('#' + contentId + 'latex').val();
       inline = $('#' + contentId + 'inline').is(':checked');
       title = $('#' + contentId + 'title').val();
+      console.log(latex_formula,inline,title,formula,@tmpid) if @debug
       #if ( formula.html() == '' )
       formula.removeClass('inline')
-      if ( inline )
-        formula.html(@options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right)
-        formula.addClass('inline')
+      formula.html('')
+      if ( @has_mathjax )
+        if ( inline )
+          formula.contents().unwrap().wrap('<span/>')
+          formula.html(@options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right)
+          formula.addClass('inline')
+        else
+          formula.contents().unwrap().wrap('<div/>')
+          formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
       else
-        formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
+        formula.html(latex_formula)
       encoded_latex = encodeURIComponent(latex_formula)
       encoded_title = encodeURIComponent(title)
+      formula.attr('id',@tmpid)
+      formula.addClass('formula')
       formula.attr('rel',encoded_latex)
       formula.attr('title',encoded_title)
       formula.attr('contenteditable','false')
@@ -146,7 +167,8 @@
       if ( preview.length == 0 )
         return
       latex_formula = $('#' + contentId + 'latex').val();
-      if ( preview.hasClass('inline') )
+      inline = $('#' + contentId + 'inline').is(':checked');
+      if ( inline )
         preview.html(@options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right)
       else
         preview.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
@@ -190,10 +212,10 @@
 
         el.find('button').bind 'click', event_handler
         el
+      contentAreaUL.append addArea("latex", @options.default)
+      contentAreaUL.append addInput("checkbox","inline", @options.inline,true)
+      contentAreaUL.append addInput("text","title", @options.title,false)
       if ( @has_mathjax )
-        contentAreaUL.append addArea("latex", @options.default)
-        contentAreaUL.append addInput("checkbox","inline", @options.inline,true)
-        contentAreaUL.append addInput("text","title", @options.title,false)
         contentInfoText = jQuery '<li>' + utils.tr('compose formula') + @options.mathjax_alternative + '</li>'
       else
         contentInfoText = jQuery '<li>' + utils.tr('compose formula base') + @options.mathjax_alternative + '<br/>' +  @options.mathjax_base_alternative + '</li>'
@@ -212,7 +234,14 @@
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
         @recalcMath()
-        $('#' + @tmpid).removeAttr('id')
+        formula = $('#' + @tmpid)
+        if ( formula.length )
+          if ( ! formula[0].nextSibling )
+            jQuery('<br/>').insertAfter(formula)
+          formula.removeAttr('id')
+        else
+          formulas = $('.formula').each (index,item) =>
+            jQuery(item).removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
         $('#' + @tmpid).remove()
