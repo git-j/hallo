@@ -275,7 +275,7 @@ http://hallojs.org
       else
         sel = window.getSelection()
         range = sel.getRangeAt(0)
-        console.log(range)
+        # console.log(range)
         range_parent = range.commonAncestorContainer
         range_parent = range_parent.parentNode if range_parent.nodeType != 1
         range_content= range.cloneContents()
