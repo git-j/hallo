@@ -299,10 +299,10 @@ http://hallojs.org
     getContents: ->
       # clone
       contentClone = @element.clone()
-      for plugin of @options.plugins
-        cleanup = jQuery(@element).data(plugin).cleanupContentClone
-        continue unless jQuery.isFunction cleanup
-        jQuery(@element)[plugin] 'cleanupContentClone', contentClone
+      #for plugin of @options.plugins
+      #  cleanup = jQuery(@element).data(plugin).cleanupContentClone
+      #  continue unless jQuery.isFunction cleanup
+      #  jQuery(@element)[plugin] 'cleanupContentClone', contentClone
       contentClone.html()
 
     # Set the contents of an editable
