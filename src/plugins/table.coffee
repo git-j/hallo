@@ -25,7 +25,8 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= =>
+      setup= (select_target,target_id) =>
+        contentId = target_id
         @tmpid='mod_' + (new Date()).getTime()
         return false if !window.getSelection().rangeCount
         range = window.getSelection().getRangeAt()
@@ -168,10 +169,18 @@
 
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        $('#' + @tmpid).removeAttr('id')
+        table = $('#' + @tmpid)
+        @options.editable.element.find(@options.editable.selection_marker).remove()
+        if ( !table.find(@options.editable.selection_marker).length )
+          sel_cell = table.find('th:first')
+          if ( !sel_cell.length )
+            sel_cell = table.find('td:first')
+          sel_cell.contents().wrap('<' + @options.editable.selection_marker + '/>' )
+        table.removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        $('#' + @tmpid).remove()
+        @options.editable.element.find(@options.editable.selection_marker).remove()
+        $('#' + @tmpid).replaceWith('<' + @options.editable.selection_marker + '></' + @options.editable.selection_marker + '>')
         @dropdownform.hallodropdownform('hideForm')
       #requires DOM-modification
       #contentAreaUL.append addButton "insertRow", =>
