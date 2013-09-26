@@ -715,10 +715,11 @@ http://hallojs.org
           range.surroundContents(selection_identifier[0])
         catch e
           # utils.info(utils.tr('warning selected block contents'))
-          range.collapse(false) # to end
-          range.insertNode(selection_identifier[0])
-          sel.removeAllRanges()
-          sel.addRange(range)
+          new_range = range.cloneRange()
+          new_range.collapse(false) # to end
+          new_range.insertNode(selection_identifier[0])
+          #sel.removeAllRanges()
+          #sel.addRange(range)
         console.log('after:' + @element.html()) if @debug
         # console.log('selection added',@element.html())
 
