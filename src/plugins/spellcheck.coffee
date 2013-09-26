@@ -55,80 +55,45 @@
 
       interval_checker = =>
         console.log('interval_checker') if @debug
-        over_css = @options.editable.element.getStyleObject()
-        return if ( @options.editable.element.find('pre').length )
-        clone = @options.editable.element.clone()
-        offset = @options.editable.element.offset()
-        check_node = clone
-        if ( window.getSelection().rangeCount )
-          range = window.getSelection().getRangeAt()
-          range.collapse()
-          find_node = (node) =>
-            ret_node = null
-            if ( range.commonAncestorContainer.parentNode == node[0] )
-              return node
-            if ( node[0].nodeType == 1 )
-              node.children().each (index,child_node) =>
-                ret_node = find_node($(child_node))
-                if ( ret_node && ret_node.length )
-                  return false #break
-            return ret_node
-          #/find_node()
-          current_block = find_node(@options.editable.element)
-          if ( current_block )
-            check_node = current_block
-            check_node.addClass('current_block')
-            clone = @options.editable.element.clone()
-            check_node.removeClass('current_block')
-            check_node = clone.find('.current_block')
-            if ( !check_node.length )
-              check_node = clone
-            else
-              #find child-block of clone
-              while( check_node[0] != clone[0] && check_node.parent()[0] != clone[0] )
-                check_node = check_node.parent();
-        #/window has range
-        #console.log('offset:' + offset.top + '@' + offset.left)
-        @options.editable.element.parent().find('.misspelled').remove()
-        window.spellcheck.replaceDOM  check_node[0], (word) ->
-          return '<span class="misspelled">' + word + '</span>'
-        underlay_id = 'spellcheck_underlay';
-        clone = $('<div id="' + underlay_id + '">' + clone.html() + '</div>')
-        over_css['position'] = 'absolute'
-        over_css['z-index'] = '1000'
-        over_css['top'] = offset.top + "px"
-        over_css['left'] = offset.left + "px"
-        # over_css['top'] = 0 + "px"
-        # over_css['left'] = 0 + "px"
-        over_css['bottom'] = 0 + "px"
-        over_css['right'] = 0 + "px"
-        # over_css['padding-left'] = 0
-        # over_css['padding'] = '0'
-        over_css['margin'] = '0'
-        # over_css['width'] = @options.editable.element.css('width')
-        @options.editable.element.css({'position':'relative'})
-        clone.css(over_css)
-        clone.addClass('content')
-        clone.insertBefore(@options.editable.element)
-        clone.find('.misspelled').each (index,item) =>
-          node = $(item);
-          offset = node.offset();
-          node_css = {};
-          orig_css = node.getStyleObject();
-
-          node_css['position'] = 'absolute';
-          node_css['top'] = (offset.top + node.height()-2 ) + 'px';
-          node_css['height'] = '2px';
-          node_css['left'] = (offset.left) + 'px';
-          node_css['padding'] = '0';
-          node_css['margin'] = '0';
-          node_css['color'] = 'transparent';
-          node_css['font-size'] = node.css('font-size');
-          node_css['line-height'] = node.css('line-height');
-          node_css['pointer-events'] = 'none';
-          node.clone(true).insertAfter(@options.editable.element).css(node_css);
-        #/each misspelled
-        clone.remove();
+        check_node = _this.options.editable.element
+        @options.editable.element.parent().find('.misspelled_, .spell_check_clone, .misspelled_line').remove()
+        some_where_in_dom = check_node.parent()
+        clone = check_node.clone()
+        clone.removeClass('content').addClass('spell_check_clone')
+        some_where_in_dom.append(clone)
+        clone.position 
+          my: 'left top'
+          at: 'left top'
+          of: check_node
+          collision: 'none'
+        dom = new IDOM()
+        console.log('before',clone.html()) if @debug
+        csm = clone.find('content_selection_marker')
+        jQuery.each csm, () ->
+          jq_this = jQuery(this)
+          parent = jq_this.parent()
+          if ( jq_this.html() == '' )
+            jq_this.remove()
+          else
+            jq_this.contents().unwrap()
+          parent[0].normalize()
+        console.log('after',clone.html()) if @debug
+        dom.getAllTextNodes(clone).wrap('<span class="word"></span>')
+        # CHECK MISSPELLED
+        jQuery.each jQuery('.word'), () ->
+          window.spellcheck.replaceDOM this, (word) ->
+            # console.log(word,jQuery('<span class="misspelled_">' + word + '</span>')) if @debug
+            return '<span class="misspelled_">' + word + '</span>'
+        jQuery.each jQuery('.misspelled_'), () ->
+          line = jQuery('<div class="misspelled_line"></div>')
+          line.width(jQuery(this).width())
+          some_where_in_dom.append(line)
+          line.position
+            my:'left top'
+            at:'left bottom'
+            of: jQuery(this)
+            collision: 'none'
+        clone
       @spellcheck_interval = setTimeout( interval_checker, @spellcheck_timeout )
       console.log(@spellcheck_interval) if @debug
 
