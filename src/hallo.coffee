@@ -578,6 +578,8 @@ http://hallojs.org
       return false
 
     turnOn: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       if ( jQuery('.inEditMode').length )
         #avoid multiple instances that fail to turn of their toolbars
         jQuery('.inEditMode').hallo('turnOff')
@@ -596,6 +598,8 @@ http://hallojs.org
       @_trigger "activated", null, @
 
     turnOff: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       jQuery(@element).removeClass 'inEditMode'
       @_trigger "deactivated", @
       jQuery('.misspelled').remove() #TODO: move to desktop
@@ -622,6 +626,8 @@ http://hallojs.org
 
     _deactivated: (event) ->
       return if window.debug_hallotoolbar
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       event.data.storeContentPosition()
       if event.data.options.store_callback
         contents = event.data.getContents()
