@@ -34,11 +34,23 @@
           @_hideTarget()
           return
         @_showTarget()
+      target.bind 'bindShowTrigger', (event) =>
+        # trigger handler to get correct this from live() events
+        # console.log('dropdownform show handler',event,this)# if @debug
+        # this should be correct
+        toolbar = jQuery('.hallotoolbar').eq(0)
+        return if ( !toolbar.length )
+        @options.target = toolbar.find('.dropdown-form-' + @options.command)
+        return if ( !@options.target.length )
+        @button = toolbar.find('.' + @options.command + '_button')
+        if ( window.live_target )
+          @_showTarget(window.live_target)
+          window.live_target = null
+        else
+          @_showTarget(event.target)
+
 
       @element.append @button
-    bindShowHandler: (event) ->
-      console.log('dropdownform show handler',event) if @debug
-      @_showTarget(event.target)
     bindShow: (selector) ->
       event_name = 'click'
       if ( window._life_map && window._life_map[selector + event_name + @bindShowHandler] )
@@ -51,13 +63,12 @@
         console.log(event.target) if @debug
         # find the toolbar and reset the button/@options.target members
         # they were destroyed when the user changes the editable
+        # this is NOT as expected!
         toolbar = jQuery('.hallotoolbar').eq(0)
         return if ( !toolbar.length )
-        @options.target = toolbar.find('.dropdown-form-' + @options.command)
-        return if ( !@options.target.length )
-        @button = toolbar.find('.' + @options.command + '_button')
-        return if ( !@button.length )
-        @bindShowHandler(event)
+        target = toolbar.find('.dropdown-form-' + @options.command)
+        window.live_target = event.target # HACK
+        target.trigger('bindShowTrigger')
 
     _showTarget: (select_target) ->
       console.log('dropdownform target show',select_target) if @debug
@@ -67,7 +78,7 @@
       target_id = jQuery(@options.target).attr('id')
       target = jQuery('#' + target_id)
       @options.editable.storeContentPosition()
-      setup_success = @options.setup(select_target) if @options.setup
+      setup_success = @options.setup(select_target,target_id) if @options.setup
       console.log('setup success:',setup_success) if @debug
       if ( ! setup_success )
         @_hideTarget()
