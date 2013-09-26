@@ -97,7 +97,8 @@
         else
           selection = @options.editable.element.find(@options.editable.selection_marker)
           if ( selection.length )
-            has_block_contents = utils.hasBlockElement(selection)
+            dom = new IDOM()
+            has_block_contents = dom.hasBlockElement(selection)
             if ( selection.html() != '' && ! has_block_contents )
               replacement = "<span class=\"citation\">" + selection.html() + "</span>"
             else
