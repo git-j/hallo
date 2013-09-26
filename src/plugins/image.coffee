@@ -26,13 +26,14 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= (select_target) =>
-        console.log('setup image form',select_target) if @debug
+      setup= (select_target,target_id) =>
+        contentId = target_id
+        console.log('setup image form',select_target,target_id) if @debug
         return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
         @tmpid='mod_' + (new Date()).getTime()
         if ( typeof select_target != 'undefined' )
+          console.log('selected target',$(select_target).html())
           @cur_image = $(select_target)
-          @cur_image.attr('id',@tmpid)
           @action = 'update'
         else
           sel = window.getSelection()
@@ -71,9 +72,13 @@
           $('#' + contentId + 'height').val(height)
           $('#' + contentId + 'align').val(align)
           $('#' + contentId + 'border').attr('checked',border)
+          @cur_image.attr('id',@tmpid)
         else
           @cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
-          range.insertNode(@cur_image[0]);
+          @cur_image.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
+          range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
           $('#' + contentId + 'url').val("")
           $('#' + contentId + 'alt').val("")
           $('#' + contentId + 'title').val("")
