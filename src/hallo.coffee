@@ -675,19 +675,24 @@ http://hallojs.org
       # console.log('undo waypoint',@undoHistory)
 
     restoreContentPosition: ->
-      console.log('restoreContentPosition')
+      console.log('restoreContentPosition') if  @debug
       stored_selection = @element.find(@selection_marker)
       if ( stored_selection.length )
         # console.log('selection to restore:',stored_selection)
         window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode(stored_selection[0])
-        window.getSelection().removeAllRanges()
-        window.getSelection().addRange(range)
-        @undoWaypoint()
+        try
+        
+          range = document.createRange()
+          range.selectNode(stored_selection[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
+          @undoWaypoint()
+        catch e
+          # ignore
+
 
     storeContentPosition: ->
-      console.log('storeContentPosition')
+      console.log('storeContentPosition') if @debug
       @undoWaypoint()
       sel = window.getSelection()
       # console.log('ranges to store:' + sel.rangeCount)
