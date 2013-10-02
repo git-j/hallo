@@ -43,6 +43,8 @@
       queryState = (event) =>
         return unless @options.command
         return unless ( (event.keyCode >= 33 && event.keyCode <= 40) || event.type == 'mouseup' || event.type == 'hallomodified')
+        if ( window.getSelection().anchorNode != null )
+          return;
         try
           # HACK for qt-webkit
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
