@@ -31,6 +31,7 @@
         @enable()
 
     enable: () ->
+      return # disable spellcheck until further notice
       if ( !@spellcheck_proxy )
         @spellcheck_proxy = jQuery.proxy(@checkSpelling,this)
       @options.editable.element.unbind('keydown click', @spellcheck_proxy)

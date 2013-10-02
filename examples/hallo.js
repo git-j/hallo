@@ -4460,6 +4460,7 @@
         });
       },
       enable: function() {
+        return;
         if (!this.spellcheck_proxy) {
           this.spellcheck_proxy = jQuery.proxy(this.checkSpelling, this);
         }
