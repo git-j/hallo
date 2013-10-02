@@ -64,6 +64,8 @@
         # find the toolbar and reset the button/@options.target members
         # they were destroyed when the user changes the editable
         # this is NOT as expected!
+        if ( jQuery(event.target).closest('.dropdown-form-' + @options.command).length )
+          return
         toolbar = jQuery('.hallotoolbar').eq(0)
         return if ( !toolbar.length )
         target = toolbar.find('.dropdown-form-' + @options.command)
