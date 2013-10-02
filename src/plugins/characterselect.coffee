@@ -93,22 +93,23 @@
         @selected_range_start = 64;
       selected_character = '&#' + @selected_range_start + ';'
       all_chars = form.find('.character')
-      all_chars.css
-        'width':'32px'
-        'height':'32px'
-        'line-height': '32px'
-        'border':'1px solid black'
-        'display':'inline-block'
-        'text-align':'center'
-        'cursor':'pointer'
-        '-webkit-user-select': 'none'
-      characters.css
-        'overflow-y':'auto'
-        'overflow-x':'hidden'
-        'padding-right': '20px'
-        'max-height':'192px' # 32x6rows
-        'margin-left':'-1px'
-        #margin-left is a HACK for opening the dropdownform the second time
+      # in nugget_edit.less
+      #all_chars.css
+      #  'width':'32px'
+      #  'height':'32px'
+      #  'line-height': '32px'
+      #  'border':'1px solid black'
+      #  'display':'inline-block'
+      #  'text-align':'center'
+      #  'cursor':'pointer'
+      #  '-webkit-user-select': 'none'
+      #characters.css
+      #  'overflow-y':'auto'
+      #  'overflow-x':'hidden'
+      #  'padding-right': '20px'
+      #  'max-height':'192px' # 32x6rows
+      #  'margin-left':'-1px'
+      #  #margin-left is a HACK for opening the dropdownform the second time
       all_chars.unbind 'click'
       all_chars.unbind 'dblclick'
       all_chars.unbind 'mouseover'
@@ -191,22 +192,23 @@
       if ( @options.select )
         @select = contentAreaUL.append addSelect("group", @_blockNames())
       contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>')
-      contentAreaUL.find('.character_preview').css
-        'width':'64px'
-        'height':'64px'
-        'line-height':'64px'
-        'font-size':'400%'
-        'vertical-align':'middle'
-        'text-align':'center'
-        #'border':'1px solid black'
-        'float':'left'
-      contentAreaUL.find('.character_recent').css
-        'height':'32px'
-        'line-height':'32px'
-        'font-size':'200%'
-        'vertical-align':'middle'
-        'text-align':'center'
-        #'border':'1px solid black'
+      # nuggetedit.less
+      #contentAreaUL.find('.character_preview').css
+      #  'width':'64px'
+      #  'height':'64px'
+      #  'line-height':'64px'
+      #  'font-size':'400%'
+      #  'vertical-align':'middle'
+      #  'text-align':'center'
+      #  #'border':'1px solid black'
+      #  'float':'left'
+      #contentAreaUL.find('.character_recent').css
+      #  'height':'32px'
+      #  'line-height':'32px'
+      #  'font-size':'200%'
+      #  'vertical-align':'middle'
+      #  'text-align':'center'
+      #  #'border':'1px solid black'
       
       this_editable = @options.editable
       contentAreaUL.append addButton "Apply", =>
