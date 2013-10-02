@@ -166,7 +166,7 @@
       addSelect = (element,elements) =>
         elid="#{contentId}#{element}"
         el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><select id=\"#{elid}\"/></li>"
-        selectbox = el.find('select')
+        selectbox = el.find('#' + elid)
         jQuery.each elements,(label,value) =>
           selectbox.append('<option value="' + value + '">' + label + '</option>')
         recalc= =>
