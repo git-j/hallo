@@ -42,8 +42,8 @@
       cols: 32
       buttonCssClass: null
       default: '\\zeta(s) = \\sum_{n=1}^\\infty {\\frac{1}{n^s}}'
-      mathjax_alternative: '<a href="http://mathurl.com/">MathURL.com</a>'
-      mathjax_base_alternative: '<a href="http://www.sciweavers.org/free-online-latex-equation-editor">sciweavers.org</a>'
+      mathjax_alternative: 'http://mathurl.com/'
+      mathjax_base_alternative: 'http://www.sciweavers.org/free-online-latex-equation-editor'
       mathjax_delim_left: '\\(math\\('
       mathjax_delim_right: '\\)math\\)'
       mathjax_inline_delim_left: '\\(inline_math\\('
@@ -80,6 +80,8 @@
               @cur_formula = jQuery(item)
               @action = 'update'
               return false # break
+        if ( !@has_mathjax )
+          return true
         if ( @cur_formula && @cur_formula.length )
           #modify
           latex_formula = decodeURIComponent(@cur_formula.attr('rel'))
@@ -178,7 +180,7 @@
       contentAreaUL = contentArea.find('ul')
       addArea = (element,default_value) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><textarea id=\"#{elid}\" rows=\"#{@options.rows}\" cols=\"#{@options.cols}\"><textarea></li>"
+        el = jQuery "<li><label for=\"#{elid}\">" + utils.tr(element) + "</label><textarea id=\"#{elid}\" rows=\"#{@options.rows}\" cols=\"#{@options.cols}\"><textarea></li>"
         textarea = el.find('textarea')
         textarea.val(default_value)
         recalc= =>
@@ -190,7 +192,7 @@
         el
       addInput = (type,element,default_value,recalc_preview) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
+        el = jQuery "<li><label for=\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
         if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
           el.find('input').attr('checked',true);
         else if ( default_value )
@@ -205,33 +207,41 @@
         el
       addButton = (element,event_handler) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<li><button class=\"action_button\" id=\"" + @elid + "\">" + utils.tr(element) + "</button></li>"
+        el = jQuery "<button class=\"action_button\" id=\"" + @elid + "\">" + utils.tr(element) + "</button>"
 
-        #unless containingElement is 'div'
-        #  el.addClass 'disabled'
-
-        el.find('button').bind 'click', event_handler
+        el.bind 'click', event_handler
         el
-      contentAreaUL.append addArea("latex", @options.default)
-      contentAreaUL.append addInput("checkbox","inline", @options.inline,true)
-      contentAreaUL.append addInput("text","title", @options.title,false)
       if ( @has_mathjax )
-        contentInfoText = jQuery '<li>' + utils.tr('compose formula') + @options.mathjax_alternative + '</li>'
-      else
-        contentInfoText = jQuery '<li>' + utils.tr('compose formula base') + @options.mathjax_alternative + '<br/>' +  @options.mathjax_base_alternative + '</li>'
-      
-      contentInfoText.find('a').each (index,item) =>
-        link = jQuery(item)
-        link.bind 'click', (event) =>
+        contentAreaUL.append addInput("text","title", @options.title,false)
+        contentAreaUL.append addArea("latex", @options.default)
+        contentInfoText = jQuery('<li><label for="' + contentId + 'formula">' + utils.tr('preview') + '</label><span class="formula preview">' + @options.mathjax_delim_left + @options["default"] + @options.mathjax_delim_right + '</span><span class="formula preview_over"></span></li>')
+        contentInfoText.find('.preview_over').bind 'click', (event) =>
           event.preventDefault()
-          wke.openUrlInBrowser(link.attr('href'))
-      contentAreaUL.append (contentInfoText)
-      if ( @has_mathjax )
-        contentInfoText = jQuery '<li><span class="formula preview">' + @options.mathjax_delim_left + @options.default + @options.mathjax_delim_right + '</span></li>'
-        contentAreaUL.append (contentInfoText)
 
+        contentAreaUL.append(contentInfoText)
+        contentAreaUL.append(addInput("checkbox", "inline", this.options.inline, true));
+        buttons = jQuery('<div>')
+        buttons_li = jQuery('<li></li>').append('<label></label>')
+        buttons_label = buttons_li.find('>label')
+        buttons_label.after addButton 'compose formula', () =>
+          wke.openUrlInBrowser(@options.mathjax_alternative + '?latex=' + $('#' + contentId + 'latex').val())
+        buttons.append(buttons_li)
+      else
+        buttons_li = jQuery('<li></li>').append('<label></label>')
+        buttons_label = buttons_li.find('>label')
+        buttons_label.after addButton 'compose formula', () =>
+          wke.openUrlInBrowser(@options.mathjax_alternative)
+        buttons.append(buttons_li)
+        buttons_li = $('<li></li>').append('<label></label>')
+        buttons_label = buttons_li.find('>label')
+        buttons_label.after addButton 'compose formula base', () =>
+          wke.openUrlInBrowser(@options.mathjax_base_alternative)
+        buttons.append(buttons_li)
+      buttons.find('button').addClass('external_button')
+      contentAreaUL.append(buttons.children())
+      buttons = jQuery('<li>')
       
-      contentAreaUL.append addButton "apply", =>
+      buttons.append addButton "apply", =>
         @recalcHTML(contentId)
         @recalcMath()
         formula = $('#' + @tmpid)
@@ -243,9 +253,10 @@
           formulas = $('.formula').each (index,item) =>
             jQuery(item).removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
-      contentAreaUL.append addButton "remove", =>
+      buttons.append addButton "remove", =>
         $('#' + @tmpid).remove()
         @dropdownform.hallodropdownform('hideForm')
+      contentAreaUL.append(buttons)
       contentArea
 
     _prepareButton: (setup, target) ->
