@@ -180,7 +180,7 @@
       contentAreaUL = contentArea.find('ul')
       addArea = (element,default_value) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<li><label for=\"#{elid}\">" + utils.tr(element) + "</label><textarea id=\"#{elid}\" rows=\"#{@options.rows}\" cols=\"#{@options.cols}\"><textarea></li>"
+        el = jQuery "<li><label for=\"#{elid}\">" + utils.tr(element) + "</label><textarea id=\"#{elid}\" rows=\"#{@options.rows}\" cols=\"#{@options.cols}\"></textarea></li>"
         textarea = el.find('textarea')
         textarea.val(default_value)
         recalc= =>
