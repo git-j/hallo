@@ -47,8 +47,14 @@
           selectbox = $('#' + contentId + 'group')
           if ( selectbox.length )
             if ( window._character_select_range )
-              selectbox.val(window._character_select_range) #selectBox('value',window._character_select_range)
-            @recalcRange selectbox.val() #selectBox('value'))
+              if ( typeof selectbox.selectBox == 'function' )
+                selectbox.selectBox('value',window._character_select_range)
+              else
+                selectbox.val(window._character_select_range) #
+            if ( typeof selectbox.selectBox == 'function')
+              @recalcRange selectbox.selectBox('value')
+            else
+              @recalcRange selectbox.val() #selectBox('value'))
           @updateCharacterSelectRecent()
         window.setTimeout recalc, 300
         return true
@@ -163,7 +169,10 @@
         jQuery.each elements,(label,value) =>
           selectbox.append('<option value="' + value + '">' + label + '</option>')
         recalc= =>
-          char_range = selectbox.val() #selectBox('value')
+          if ( typeof selectbox.selectBox == 'function')
+            char_range = selectbox.selectBox('value')
+          else
+            char_range = selectbox.val() #selectBox('value')
           window._character_select_range = char_range
           @recalcRange(char_range)
         selectbox.bind('keyup change',recalc)
@@ -180,7 +189,7 @@
         el
 
       if ( @options.select )
-        contentAreaUL.append addSelect("group", @_blockNames())
+        @select = contentAreaUL.append addSelect("group", @_blockNames())
       contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>')
       contentAreaUL.find('.character_preview').css
         'width':'64px'
@@ -226,6 +235,8 @@
 
     _cancelAction: () ->
       $('#' + @tmpid).remove()
+      if ( typeof @select.selectBox == 'function' )
+        @select.selectBox('destroy')
       @dropdownform.hallodropdownform('hideForm')
 
     _prepareButton: (setup, target) ->
