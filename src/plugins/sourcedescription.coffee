@@ -41,23 +41,25 @@
         contentArea.append el if el
       contentArea
     _keep_selection_replace_callback: (parent, old) ->
-       replacement = false
-       has_block_contents = utils.hasBlockElement(old)
-       if old.html() != "" && ! has_block_contents
-         replacement = "<span class=\"selection\">" + old.html() + "</span>"
-       else
-         replacement = "<span class=\"selection\">&nbsp;</span>"
-       nr = $('<span>' + replacement + '</span>');
-       if has_block_contents
-         range = window.getSelection().getRangeAt()
-         range.setStartAfter(range.endContainer)
-         range.insertNode(nr[0])
-       else
-         range = window.getSelection().getRangeAt()
-         range.deleteContents()
-         range.insertNode(nr[0])
-       replacement = false
-       replacement
+      console.error('unsuppored function')
+      replacement = false
+      dom = new IDOM()
+      has_block_contents = dom.hasBlockElement(old)
+      if old.html() != "" && ! has_block_contents
+        replacement = "<span class=\"selection\">" + old.html() + "</span>"
+      else
+        replacement = "<span class=\"selection\">&nbsp;</span>"
+      nr = jQuery('<span>' + replacement + '</span>');
+      if has_block_contents
+        range = window.getSelection().getRangeAt()
+        range.setStartAfter(range.endContainer)
+        range.insertNode(nr[0])
+      else
+        range = window.getSelection().getRangeAt()
+        range.deleteContents()
+        range.insertNode(nr[0])
+      replacement = false
+      replacement
 
     _addElement: (element, containing_element, publication_type, data) ->
       #debug.log(element,containing_element,publication_type,data,@options)
@@ -87,41 +89,36 @@
       this_editable = @options.editable
       el.bind "click", (ev) =>
         if element == '__associate'
-          this_editable.replaceSelectionHTML @_keep_selection_replace_callback
           window.__start_mini_activity = true
-          $('body').hallopublicationselector({'editable':this_editable});
-        else if element == '__quote'
-          this_editable.replaceSelectionHTML @_keep_selection_replace_callback
-          window.__start_mini_activity = true
-          $('body').halloquoteselector({'editable':this_editable});
+          jQuery('body').hallopublicationselector({'editable':this_editable});
+        #else if element == '__quote'
+        #  window.__start_mini_activity = true
+        #  jQuery('body').halloquoteselector({'editable':this_editable});
         else
-          scb = (parent, old) ->
-            replacement = false
-            has_block_contents = utils.hasBlockElement(old)
-            #console.log(old,has_block_contents)
-            if old.html() != "" && ! has_block_contents
-              replacement = "<span class=\"citation\">" + old.html() + "</span>"
+          selection = @options.editable.element.find(@options.editable.selection_marker)
+          if ( selection.length )
+            dom = new IDOM()
+            has_block_contents = dom.hasBlockElement(selection)
+            if ( selection.html() != '' && ! has_block_contents )
+              replacement = "<span class=\"citation\">" + selection.html() + "</span>"
             else
               replacement = ""
             replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+
             if ( has_block_contents )
               # wrong range:document.execCommand('insertHTML',false,replacement)
               utils.info(utils.tr('warning selected block contents'))
-              window.getSelection().removeAllRanges()
-              parent.append(replacement)
-              replacement = false
-            #console.log(replacement)
-            replacement
-          #/scb
-          #modifies dom invalidates range
-          #if @options.editable.element.find(".sourcedescription-#{data}").length
-          #  @options.editable.element.find(".sourcedescription-#{data}").remove()
-          this_editable.replaceSelectionHTML scb
+              selection.parent().append(replacement)
+            else
+              selection.html(replacement)
+          else
+            utils.info(utils.tr('no selection'))
           #console.log(this_editable.element)
           nugget = new DOMNugget()
           #debug.log('sdc::addElement',this_editable)
           nugget.updateSourceDescriptionData(this_editable.element).done =>
-            nugget.resetCitations(@options.editable.element)
+            nugget.resetCitations(@options.editable.element).done =>
+              @options.editable.restoreContentPosition()
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'

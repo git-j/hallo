@@ -43,7 +43,10 @@
       queryState = (event) =>
         return unless @options.command
         try
-          @checked document.queryCommandState @options.command
+          if ( @options.command == 'spellcheck' )
+            @checked @options.editable.element[0].spellcheck
+          else
+            @checked document.queryCommandState @options.command
         catch e
           return
 

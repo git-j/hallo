@@ -25,6 +25,11 @@
       toolbar.append target
       setup= =>
         # return if !window.getSelection().rangeCount
+        jQuery(target).find('select').each (index,item) =>
+          jQuery(item).selectBox()
+        target.bind 'hide', =>
+          jQuery(target).find('select').each (index,item) =>
+            jQuery(item).selectBox('destroy')
         @tmpid='mod_' + (new Date()).getTime()
         sel = window.getSelection()
         range = sel.getRangeAt()
@@ -42,18 +47,18 @@
           selectbox = $('#' + contentId + 'group')
           if ( selectbox.length )
             if ( window._character_select_range )
-              selectbox.selectBox('value',window._character_select_range)
-            @recalcRange(selectbox.selectBox('value'))
+              if ( typeof selectbox.selectBox == 'function' )
+                selectbox.selectBox('value',window._character_select_range)
+              else
+                selectbox.val(window._character_select_range) #
+            if ( typeof selectbox.selectBox == 'function')
+              @recalcRange selectbox.selectBox('value')
+            else
+              @recalcRange selectbox.val() #selectBox('value'))
           @updateCharacterSelectRecent()
         window.setTimeout recalc, 300
         return true
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
-        jQuery('a').each (index,item) =>
-          if ( ! window.__start_mini_activity )
-            jQuery(item).removeAttr('id')
-
-          jQuery(item).remove() if jQuery(item).attr('href') == ''
       buttonset.append @dropdownform
       toolbar.append buttonset
 
@@ -88,22 +93,23 @@
         @selected_range_start = 64;
       selected_character = '&#' + @selected_range_start + ';'
       all_chars = form.find('.character')
-      all_chars.css
-        'width':'32px'
-        'height':'32px'
-        'line-height': '32px'
-        'border':'1px solid black'
-        'display':'inline-block'
-        'text-align':'center'
-        'cursor':'pointer'
-        '-webkit-user-select': 'none'
-      characters.css
-        'overflow-y':'auto'
-        'overflow-x':'hidden'
-        'padding-right': '20px'
-        'max-height':'192px' # 32x6rows
-        'margin-left':'-1px'
-        #margin-left is a HACK for opening the dropdownform the second time
+      # in nugget_edit.less
+      #all_chars.css
+      #  'width':'32px'
+      #  'height':'32px'
+      #  'line-height': '32px'
+      #  'border':'1px solid black'
+      #  'display':'inline-block'
+      #  'text-align':'center'
+      #  'cursor':'pointer'
+      #  '-webkit-user-select': 'none'
+      #characters.css
+      #  'overflow-y':'auto'
+      #  'overflow-x':'hidden'
+      #  'padding-right': '20px'
+      #  'max-height':'192px' # 32x6rows
+      #  'margin-left':'-1px'
+      #  #margin-left is a HACK for opening the dropdownform the second time
       all_chars.unbind 'click'
       all_chars.unbind 'dblclick'
       all_chars.unbind 'mouseover'
@@ -160,15 +166,18 @@
       addSelect = (element,elements) =>
         elid="#{contentId}#{element}"
         el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><select id=\"#{elid}\"/></li>"
-        selectbox = el.find('select')
+        selectbox = el.find('#' + elid)
         jQuery.each elements,(label,value) =>
           selectbox.append('<option value="' + value + '">' + label + '</option>')
         recalc= =>
-          char_range = selectbox.selectBox('value')
+          if ( typeof selectbox.selectBox == 'function')
+            char_range = selectbox.selectBox('value')
+          else
+            char_range = selectbox.val() #selectBox('value')
           window._character_select_range = char_range
           @recalcRange(char_range)
         selectbox.bind('keyup change',recalc)
-        selectbox.selectBox()
+        # selectbox.selectBox()
         el
 
       addButton = (element,event_handler) =>
@@ -181,24 +190,25 @@
         el
 
       if ( @options.select )
-        contentAreaUL.append addSelect("group", @_blockNames())
+        @select = contentAreaUL.append addSelect("group", @_blockNames())
       contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>')
-      contentAreaUL.find('.character_preview').css
-        'width':'64px'
-        'height':'64px'
-        'line-height':'64px'
-        'font-size':'400%'
-        'vertical-align':'middle'
-        'text-align':'center'
-        #'border':'1px solid black'
-        'float':'left'
-      contentAreaUL.find('.character_recent').css
-        'height':'32px'
-        'line-height':'32px'
-        'font-size':'200%'
-        'vertical-align':'middle'
-        'text-align':'center'
-        #'border':'1px solid black'
+      # nuggetedit.less
+      #contentAreaUL.find('.character_preview').css
+      #  'width':'64px'
+      #  'height':'64px'
+      #  'line-height':'64px'
+      #  'font-size':'400%'
+      #  'vertical-align':'middle'
+      #  'text-align':'center'
+      #  #'border':'1px solid black'
+      #  'float':'left'
+      #contentAreaUL.find('.character_recent').css
+      #  'height':'32px'
+      #  'line-height':'32px'
+      #  'font-size':'200%'
+      #  'vertical-align':'middle'
+      #  'text-align':'center'
+      #  #'border':'1px solid black'
       
       this_editable = @options.editable
       contentAreaUL.append addButton "Apply", =>
@@ -230,8 +240,7 @@
       character_content = $('<span>' + character.html() + '</span>')
       character_content.insertBefore(character)
       @_addRecent(character.html())
-      character_content.replaceWith(character.html())
-      character.html('')
+      character.html('&#64;')
 
     _cancelAction: () ->
       window.getSelection().removeAllRanges()
@@ -240,6 +249,10 @@
       range_contents = jQuery(range.extractContents()).text();
       range.deleteContents();
       window.getSelection().addRange(range)
+      console.warn('removing tmpid and destroy selectbox');
+      $('#' + @tmpid).remove()
+      if ( typeof @select.selectBox == 'function' )
+        @select.selectBox('destroy')
       @dropdownform.hallodropdownform('hideForm')
 
     _prepareButton: (setup, target) ->

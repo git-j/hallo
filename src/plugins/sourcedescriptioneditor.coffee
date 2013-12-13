@@ -78,6 +78,7 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('#sourcedescriptioneditor_selectable').html(@selectables )
           jQuery('#sourcedescriptioneditor_selectable').selectBox()
+          #/bind change selectable
         jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
           num_updates = 0
@@ -105,20 +106,31 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
+          #/bind click apply
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
+          #/bind click back
         window.setTimeout =>
           jQuery(window).resize()
+          if ( @widget.find('#number_of_pages').length )
+            pages = @widget.find('#number_of_pages')
+            selection_start = 0
+            selection_end = pages.val().length
+            if ( pages[0].setSelectionRange )
+              pages[0].focus();
+              pages[0].setSelectionRange(selection_start, selection_end)
         , 100
-
       jQuery(window).resize()
 
     _createInput: (identifier, label, value) ->
+      # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
       input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
+      # if ( tooltip )
+      #  input.attr('title',tooltip)
       if ( jQuery.datepicker && (identifier == 'date' || 'identifier' == 'accessed') )
         # datepicker with issues: does not remove on control remove
         fn_dp_show = =>

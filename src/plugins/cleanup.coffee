@@ -42,7 +42,7 @@
         if ( window.action_list && window.action_list['hallojs_cleanup_' + element] != undefined )
           button_label = window.action_list['hallojs_cleanup_' + element].title
           button_tooltip = window.action_list['hallojs_cleanup_' + element].tooltip
-        el = jQuery "<div><button class=\"action_button\" id=\"" + @tmpid+element + "\" title=\"" + button_tooltip+ "\">" + button_label + "</button></div>"
+        el = jQuery "<li><div><button class=\"action_button\" id=\"" + @tmpid+element + "\" title=\"" + button_tooltip+ "\">" + button_label + "</button></div></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -50,6 +50,7 @@
         el.find('button').bind 'click', event_handler
         el
       contentAreaUL.append addButton "clean_html", =>
+        @options.editable.storeContentPosition()
         console.log('cleanhtml') if @debug
         jQuery('.misspelled').remove()
         dom = new IDOM()
@@ -60,9 +61,7 @@
           #utils.removeBadStyles(@options.editable.element)
           #utils.removeCites(@options.editable.element)
           #utils.
-          dom.fixNesting(@options.editable.element)
-          dom.fixDeprecated(@options.editable.element)
-          dom.fixAttributes(@options.editable.element)
+          dom.clean(@options.editable.element);
           @options.editable.element.html(@options.editable.element.html().replace(/&nbsp;/g,' '));
 
         #@options.editable.element.find('.cite').remove()
@@ -70,18 +69,23 @@
         @options.editable.store()
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element)
+          nugget.resetCitations(@options.editable.element).done =>
+            @options.editable.restoreContentPosition()
 
 
       contentAreaUL.append addButton "clean_plain", =>
         jQuery('.misspelled').remove()
+        @options.editable.storeContentPosition()
         dom = new IDOM()
         dom.plainTextParagraphs(@options.editable.element)
-        @dropdownform.hallodropdownform('hideForm')
         @options.editable.store()
+
+        @dropdownform.hallodropdownform('hideForm')
         nugget = new DOMNugget()
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element)
+          nugget.resetCitations(@options.editable.element).done => 
+            @options.editable.restoreContentPosition()
+      contentArea
 
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'

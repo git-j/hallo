@@ -90,6 +90,9 @@ http://hallojs.org
     selection: null
     _keepActivated: false
     originalHref: null
+    undoHistory: []
+    selection_marker: 'content_selection_marker'
+    auto_store_timeout: 3000
 
     options:
       editable: true
@@ -104,6 +107,7 @@ http://hallojs.org
       forceStructured: true
       checkTouch: true
       touchScreen: null
+      maxUndoEntries: 10
 
     _create: ->
       @id = @_generateUUID()
@@ -153,6 +157,7 @@ http://hallojs.org
       @element.unbind "keyup", @_keys
       @element.unbind "keydown", @_syskeys
       @element.unbind "keyup mouseup", @_checkSelection
+      @element.unbind "paste", @_paste
       @bound = false
 
       jQuery(@element).removeClass 'isModified'
@@ -189,7 +194,21 @@ http://hallojs.org
         @element.bind "keyup", this, @_keys
         @element.bind "keydown", this, @_syskeys
         @element.bind "keyup mouseup", this, @_checkSelection
+        @element.bind "paste", this, @_paste
         @bound = true
+      if ( typeof window._live == 'undefined' )
+        window._live = {}
+      unless window._live['.editableclick']
+        window._live['.editableclick'] = true
+        jQuery('[contenteditable=false]').live "click", (event) =>
+          target = event.target
+          if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
+            return
+          window.getSelection().removeAllRanges()
+          range = document.createRange()
+          range.selectNode(target)
+          window.getSelection().addRange(range)
+
 
       @_forceStructured() if @options.forceStructured
 
@@ -218,6 +237,22 @@ http://hallojs.org
       sel = rangy.getSelection()
       sel.setSingleRange(range)
 
+    setSelectionRange: (input, selection_start, selection_end) ->
+      # set the selection range in a textarea/editable
+      if ( input.setSelectionRange )
+        input.focus();
+        input.setSelectionRange(selection_start, selection_end);
+      else if ( input.createTextRange )
+        range = input.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', selection_end);
+        range.moveStart('character', selection_start);
+        range.select();
+
+    setCaretToPos: (input, pos) ->
+      # move the cursor, no need for a selection
+      @_setSelectionRange(input, pos, pos);
+
     replaceSelection: (cb) ->
       if navigator.appName is 'Microsoft Internet Explorer'
         t = document.selection.createRange().text;
@@ -240,7 +275,7 @@ http://hallojs.org
       else
         sel = window.getSelection()
         range = sel.getRangeAt(0)
-        console.log(range)
+        # console.log(range)
         range_parent = range.commonAncestorContainer
         range_parent = range_parent.parentNode if range_parent.nodeType != 1
         range_content= range.cloneContents()
@@ -252,6 +287,7 @@ http://hallojs.org
         range.insertNode($('<span>' + replacement + '</span>')[0]) if replacement
         sel.removeAllRanges();
         sel.addRange(range);
+        @storeContentPosition()
 
     removeAllSelections: () ->
       if navigator.appName is 'Microsoft Internet Explorer'
@@ -263,10 +299,10 @@ http://hallojs.org
     getContents: ->
       # clone
       contentClone = @element.clone()
-      for plugin of @options.plugins
-        cleanup = jQuery(@element).data(plugin).cleanupContentClone
-        continue unless jQuery.isFunction cleanup
-        jQuery(@element)[plugin] 'cleanupContentClone', contentClone
+      #for plugin of @options.plugins
+      #  cleanup = jQuery(@element).data(plugin).cleanupContentClone
+      #  continue unless jQuery.isFunction cleanup
+      #  jQuery(@element)[plugin] 'cleanupContentClone', contentClone
       contentClone.html()
 
     # Set the contents of an editable
@@ -296,6 +332,28 @@ http://hallojs.org
 
     # Execute a contentEditable command
     execute: (command, value) ->
+      @undoWaypoint()
+      if ( command.indexOf('justify') == 0 )
+        # when <p style="text-align:left"><span style="text-align:left">test</span></p>
+        # is in the content, after aligning the content to the right, it is no longer
+        # possible to align it left, as execCommand only changes the closest p/div
+        # this implementation uses the current cursor position and removes all alignment
+        # related style attributes from the content before executing the command
+        # this action breaks the default undo
+        @storeContentPosition()
+        selection = @element.find(@selection_marker)
+        while ( selection.length )
+          if ( selection.attr('contenteditable') == 'true' )
+            break
+          style_attr = selection.attr('style')
+          if ( typeof style_attr != 'undefined' )
+            style_attr = style_attr.replace(/text-align:[^;]*/,'')
+            style_attr = style_attr.trim()
+            if ( style_attr == '' || style_attr == ';' )
+              selection.removeAttr('style')
+            else
+              selection.attr('style',style_attr)
+          selection = selection.parent()
       if document.execCommand command, false, value
         @element.trigger "change"
 
@@ -354,6 +412,32 @@ http://hallojs.org
       widget = event.data
       widget.setModified() if widget.isModified()
 
+    _paste: (event) ->
+      event.preventDefault()
+      pdata = event.originalEvent.clipboardData.getData('text/html')
+      if (typeof pdata == 'undefined' )
+        pdata = event.originalEvent.clipboardData.getData('text/plain')
+      if (typeof pdata == 'undefined' )
+        utils.error(utils.tr('invalid clipboard data'))
+        return
+      pdata = pdata.replace(/<script/g,'<xscript').replace(/<\/script/,'</xscript')
+
+      jq_temp = jQuery('<div>' + pdata + '</div>')
+      dom = new IDOM()
+      dom.clean(jq_temp);
+      html = jq_temp.html();
+      sel = window.getSelection()
+      range = sel.getRangeAt()
+      range.deleteContents()
+      range.insertNode(jq_temp[0])
+
+      
+    _ignoreKeys: (code) ->
+      # cursor movements
+      return true if ( code >= 33 && code <= 40 )
+      return true if ( code == 20 ) #caps
+
+      return false
     _keys: (event) ->
       widget = event.data
       #if event.keyCode == 27
@@ -364,15 +448,36 @@ http://hallojs.org
       #        content: widget.getContents()
       #        thrown: old
       #    widget.turnOff()
+      return if widget._ignoreKeys(event.keyCode)
       if event.keyCode == 66 && event.ctrlKey #b
           document.execCommand("bold",false)
       if event.keyCode == 73 && event.ctrlKey #i
           document.execCommand("italic",false)
       if event.keyCode == 85 && event.ctrlKey #u
           document.execCommand("underline",false)
+      if ( !event.ctrlKey && !event.shiftKey && event.keyCode != 17 && event.keycode != 16 )
+        # helps but gets _slow_ widget.element[0].blur()
+        # widget.element[0].focus()
+        # sel.addRange(new_range)
+        if ( widget.autostore_timer )
+          window.clearTimeout(widget.autostore_timer)
+        widget.autostore_timer = window.setTimeout =>
+
+          widget.storeContentPosition()
+          widget.store()
+          widget.restoreContentPosition()
+        , widget.auto_store_timeout
+
+    _select_cell_fn: (cell) ->
+      sel = window.getSelection()
+      range = document.createRange()
+      range.selectNode(cell)
+      sel.removeAllRanges()
+      sel.addRange(range)
 
     _syskeys: (event) ->
       widget = event.data
+      return if widget._ignoreKeys(event.keyCode)
       if event.keyCode == 9 && !event.shiftKey  #tab
         range = window.getSelection().getRangeAt()
         li = $(range.startContainer).closest('li')
@@ -380,6 +485,22 @@ http://hallojs.org
         if ( li.length )
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
           document.execCommand("indent",false)
+          event.preventDefault()
+          return
+        td = $(range.startContainer).closest('td,th')
+        if ( td.length )
+          table = td.closest('table')
+          use_next = false
+          tds = table.find('td,th')
+          tds.each (index,item) =>
+            if ( use_next )
+              use_next = false
+              widget._select_cell_fn(item)
+            if ( item != td[0] )
+              return # continue
+            use_next = true
+          if ( use_next )
+            widget._select_cell_fn(tds[0])
           event.preventDefault()
       if event.keyCode == 9 && event.shiftKey  #shift+tab
         range = window.getSelection().getRangeAt()
@@ -389,6 +510,22 @@ http://hallojs.org
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
           document.execCommand("outdent",false)
           event.preventDefault()
+          return
+        td = $(range.startContainer).closest('td,th')
+        if ( td.length )
+          table = td.closest('table')
+          use_prev = false
+          tds = table.find('td,th')
+          tds.each (index,item) =>
+            if ( item != td[0] )
+              return # continue
+            if ( index > 0 )
+              widget._select_cell_fn(tds[index-1])
+            else
+              widget._select_cell_fn(tds[tds.length-1])
+          event.preventDefault()
+
+
 
     _rangesEqual: (r1, r2) ->
       return false unless r1.startContainer is r2.startContainer
@@ -441,6 +578,11 @@ http://hallojs.org
       return false
 
     turnOn: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
+      if ( jQuery('.inEditMode').length )
+        #avoid multiple instances that fail to turn of their toolbars
+        jQuery('.inEditMode').hallo('turnOff')
       if this.getContents() is this.options.placeholder
         #this.setContents ' '
         force_focus = =>
@@ -456,6 +598,8 @@ http://hallojs.org
       @_trigger "activated", null, @
 
     turnOff: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       jQuery(@element).removeClass 'inEditMode'
       @_trigger "deactivated", @
       jQuery('.misspelled').remove() #TODO: move to desktop
@@ -464,21 +608,27 @@ http://hallojs.org
       if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
         @setContents @options.placeholder
     store: () ->
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
       if @options.store_callback
         contents = @getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
           @setContents ''
         @options.store_callback(@getContents())
     _activated: (event) ->
+      # console.log('hallo activated')
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
-          jQuery(item).trigger('hide')
+          jQuery(item).hallodropdownform('hideForm')
         event.data.turnOff()
       event.data.turnOn()
+      event.data.restoreContentPosition()
 
     _deactivated: (event) ->
       return if window.debug_hallotoolbar
-
+      if ( @autostore_timer )
+        window.clearTimeout(@autostore_timer)
+      event.data.storeContentPosition()
       if event.data.options.store_callback
         contents = event.data.getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
@@ -491,6 +641,7 @@ http://hallojs.org
         return
 
       unless event.data._protectToolbarFocus is true
+        # console.log('hallo deactivated')
         event.data.turnOff()
       else
         setTimeout ->
@@ -510,5 +661,76 @@ http://hallojs.org
 
     checkTouch: ->
       @options.touchScreen = !!('createTouch' of document)
+
+    undoWaypoint: ->
+      waypoint = 
+        'date': Date.now()
+        'content': jQuery(@element).html()
+      if ( @undoHistory.length )
+        if ( waypoint.content == @undoHistory[@undoHistory.length - 1].content )
+          return
+      @undoHistory.push(waypoint)
+      while @undoHistory.length > @options.maxUndoEntries
+        @undoHistory.shift()
+      # console.log('undo waypoint',@undoHistory)
+
+    restoreContentPosition: ->
+      console.log('restoreContentPosition') if  @debug
+      stored_selection = @element.find(@selection_marker)
+      if ( stored_selection.length )
+        # console.log('selection to restore:',stored_selection)
+        window.getSelection().removeAllRanges()
+        try
+        
+          range = document.createRange()
+          range.selectNode(stored_selection[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
+          @undoWaypoint()
+        catch e
+          # ignore
+
+
+    storeContentPosition: ->
+      console.log('storeContentPosition') if @debug
+      @undoWaypoint()
+      sel = window.getSelection()
+      # console.log('ranges to store:' + sel.rangeCount)
+      if ( sel.rangeCount > 0 )
+        range = sel.getRangeAt()
+        tmp_id = 'range' + Date.now()
+        @element.find(@selection_marker).removeAttr('id')
+        remove_queue = [];
+        @element.find(@selection_marker).each (index,item) =>
+          marker = jQuery(item)
+          if ( marker.html() == '' )
+            remove_queue.push(marker)
+          else
+            marker.contents().unwrap()
+        for marker in remove_queue
+          marker.remove()
+        console.log('before:' + @element.html()) if @debug
+        selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
+        try
+          range.surroundContents(selection_identifier[0])
+        catch e
+          # utils.info(utils.tr('warning selected block contents'))
+          new_range = range.cloneRange()
+          new_range.collapse(false) # to end
+          new_range.insertNode(selection_identifier[0])
+          #sel.removeAllRanges()
+          #sel.addRange(range)
+        console.log('after:' + @element.html()) if @debug
+        # console.log('selection added',@element.html())
+
+    setContentPosition: (jq_node) ->
+      sel = window.getSelection()
+      sel.removeAllRanges()
+      range = document.createRange()
+      range.selectNode(jq_node[0])
+      sel.addRange(range)
+      @storeContentPosition()
+
+
 
 )(jQuery)

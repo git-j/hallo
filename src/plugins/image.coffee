@@ -5,6 +5,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.halloimage',
     dropdownform: null
+    debug: true
     tmpid: 0
     selected_row: null
     selected_cell: null
@@ -25,19 +26,26 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= =>
-        return if !window.getSelection().rangeCount
+      setup= (select_target,target_id) =>
+        contentId = target_id
+        console.log('setup image form',select_target,target_id) if @debug
+        return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
         @tmpid='mod_' + (new Date()).getTime()
-        sel = window.getSelection()
-        range = sel.getRangeAt()
-        @cur_image = null
-        @action = 'insert'
-        @options.editable.element.find('img').each (index,item) =>
-          if ( sel.containsNode(item,true) )
-            @cur_image = jQuery(item)
-            @cur_image.attr('id',@tmpid)
-            @action = 'update'
-            return false # break
+        if ( typeof select_target != 'undefined' )
+          console.log('selected target',$(select_target).html())
+          @cur_image = $(select_target)
+          @action = 'update'
+        else
+          sel = window.getSelection()
+          range = sel.getRangeAt()
+          @cur_image = null
+          @action = 'insert'
+          @options.editable.element.find('img').each (index,item) =>
+            if ( sel.containsNode(item,true) )
+              @cur_image = jQuery(item)
+              @cur_image.attr('id',@tmpid)
+              @action = 'update'
+              return false # break
         if ( @cur_image && @cur_image.length )
           #modify
           url = @cur_image.attr('src')
@@ -64,9 +72,13 @@
           $('#' + contentId + 'height').val(height)
           $('#' + contentId + 'align').val(align)
           $('#' + contentId + 'border').attr('checked',border)
+          @cur_image.attr('id',@tmpid)
         else
           @cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
-          range.insertNode(@cur_image[0]);
+          @cur_image.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
+          range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
           $('#' + contentId + 'url').val("")
           $('#' + contentId + 'alt').val("")
           $('#' + contentId + 'title').val("")
@@ -81,10 +93,7 @@
         return true
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
-      target.bind 'hide', =>
-        jQuery('img').each (index,item) =>
-          jQuery(item).removeAttr('id')
-          jQuery(item).remove() if jQuery(item).attr('src') == ''
+      @dropdownform.hallodropdownform 'bindShow', 'img'
       buttonset.append @dropdownform
       toolbar.append buttonset
 
@@ -164,26 +173,23 @@
         wkej.instance.insert_image_dfd.done (path) =>
           if ( path.indexOf(':') == 1 )
             path = '/' + path
-          $('#' + contentId + 'url').val('file://' + path)
+          path = 'file://' + path
+          # TODO: update App::mediaPath('images') if applicable
+          # to refeus://localhost/...
+          $('#' + contentId + 'url').val(path)
           delete wkej.instance.insert_image_dfd
           @updateImageHTML(contentId)
         occ.SelectImage()
         wkej.instance.insert_image_dfd.promise()
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'insertHTML',false, @html
-        $('#' + @tmpid).removeAttr('id')
+        image = $('#' + @tmpid)
+        @options.editable.setContentPosition(image)
+        image.removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'delete',false
+        image = $('#' + @tmpid)
+        image.remove()
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 

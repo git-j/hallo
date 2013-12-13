@@ -52,6 +52,7 @@
           'node_select': (node) =>
             @select(node)
         })
+        #TODO: show filter/sort
       jQuery(window).resize()
 
     apply:  ->
@@ -59,8 +60,7 @@
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)
       dfo.fail (error) =>
-        @widget.remove()
-        jQuery('body').css({'overflow':'auto'})
+        @back()
       #tmp_id is used to identify new sourcedescription after it has been inserted for further editing
       tmp_id = 'tmp_' + (new Date()).getTime()
       dfo.done (result) =>
@@ -78,26 +78,28 @@
         #/scb
         #console.log(@options.range,window.getSelection())
         #console.log(@options.range)
-        selection =  @options.editable.element.find('.selection')
+        selection =  @options.editable.element.find(@options.editable.selection_marker)
         if ( selection.length )
           range = document.createRange()
+          sel = window.getSelection()
           range.selectNode(selection[0])
-          if ( selection.hasClass('carret') )
+          if ( selection.text() == '' )
             range.setStartAfter(range.endContainer)
-          window.getSelection().removeAllRanges()
-          window.getSelection().addRange(range)
+          sel.removeAllRanges()
+          sel.addRange(range)
           @options.editable.replaceSelectionHTML scb
-          #console.log(@options.editable.element.html())
-          window.__start_mini_activity = false
-          @options.editable.element.find('.selection').each (index,item) =>
-            $(item).replaceWith($(item).html())
-            if ( $(item).text() == ' ' )
-              $(item).find('.citation').remove()
+          selection_nodes =  @options.editable.element.find(@options.editable.selection_marker)
+          selection_nodes.each (index,item) =>
+            sel_item = jQuery(item)
+            sel_item.contents().unwrap()
+            # TODO: reevaluate
+            #if ( sel_item.text() == ' ' )
+            #  sel_item.find('.citation').remove()
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()
         occ.UpdateNuggetSourceDescriptions({loid:target_loid})
         # launch sourcedescription editor with newly created sourcedescription
-        new_sd_node=$('#' + tmp_id);
+        new_sd_node = jQuery('#' + tmp_id);
         new_sd_node.removeAttr('id')
         #console.log(new_sd_node)
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
@@ -105,7 +107,7 @@
           #console.log(new_sd_node)
           new_sd_class = new_sd_node.attr('class')
           if new_sd_class
-            sd_loid=new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
+            sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
             nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
               jQuery('body').hallosourcedescriptioneditor
                 'loid':sd_loid
@@ -113,13 +115,13 @@
                 'element':new_sd_node
                 'back':false
                 'nugget_loid':target_loid
-        @widget.remove()
-        jQuery('body').css({'overflow':'auto'})
+        @back()
 
 
     back: ->
       @widget.remove()
       jQuery('body').css({'overflow':'auto'})
+      @options.editable.restoreContentPosition()
 
     select: (node) ->
       @current_node = jQuery(node).attr('id')

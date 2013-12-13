@@ -25,7 +25,8 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= =>
+      setup= (select_target,target_id) =>
+        contentId = target_id
         @tmpid='mod_' + (new Date()).getTime()
         return false if !window.getSelection().rangeCount
         range = window.getSelection().getRangeAt()
@@ -103,15 +104,14 @@
             $(cell).remove()
             return
           if ( !heading )
-            $(cell).replaceWith('<td>' + $(cell).html() + '</td>')
+            $(cell).contents().unwrap().wrapAll('<td></td>').parent()
         $(row).find('td').each (cindx,cell) =>
           icol = cindx + 1
           if icol > cols 
             $(cell).remove()
             return
           if heading && rindx == 0
-            $(cell).replaceWith('<th>' + $(cell).html() + '</th>')
-
+            $(cell).contents().unwrap().wrapAll('<th></th>').parent()
         if ( icol < cols )
           icol = icol + 1
           for c in[icol..cols] by 1
@@ -169,19 +169,18 @@
 
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'insertHTML',false, @html
-        $('#' + @tmpid).removeAttr('id')
+        table = $('#' + @tmpid)
+        @options.editable.element.find(@options.editable.selection_marker).remove()
+        if ( !table.find(@options.editable.selection_marker).length )
+          sel_cell = table.find('th:first')
+          if ( !sel_cell.length )
+            sel_cell = table.find('td:first')
+          sel_cell.contents().wrap('<' + @options.editable.selection_marker + '/>' )
+        table.removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        window.getSelection().removeAllRanges()
-        range = document.createRange()
-        range.selectNode($('#' + @tmpid)[0])
-        window.getSelection().addRange(range)
-        document.execCommand 'delete',false
+        @options.editable.element.find(@options.editable.selection_marker).remove()
+        $('#' + @tmpid).replaceWith('<' + @options.editable.selection_marker + '></' + @options.editable.selection_marker + '>')
         @dropdownform.hallodropdownform('hideForm')
       #requires DOM-modification
       #contentAreaUL.append addButton "insertRow", =>

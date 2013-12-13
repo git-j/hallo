@@ -4,6 +4,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.hallodropdownform',
     button: null
+    debug: false
 
     options:
       uuid: ''
@@ -22,6 +23,7 @@
       target.css 'position', 'absolute'
       target.addClass 'dropdown-menu'
       target.addClass 'dropdown-form'
+      target.addClass 'dropdown-form-' + @options.command
 
       target.hide()
       @button = @_prepareButton() unless @button
@@ -32,46 +34,95 @@
           @_hideTarget()
           return
         @_showTarget()
+      target.bind 'bindShowTrigger', (event) =>
+        # trigger handler to get correct this from live() events
+        # console.log('dropdownform show handler',event,this)# if @debug
+        # this should be correct
+        toolbar = jQuery('.hallotoolbar').eq(0)
+        return if ( !toolbar.length )
+        @options.target = toolbar.find('.dropdown-form-' + @options.command)
+        return if ( !@options.target.length )
+        @button = toolbar.find('.' + @options.command + '_button')
+        if ( window.live_target )
+          @_showTarget(window.live_target)
+          window.live_target = null
+        else
+          @_showTarget(event.target)
 
-      @options.editable.element.bind 'hallodeactivated', =>
-        @_hideTarget()
 
       @element.append @button
+    bindShow: (selector) ->
+      event_name = 'click'
+      if ( window._life_map && window._life_map[selector + event_name + @bindShowHandler] )
+        return
+      if ( typeof window._life_map == 'undefined' )
+        window._life_map = {}
+      window._life_map[selector + event_name + @bindShowHandler] = true;
+      console.log('dropdownfor bindShow',event_name,selector) if @debug
+      jQuery(selector).live event_name, =>
+        console.log(event.target) if @debug
+        # find the toolbar and reset the button/@options.target members
+        # they were destroyed when the user changes the editable
+        # this is NOT as expected!
+        if ( jQuery(event.target).closest('.dropdown-form-' + @options.command).length )
+          return
+        toolbar = jQuery('.hallotoolbar').eq(0)
+        return if ( !toolbar.length )
+        target = toolbar.find('.dropdown-form-' + @options.command)
+        window.live_target = event.target # HACK
+        target.trigger('bindShowTrigger')
 
-    _showTarget: ->
+    _showTarget: (select_target) ->
+      console.log('dropdownform target show',select_target) if @debug
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
         jQuery(item).trigger('hide')
 
-      target = jQuery @options.target
-      setup_success = @options.setup() if @options.setup
+      target_id = jQuery(@options.target).attr('id')
+      target = jQuery('#' + target_id)
+      @options.editable.storeContentPosition()
+      setup_success = @options.setup(select_target,target_id) if @options.setup
+      console.log('setup success:',setup_success) if @debug
       if ( ! setup_success )
         @_hideTarget()
         return
-      @_updateTargetPosition()
       target.addClass 'open'
       target.show()
-      target.find('input:first').focus()
+      # must be visible for correct positions
+      @_updateTargetPosition()
+      if ( target.find('textarea').length )
+        target.find('textarea:first').focus()
+      else
+        target.find('input:first').focus()
       target.bind 'hide', =>
         @_hideTarget()
-
+ 
     _hideTarget: ->
+      console.log('target remove') if @debug
       target = jQuery @options.target
-      target.removeClass 'open'
-      jQuery("select",target).selectBox('destroy')
-      target.hide()
-      @restoreContentPosition
+      if ( target.hasClass 'open' )
+        target.removeClass 'open'
+        jQuery("select",target).selectBox('destroy')
+        target.hide()
+        @options.editable.restoreContentPosition()
 
     hideForm: ->
       jQuery(".dropdown-form:visible, .dropdown-menu:visible").each (index,item) ->
+        console.log('index',index) if @debug
         jQuery(item).trigger('hide')
-      @restoreContentPosition
+      @options.editable.restoreContentPosition()
 
     _updateTargetPosition: ->
-      target = jQuery @options.target
-      {top, left} = @button.position()
-      top += @button.outerHeight()
+      target_id = jQuery(@options.target).attr('id')
+      target = jQuery('#' + target_id)
+      button_id = jQuery(@button).attr('id')
+      button = jQuery('#' + button_id)
+      button_position = button.position()
+      top = button_position.top
+      left = button_position.left
+
+      top += button.outerHeight()
       target.css 'top', top
-      last_button = @options.target.closest('.hallotoolbar').find('button:last')
+      last_button = target.closest('.hallotoolbar').find('button:last')
       if last_button.length
         last_button_pos =last_button.position().left
         last_button_pos+=last_button.width()
@@ -79,6 +130,8 @@
         target.css 'left', left - target.width()+last_button.width()
       else
         target.css 'left', left
+      console.log('target position:',target.position(),top,left,last_button) if @debug
+      console.log(target.width(),last_button.width()) if @debug
 
     _prepareButton: ->
       id = "#{@options.uuid}-#{@options.command}"

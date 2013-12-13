@@ -62,7 +62,11 @@
             return;
           }
           try {
-            return _this.checked(document.queryCommandState(_this.options.command));
+            if (_this.options.command === 'spellcheck') {
+              return _this.checked(_this.options.editable.element[0].spellcheck);
+            } else {
+              return _this.checked(document.queryCommandState(_this.options.command));
+            }
           } catch (_error) {
             e = _error;
           }
@@ -123,6 +127,7 @@
   (function(jQuery) {
     return jQuery.widget('IKS.hallodropdownform', {
       button: null,
+      debug: false,
       options: {
         uuid: '',
         label: null,
@@ -145,6 +150,7 @@
         target.css('position', 'absolute');
         target.addClass('dropdown-menu');
         target.addClass('dropdown-form');
+        target.addClass('dropdown-form-' + this.options.command);
         target.hide();
         if (!this.button) {
           this.button = this._prepareButton();
@@ -157,30 +163,91 @@
           }
           return _this._showTarget();
         });
-        this.options.editable.element.bind('hallodeactivated', function() {
-          return _this._hideTarget();
+        target.bind('bindShowTrigger', function(event) {
+          var toolbar;
+
+          toolbar = jQuery('.hallotoolbar').eq(0);
+          if (!toolbar.length) {
+            return;
+          }
+          _this.options.target = toolbar.find('.dropdown-form-' + _this.options.command);
+          if (!_this.options.target.length) {
+            return;
+          }
+          _this.button = toolbar.find('.' + _this.options.command + '_button');
+          if (window.live_target) {
+            _this._showTarget(window.live_target);
+            return window.live_target = null;
+          } else {
+            return _this._showTarget(event.target);
+          }
         });
         return this.element.append(this.button);
       },
-      _showTarget: function() {
-        var setup_success, target,
+      bindShow: function(selector) {
+        var event_name,
           _this = this;
 
+        event_name = 'click';
+        if (window._life_map && window._life_map[selector + event_name + this.bindShowHandler]) {
+          return;
+        }
+        if (typeof window._life_map === 'undefined') {
+          window._life_map = {};
+        }
+        window._life_map[selector + event_name + this.bindShowHandler] = true;
+        if (this.debug) {
+          console.log('dropdownfor bindShow', event_name, selector);
+        }
+        return jQuery(selector).live(event_name, function() {
+          var target, toolbar;
+
+          if (_this.debug) {
+            console.log(event.target);
+          }
+          if ((jQuery(event.target).closest('.dropdown-form-' + _this.options.command).length)) {
+            return;
+          }
+          toolbar = jQuery('.hallotoolbar').eq(0);
+          if (!toolbar.length) {
+            return;
+          }
+          target = toolbar.find('.dropdown-form-' + _this.options.command);
+          window.live_target = event.target;
+          return target.trigger('bindShowTrigger');
+        });
+      },
+      _showTarget: function(select_target) {
+        var setup_success, target, target_id,
+          _this = this;
+
+        if (this.debug) {
+          console.log('dropdownform target show', select_target);
+        }
         jQuery(".dropdown-form:visible, .dropdown-menu:visible").each(function(index, item) {
           return jQuery(item).trigger('hide');
         });
-        target = jQuery(this.options.target);
+        target_id = jQuery(this.options.target).attr('id');
+        target = jQuery('#' + target_id);
+        this.options.editable.storeContentPosition();
         if (this.options.setup) {
-          setup_success = this.options.setup();
+          setup_success = this.options.setup(select_target, target_id);
+        }
+        if (this.debug) {
+          console.log('setup success:', setup_success);
         }
         if (!setup_success) {
           this._hideTarget();
           return;
         }
-        this._updateTargetPosition();
         target.addClass('open');
         target.show();
-        target.find('input:first').focus();
+        this._updateTargetPosition();
+        if ((target.find('textarea').length)) {
+          target.find('textarea:first').focus();
+        } else {
+          target.find('input:first').focus();
+        }
         return target.bind('hide', function() {
           return _this._hideTarget();
         });
@@ -188,34 +255,53 @@
       _hideTarget: function() {
         var target;
 
+        if (this.debug) {
+          console.log('target remove');
+        }
         target = jQuery(this.options.target);
-        target.removeClass('open');
-        jQuery("select", target).selectBox('destroy');
-        target.hide();
-        return this.restoreContentPosition;
+        if (target.hasClass('open')) {
+          target.removeClass('open');
+          jQuery("select", target).selectBox('destroy');
+          target.hide();
+          return this.options.editable.restoreContentPosition();
+        }
       },
       hideForm: function() {
         jQuery(".dropdown-form:visible, .dropdown-menu:visible").each(function(index, item) {
+          if (this.debug) {
+            console.log('index', index);
+          }
           return jQuery(item).trigger('hide');
         });
-        return this.restoreContentPosition;
+        return this.options.editable.restoreContentPosition();
       },
       _updateTargetPosition: function() {
-        var last_button, last_button_pos, left, target, top, _ref;
+        var button, button_id, button_position, last_button, last_button_pos, left, target, target_id, top;
 
-        target = jQuery(this.options.target);
-        _ref = this.button.position(), top = _ref.top, left = _ref.left;
-        top += this.button.outerHeight();
+        target_id = jQuery(this.options.target).attr('id');
+        target = jQuery('#' + target_id);
+        button_id = jQuery(this.button).attr('id');
+        button = jQuery('#' + button_id);
+        button_position = button.position();
+        top = button_position.top;
+        left = button_position.left;
+        top += button.outerHeight();
         target.css('top', top);
-        last_button = this.options.target.closest('.hallotoolbar').find('button:last');
+        last_button = target.closest('.hallotoolbar').find('button:last');
         if (last_button.length) {
           last_button_pos = last_button.position().left;
           last_button_pos += last_button.width();
         }
         if (last_button.length && left + target.width() > last_button_pos) {
-          return target.css('left', left - target.width() + last_button.width());
+          target.css('left', left - target.width() + last_button.width());
         } else {
-          return target.css('left', left);
+          target.css('left', left);
+        }
+        if (this.debug) {
+          console.log('target position:', target.position(), top, left, last_button);
+        }
+        if (this.debug) {
+          return console.log(target.width(), last_button.width());
         }
       },
       _prepareButton: function() {
@@ -288,35 +374,44 @@
         target.bind('click', function() {
           return _this._hideTarget();
         });
-        this.options.editable.element.bind('hallodeactivated', function() {
-          return _this._hideTarget();
-        });
         return this.element.append(this.button);
       },
-      _showTarget: function() {
-        var target,
+      bindShowHandler: function(event) {
+        return this._showTarget(event.target);
+      },
+      bindShow: function(selector) {
+        var event_name,
           _this = this;
+
+        event_name = 'click';
+        return jQuery(selector).live(event_name, function() {
+          return _this.bindShowHandler();
+        });
+      },
+      _showTarget: function(select_target) {
+        var target;
 
         jQuery(".dropdown-form:visible, .dropdown-menu:visible").each(function(index, item) {
           return jQuery(item).trigger('hide');
         });
         target = jQuery(this.options.target);
+        this.options.editable.storeContentPosition();
         if (this.options.setup) {
-          this.options.setup();
+          this.options.setup(select_target);
         }
         this._updateTargetPosition();
         target.addClass('open');
-        target.show();
-        return target.bind('hide', function() {
-          return _this._hideTarget();
-        });
+        return target.show();
       },
       _hideTarget: function() {
         var target;
 
         target = jQuery(this.options.target);
-        target.removeClass('open');
-        return target.hide();
+        if (target.hasClass('open')) {
+          target.removeClass('open');
+          target.hide();
+          return this.options.editable.restoreContentPosition();
+        }
       },
       _updateTargetPosition: function() {
         var last_button, last_button_pos, left, target, top, _ref;
@@ -418,21 +513,55 @@
         }
         this.element.append(this.button);
         queryState = function(event) {
-          var e, parent, range, state;
+          var attribute, e, node, parent, range, state, style, _i, _len, _ref;
 
           if (!_this.options.command) {
+            return;
+          }
+          if (!((event.keyCode >= 33 && event.keyCode <= 40) || event.type === 'mouseup' || event.type === 'hallomodified')) {
+            return;
+          }
+          if (window.getSelection().anchorNode !== null) {
             return;
           }
           try {
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
               range = window.getSelection().getRangeAt();
-              parent = $(range.startContainer).parent();
+              parent = range.startContainer.parentNode;
               state = false;
-              if (parent[0].nodeName === 'SUB' && _this.options.command === 'subscript') {
+              if (parent.nodeName === 'SUB' && _this.options.command === 'subscript') {
                 state = true;
               }
-              if (parent[0].nodeName === 'SUP' && _this.options.command === 'superscript') {
+              if (parent.nodeName === 'SUP' && _this.options.command === 'superscript') {
                 state = true;
+              }
+              return _this.checked(state);
+            } else if (_this.options.command.indexOf('justify') === 0) {
+              range = window.getSelection().getRangeAt();
+              node = range.startContainer;
+              state = false;
+              while (node) {
+                if (node.contentEditable === 'true') {
+                  break;
+                }
+                if (typeof node.attributes === 'object' && node.attributes !== null) {
+                  _ref = node.attributes;
+                  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    attribute = _ref[_i];
+                    if (attribute.nodeName === 'style' && attribute.nodeValue.indexOf('text-align') >= 0) {
+                      style = attribute.nodeValue;
+                      style = style.replace(/.*text-align:([^;]*).*/, '$1').trim();
+                      if (_this.options.command.toLowerCase() === 'justify' + style) {
+                        state = true;
+                      }
+                      break;
+                    }
+                  }
+                  if (state) {
+                    break;
+                  }
+                }
+                node = node.parentNode;
               }
               return _this.checked(state);
             } else {
@@ -440,21 +569,22 @@
             }
           } catch (_error) {
             e = _error;
+            console.error(e);
           }
         };
         if (this.options.command) {
           this.button.bind('click', function(event) {
-            var parent, range, state;
+            var node, range, state;
 
             jQuery('.misspelled').remove();
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
               range = window.getSelection().getRangeAt();
-              parent = $(range.startContainer).parent();
+              node = $(range.startContainer);
               state = false;
-              if (parent[0].nodeName === 'SUB' && _this.options.command === 'subscript') {
+              if (node.closest('SUB').length && _this.options.command === 'subscript') {
                 state = true;
               }
-              if (parent[0].nodeName === 'SUP' && _this.options.command === 'superscript') {
+              if (node.closest('SUP').length && _this.options.command === 'superscript') {
                 state = true;
               }
               if (!state) {
@@ -482,13 +612,13 @@
         });
       },
       enable: function() {
-        return this.button.removeAttr('disabled');
+        return this.button.removeClass('disabled');
       },
       disable: function() {
-        return this.button.attr('disabled', 'true');
+        return this.button.addClass('disabled');
       },
       isEnabled: function() {
-        return this.button.attr('disabled') !== 'true';
+        return this.button.hasClass('disabled') !== 'true';
       },
       refresh: function() {
         if (this.isChecked) {
@@ -551,6 +681,9 @@
       selection: null,
       _keepActivated: false,
       originalHref: null,
+      undoHistory: [],
+      selection_marker: 'content_selection_marker',
+      auto_store_timeout: 3000,
       options: {
         editable: true,
         plugins: {},
@@ -563,7 +696,8 @@
         placeholder: '',
         forceStructured: true,
         checkTouch: true,
-        touchScreen: null
+        touchScreen: null,
+        maxUndoEntries: 10
       },
       _create: function() {
         var options, plugin, _ref,
@@ -623,6 +757,7 @@
         this.element.unbind("keyup", this._keys);
         this.element.unbind("keydown", this._syskeys);
         this.element.unbind("keyup mouseup", this._checkSelection);
+        this.element.unbind("paste", this._paste);
         this.bound = false;
         jQuery(this.element).removeClass('isModified');
         jQuery(this.element).removeClass('inEditMode');
@@ -668,7 +803,26 @@
           this.element.bind("keyup", this, this._keys);
           this.element.bind("keydown", this, this._syskeys);
           this.element.bind("keyup mouseup", this, this._checkSelection);
+          this.element.bind("paste", this, this._paste);
           this.bound = true;
+        }
+        if (typeof window._live === 'undefined') {
+          window._live = {};
+        }
+        if (!window._live['.editableclick']) {
+          window._live['.editableclick'] = true;
+          jQuery('[contenteditable=false]').live("click", function(event) {
+            var range, target;
+
+            target = event.target;
+            if (jQuery(target).closest('[contenteditable=true]').length === 0) {
+              return;
+            }
+            window.getSelection().removeAllRanges();
+            range = document.createRange();
+            range.selectNode(target);
+            return window.getSelection().addRange(range);
+          });
         }
         if (this.options.forceStructured) {
           this._forceStructured();
@@ -702,6 +856,23 @@
         sel = rangy.getSelection();
         return sel.setSingleRange(range);
       },
+      setSelectionRange: function(input, selection_start, selection_end) {
+        var range;
+
+        if (input.setSelectionRange) {
+          input.focus();
+          return input.setSelectionRange(selection_start, selection_end);
+        } else if (input.createTextRange) {
+          range = input.createTextRange();
+          range.collapse(true);
+          range.moveEnd('character', selection_end);
+          range.moveStart('character', selection_start);
+          return range.select();
+        }
+      },
+      setCaretToPos: function(input, pos) {
+        return this._setSelectionRange(input, pos, pos);
+      },
       replaceSelection: function(cb) {
         var newTextNode, r, range, sel, t;
 
@@ -729,7 +900,6 @@
         } else {
           sel = window.getSelection();
           range = sel.getRangeAt(0);
-          console.log(range);
           range_parent = range.commonAncestorContainer;
           if (range_parent.nodeType !== 1) {
             range_parent = range_parent.parentNode;
@@ -744,7 +914,8 @@
             range.insertNode($('<span>' + replacement + '</span>')[0]);
           }
           sel.removeAllRanges();
-          return sel.addRange(range);
+          sel.addRange(range);
+          return this.storeContentPosition();
         }
       },
       removeAllSelections: function() {
@@ -755,16 +926,9 @@
         }
       },
       getContents: function() {
-        var cleanup, contentClone, plugin;
+        var contentClone;
 
         contentClone = this.element.clone();
-        for (plugin in this.options.plugins) {
-          cleanup = jQuery(this.element).data(plugin).cleanupContentClone;
-          if (!jQuery.isFunction(cleanup)) {
-            continue;
-          }
-          jQuery(this.element)[plugin]('cleanupContentClone', contentClone);
-        }
         return contentClone.html();
       },
       setContents: function(contents) {
@@ -791,6 +955,29 @@
         return this.element.html(this.originalContent);
       },
       execute: function(command, value) {
+        var selection, style_attr;
+
+        this.undoWaypoint();
+        if (command.indexOf('justify') === 0) {
+          this.storeContentPosition();
+          selection = this.element.find(this.selection_marker);
+          while (selection.length) {
+            if (selection.attr('contenteditable') === 'true') {
+              break;
+            }
+            style_attr = selection.attr('style');
+            if (typeof style_attr !== 'undefined') {
+              style_attr = style_attr.replace(/text-align:[^;]*/, '');
+              style_attr = style_attr.trim();
+              if (style_attr === '' || style_attr === ';') {
+                selection.removeAttr('style');
+              } else {
+                selection.attr('style', style_attr);
+              }
+            }
+            selection = selection.parent();
+          }
+        }
         if (document.execCommand(command, false, value)) {
           return this.element.trigger("change");
         }
@@ -874,10 +1061,45 @@
           return widget.setModified();
         }
       },
+      _paste: function(event) {
+        var dom, html, jq_temp, pdata, range, sel;
+
+        event.preventDefault();
+        pdata = event.originalEvent.clipboardData.getData('text/html');
+        if (typeof pdata === 'undefined') {
+          pdata = event.originalEvent.clipboardData.getData('text/plain');
+        }
+        if (typeof pdata === 'undefined') {
+          utils.error(utils.tr('invalid clipboard data'));
+          return;
+        }
+        pdata = pdata.replace(/<script/g, '<xscript').replace(/<\/script/, '</xscript');
+        jq_temp = jQuery('<div>' + pdata + '</div>');
+        dom = new IDOM();
+        dom.clean(jq_temp);
+        html = jq_temp.html();
+        sel = window.getSelection();
+        range = sel.getRangeAt();
+        range.deleteContents();
+        return range.insertNode(jq_temp[0]);
+      },
+      _ignoreKeys: function(code) {
+        if (code >= 33 && code <= 40) {
+          return true;
+        }
+        if (code === 20) {
+          return true;
+        }
+        return false;
+      },
       _keys: function(event) {
-        var widget;
+        var widget,
+          _this = this;
 
         widget = event.data;
+        if (widget._ignoreKeys(event.keyCode)) {
+          return;
+        }
         if (event.keyCode === 66 && event.ctrlKey) {
           document.execCommand("bold", false);
         }
@@ -885,13 +1107,36 @@
           document.execCommand("italic", false);
         }
         if (event.keyCode === 85 && event.ctrlKey) {
-          return document.execCommand("underline", false);
+          document.execCommand("underline", false);
+        }
+        if (!event.ctrlKey && !event.shiftKey && event.keyCode !== 17 && event.keycode !== 16) {
+          if (widget.autostore_timer) {
+            window.clearTimeout(widget.autostore_timer);
+          }
+          return widget.autostore_timer = window.setTimeout(function() {
+            widget.storeContentPosition();
+            widget.store();
+            return widget.restoreContentPosition();
+          }, widget.auto_store_timeout);
         }
       },
+      _select_cell_fn: function(cell) {
+        var range, sel;
+
+        sel = window.getSelection();
+        range = document.createRange();
+        range.selectNode(cell);
+        sel.removeAllRanges();
+        return sel.addRange(range);
+      },
       _syskeys: function(event) {
-        var li, range, widget;
+        var li, range, table, td, tds, use_next, use_prev, widget,
+          _this = this;
 
         widget = event.data;
+        if (widget._ignoreKeys(event.keyCode)) {
+          return;
+        }
         if (event.keyCode === 9 && !event.shiftKey) {
           range = window.getSelection().getRangeAt();
           li = $(range.startContainer).closest('li');
@@ -903,6 +1148,27 @@
               return;
             }
             document.execCommand("indent", false);
+            event.preventDefault();
+            return;
+          }
+          td = $(range.startContainer).closest('td,th');
+          if (td.length) {
+            table = td.closest('table');
+            use_next = false;
+            tds = table.find('td,th');
+            tds.each(function(index, item) {
+              if (use_next) {
+                use_next = false;
+                widget._select_cell_fn(item);
+              }
+              if (item !== td[0]) {
+                return;
+              }
+              return use_next = true;
+            });
+            if (use_next) {
+              widget._select_cell_fn(tds[0]);
+            }
             event.preventDefault();
           }
         }
@@ -917,6 +1183,24 @@
               return;
             }
             document.execCommand("outdent", false);
+            event.preventDefault();
+            return;
+          }
+          td = $(range.startContainer).closest('td,th');
+          if (td.length) {
+            table = td.closest('table');
+            use_prev = false;
+            tds = table.find('td,th');
+            tds.each(function(index, item) {
+              if (item !== td[0]) {
+                return;
+              }
+              if (index > 0) {
+                return widget._select_cell_fn(tds[index - 1]);
+              } else {
+                return widget._select_cell_fn(tds[tds.length - 1]);
+              }
+            });
             return event.preventDefault();
           }
         }
@@ -990,6 +1274,12 @@
         var force_focus,
           _this = this;
 
+        if (this.autostore_timer) {
+          window.clearTimeout(this.autostore_timer);
+        }
+        if ((jQuery('.inEditMode').length)) {
+          jQuery('.inEditMode').hallo('turnOff');
+        }
         if (this.getContents() === this.options.placeholder) {
           force_focus = function() {
             var content_node, new_range;
@@ -1011,6 +1301,9 @@
       turnOff: function() {
         var contents;
 
+        if (this.autostore_timer) {
+          window.clearTimeout(this.autostore_timer);
+        }
         jQuery(this.element).removeClass('inEditMode');
         this._trigger("deactivated", this);
         jQuery('.misspelled').remove();
@@ -1022,6 +1315,9 @@
       store: function() {
         var contents;
 
+        if (this.autostore_timer) {
+          window.clearTimeout(this.autostore_timer);
+        }
         if (this.options.store_callback) {
           contents = this.getContents();
           if (contents === '' || contents === ' ' || contents === '<br>' || contents === this.options.placeholder) {
@@ -1035,11 +1331,12 @@
 
         if ((jQuery('.dropdown-form:visible').length)) {
           jQuery('.dropdown-form:visible').each(function(index, item) {
-            return jQuery(item).trigger('hide');
+            return jQuery(item).hallodropdownform('hideForm');
           });
           event.data.turnOff();
         }
-        return event.data.turnOn();
+        event.data.turnOn();
+        return event.data.restoreContentPosition();
       },
       _deactivated: function(event) {
         var contents;
@@ -1047,6 +1344,10 @@
         if (window.debug_hallotoolbar) {
           return;
         }
+        if (this.autostore_timer) {
+          window.clearTimeout(this.autostore_timer);
+        }
+        event.data.storeContentPosition();
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
           if (contents === '' || contents === ' ' || contents === '<br>' || contents === event.data.options.placeholder) {
@@ -1089,6 +1390,100 @@
       },
       checkTouch: function() {
         return this.options.touchScreen = !!('createTouch' in document);
+      },
+      undoWaypoint: function() {
+        var waypoint, _results;
+
+        waypoint = {
+          'date': Date.now(),
+          'content': jQuery(this.element).html()
+        };
+        if (this.undoHistory.length) {
+          if (waypoint.content === this.undoHistory[this.undoHistory.length - 1].content) {
+            return;
+          }
+        }
+        this.undoHistory.push(waypoint);
+        _results = [];
+        while (this.undoHistory.length > this.options.maxUndoEntries) {
+          _results.push(this.undoHistory.shift());
+        }
+        return _results;
+      },
+      restoreContentPosition: function() {
+        var e, range, stored_selection;
+
+        if (this.debug) {
+          console.log('restoreContentPosition');
+        }
+        stored_selection = this.element.find(this.selection_marker);
+        if (stored_selection.length) {
+          window.getSelection().removeAllRanges();
+          try {
+            range = document.createRange();
+            range.selectNode(stored_selection[0]);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            return this.undoWaypoint();
+          } catch (_error) {
+            e = _error;
+          }
+        }
+      },
+      storeContentPosition: function() {
+        var e, marker, new_range, range, remove_queue, sel, selection_identifier, tmp_id, _i, _len,
+          _this = this;
+
+        if (this.debug) {
+          console.log('storeContentPosition');
+        }
+        this.undoWaypoint();
+        sel = window.getSelection();
+        if (sel.rangeCount > 0) {
+          range = sel.getRangeAt();
+          tmp_id = 'range' + Date.now();
+          this.element.find(this.selection_marker).removeAttr('id');
+          remove_queue = [];
+          this.element.find(this.selection_marker).each(function(index, item) {
+            var marker;
+
+            marker = jQuery(item);
+            if (marker.html() === '') {
+              return remove_queue.push(marker);
+            } else {
+              return marker.contents().unwrap();
+            }
+          });
+          for (_i = 0, _len = remove_queue.length; _i < _len; _i++) {
+            marker = remove_queue[_i];
+            marker.remove();
+          }
+          if (this.debug) {
+            console.log('before:' + this.element.html());
+          }
+          selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
+          try {
+            range.surroundContents(selection_identifier[0]);
+          } catch (_error) {
+            e = _error;
+            new_range = range.cloneRange();
+            new_range.collapse(false);
+            new_range.insertNode(selection_identifier[0]);
+          }
+          if (this.debug) {
+            return console.log('after:' + this.element.html());
+          }
+        }
+      },
+      setContentPosition: function(jq_node) {
+        var range, sel;
+
+        sel = window.getSelection();
+        sel.removeAllRanges();
+        range = document.createRange();
+        range.selectNode(jq_node[0]);
+        sel.addRange(range);
+        return this.storeContentPosition();
       }
     });
   })(jQuery);
@@ -1191,16 +1586,18 @@
         return contentArea;
       },
       _keep_selection_replace_callback: function(parent, old) {
-        var has_block_contents, nr, range, replacement;
+        var dom, has_block_contents, nr, range, replacement;
 
+        console.error('unsuppored function');
         replacement = false;
-        has_block_contents = utils.hasBlockElement(old);
+        dom = new IDOM();
+        has_block_contents = dom.hasBlockElement(old);
         if (old.html() !== "" && !has_block_contents) {
           replacement = "<span class=\"selection\">" + old.html() + "</span>";
         } else {
           replacement = "<span class=\"selection\">&nbsp;</span>";
         }
-        nr = $('<span>' + replacement + '</span>');
+        nr = jQuery('<span>' + replacement + '</span>');
         if (has_block_contents) {
           range = window.getSelection().getRangeAt();
           range.setStartAfter(range.endContainer);
@@ -1253,44 +1650,38 @@
         }
         this_editable = this.options.editable;
         return el.bind("click", function(ev) {
-          var nugget, scb;
+          var dom, has_block_contents, nugget, replacement, selection;
 
           if (element === '__associate') {
-            this_editable.replaceSelectionHTML(_this._keep_selection_replace_callback);
             window.__start_mini_activity = true;
-            return $('body').hallopublicationselector({
-              'editable': this_editable
-            });
-          } else if (element === '__quote') {
-            this_editable.replaceSelectionHTML(_this._keep_selection_replace_callback);
-            window.__start_mini_activity = true;
-            return $('body').halloquoteselector({
+            return jQuery('body').hallopublicationselector({
               'editable': this_editable
             });
           } else {
-            scb = function(parent, old) {
-              var has_block_contents, replacement;
-
-              replacement = false;
-              has_block_contents = utils.hasBlockElement(old);
-              if (old.html() !== "" && !has_block_contents) {
-                replacement = "<span class=\"citation\">" + old.html() + "</span>";
+            selection = _this.options.editable.element.find(_this.options.editable.selection_marker);
+            if (selection.length) {
+              dom = new IDOM();
+              has_block_contents = dom.hasBlockElement(selection);
+              if (selection.html() !== '' && !has_block_contents) {
+                replacement = "<span class=\"citation\">" + selection.html() + "</span>";
               } else {
                 replacement = "";
               }
               replacement += "<span class=\"cite sourcedescription-" + data + "\">" + element + "</span>";
               if (has_block_contents) {
                 utils.info(utils.tr('warning selected block contents'));
-                window.getSelection().removeAllRanges();
-                parent.append(replacement);
-                replacement = false;
+                selection.parent().append(replacement);
+              } else {
+                selection.html(replacement);
               }
-              return replacement;
-            };
-            this_editable.replaceSelectionHTML(scb);
+            } else {
+              utils.info(utils.tr('no selection'));
+            }
             nugget = new DOMNugget();
             return nugget.updateSourceDescriptionData(this_editable.element).done(function() {
-              return nugget.resetCitations(_this.options.editable.element);
+              return nugget.resetCitations(_this.options.editable.element).done(function() {
+                return _this.options.editable.restoreContentPosition();
+              });
             });
           }
         });
@@ -1387,9 +1778,10 @@
         contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
-        setup = function() {
+        setup = function(select_target, target_id) {
           var range, recalc, table, table_placeholder, td, tr;
 
+          contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
           if (!window.getSelection().rangeCount) {
             return false;
@@ -1509,7 +1901,7 @@
               return;
             }
             if (!heading) {
-              return $(cell).replaceWith('<td>' + $(cell).html() + '</td>');
+              return $(cell).contents().unwrap().wrapAll('<td></td>').parent();
             }
           });
           $(row).find('td').each(function(cindx, cell) {
@@ -1519,7 +1911,7 @@
               return;
             }
             if (heading && rindx === 0) {
-              return $(cell).replaceWith('<th>' + $(cell).html() + '</th>');
+              return $(cell).contents().unwrap().wrapAll('<th></th>').parent();
             }
           });
           if (icol < cols) {
@@ -1590,25 +1982,24 @@
         contentAreaUL.append(addInput("checkbox", "heading", "true"));
         contentAreaUL.append(addInput("checkbox", "border", "true"));
         contentAreaUL.append(addButton("apply", function() {
-          var range;
+          var sel_cell, table;
 
           _this.recalcHTML(contentId);
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('insertHTML', false, _this.html);
-          $('#' + _this.tmpid).removeAttr('id');
+          table = $('#' + _this.tmpid);
+          _this.options.editable.element.find(_this.options.editable.selection_marker).remove();
+          if (!table.find(_this.options.editable.selection_marker).length) {
+            sel_cell = table.find('th:first');
+            if (!sel_cell.length) {
+              sel_cell = table.find('td:first');
+            }
+            sel_cell.contents().wrap('<' + _this.options.editable.selection_marker + '/>');
+          }
+          table.removeAttr('id');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
-          var range;
-
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('delete', false);
+          _this.options.editable.element.find(_this.options.editable.selection_marker).remove();
+          $('#' + _this.tmpid).replaceWith('<' + _this.options.editable.selection_marker + '></' + _this.options.editable.selection_marker + '>');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;
@@ -1626,6 +2017,308 @@
           editable: this.options.editable,
           label: button_label,
           command: 'table',
+          icon: 'icon-text-height',
+          target: target,
+          setup: setup,
+          cssClass: this.options.buttonCssClass
+        });
+        return buttonElement;
+      }
+    });
+  })(jQuery);
+
+  (function(jQuery) {
+    return jQuery.widget('IKS.halloformula', {
+      dropdownform: null,
+      tmpid: 0,
+      html: null,
+      has_mathjax: typeof MathJax !== 'undefined',
+      debug: false,
+      options: {
+        editable: null,
+        toolbar: null,
+        uuid: '',
+        rows: 6,
+        cols: 32,
+        buttonCssClass: null,
+        "default": '\\zeta(s) = \\sum_{n=1}^\\infty {\\frac{1}{n^s}}',
+        mathjax_alternative: 'http://mathurl.com/',
+        mathjax_base_alternative: 'http://www.sciweavers.org/free-online-latex-equation-editor',
+        mathjax_delim_left: '\\(math\\(',
+        mathjax_delim_right: '\\)math\\)',
+        mathjax_inline_delim_left: '\\(inline_math\\(',
+        mathjax_inline_delim_right: '\\)inline_math\\)',
+        inline: true
+      },
+      populateToolbar: function(toolbar) {
+        var buttonset, contentId, setup, target,
+          _this = this;
+
+        buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
+        contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
+        target = this._prepareDropdown(contentId);
+        toolbar.append(target);
+        setup = function(select_target, target_id) {
+          var latex_formula, range, recalc, sel, selected_formula, title;
+
+          if (!window.getSelection().rangeCount) {
+            return;
+          }
+          contentId = target_id;
+          _this.tmpid = 'mod_' + (new Date()).getTime();
+          sel = window.getSelection();
+          range = sel.getRangeAt();
+          _this.cur_formula = null;
+          _this.action = 'insert';
+          if (typeof select_target === 'object') {
+            selected_formula = jQuery(select_target).closest('.formula');
+            if (selected_formula.length) {
+              _this.cur_formula = selected_formula;
+              _this.cur_formula.attr('id', _this.tmpid);
+              _this.action = 'update';
+            }
+          }
+          if (_this.action === 'insert') {
+            _this.options.editable.element.find('.formula').each(function(index, item) {
+              if (sel.containsNode(item, true)) {
+                _this.cur_formula = jQuery(item);
+                _this.action = 'update';
+                return false;
+              }
+            });
+          }
+          if (!_this.has_mathjax) {
+            return true;
+          }
+          if (_this.cur_formula && _this.cur_formula.length) {
+            latex_formula = decodeURIComponent(_this.cur_formula.attr('rel'));
+            title = decodeURIComponent(_this.cur_formula.attr('title'));
+            if (_this.debug) {
+              console.log('modify', latex_formula, _this.cur_formula);
+            }
+            $('#' + contentId + 'latex').val(latex_formula);
+            $('#' + contentId + 'title').val(title);
+            $('#' + contentId + 'inline').attr('checked', _this.cur_formula.hasClass('inline'));
+            _this.cur_formula.attr('id', _this.tmpid);
+            _this.cur_formula.html('');
+          } else {
+            _this.cur_formula = jQuery('<span class="formula" id="' + _this.tmpid + '" contenteditable="false"/>');
+            _this.cur_formula.find('.formula').attr('rel', encodeURIComponent(_this.options["default"]));
+            _this.cur_formula.find('.formula').attr('title', '');
+            if (_this.options.inline) {
+              _this.cur_formula.find('.formula').addClass('inline');
+            }
+            _this.cur_formula.insertBefore(_this.options.editable.element.find(_this.options.editable.selection_marker));
+            range.selectNode(_this.options.editable.element.find(_this.options.editable.selection_marker)[0]);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            $('#' + contentId + 'latex').val(_this.options["default"]);
+            $('#' + contentId + 'inline').attr('checked', _this.options.inline);
+            $('#' + contentId + 'title').val();
+            if (_this.debug) {
+              console.log('insert', _this.cur_formula);
+            }
+            _this.updateFormulaHTML(contentId);
+          }
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            _this.recalcPreview(contentId);
+            return _this.recalcMath();
+          };
+          window.setTimeout(recalc, 300);
+          return true;
+        };
+        this.dropdownform = this._prepareButton(setup, target);
+        this.dropdownform.hallodropdownform('bindShow', '.formula');
+        buttonset.append(this.dropdownform);
+        return toolbar.append(buttonset);
+      },
+      updateFormulaHTML: function(contentId) {
+        var encoded_latex, encoded_title, formula, inline, latex_formula, title;
+
+        if (this.debug) {
+          console.log('update formula', contentId, this.tmpid, this);
+        }
+        formula = $('#' + this.tmpid);
+        if (!formula.length) {
+          console.error('expected identifier not found', this.tmpid);
+          console.error(this.options.editable);
+          console.error(this.options.editable.element.html());
+          return;
+        }
+        latex_formula = $('#' + contentId + 'latex').val();
+        inline = $('#' + contentId + 'inline').is(':checked');
+        title = $('#' + contentId + 'title').val();
+        if (this.debug) {
+          console.log(latex_formula, inline, title, formula, this.tmpid);
+        }
+        formula.removeClass('inline');
+        formula.html('');
+        if (this.has_mathjax) {
+          if (inline) {
+            formula.contents().unwrap().wrap('<span/>');
+            formula.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
+            formula.addClass('inline');
+          } else {
+            formula.contents().unwrap().wrap('<div/>');
+            formula.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
+          }
+        } else {
+          formula.html(latex_formula);
+        }
+        encoded_latex = encodeURIComponent(latex_formula);
+        encoded_title = encodeURIComponent(title);
+        formula.attr('id', this.tmpid);
+        formula.addClass('formula');
+        formula.attr('rel', encoded_latex);
+        formula.attr('title', encoded_title);
+        formula.attr('contenteditable', 'false');
+        return formula[0].outerHTML;
+      },
+      recalcMath: function() {
+        if (this.has_mathjax) {
+          return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+        }
+      },
+      recalcHTML: function(contentId) {
+        this.html = this.updateFormulaHTML(contentId);
+        return this.options.editable.store();
+      },
+      recalcPreview: function(contentId) {
+        var inline, latex_formula, preview;
+
+        preview = jQuery('#' + contentId + ' .preview');
+        if (preview.length === 0) {
+          return;
+        }
+        latex_formula = $('#' + contentId + 'latex').val();
+        inline = $('#' + contentId + 'inline').is(':checked');
+        if (inline) {
+          return preview.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
+        } else {
+          return preview.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
+        }
+      },
+      _prepareDropdown: function(contentId) {
+        var addArea, addButton, addInput, buttons, buttons_label, buttons_li, contentArea, contentAreaUL, contentInfoText,
+          _this = this;
+
+        contentArea = jQuery("<div id=\"" + contentId + "\"><ul></ul></div>");
+        contentAreaUL = contentArea.find('ul');
+        addArea = function(element, default_value) {
+          var el, elid, recalc, textarea;
+
+          elid = "" + contentId + element;
+          el = jQuery(("<li><label for=\"" + elid + "\">") + utils.tr(element) + ("</label><textarea id=\"" + elid + "\" rows=\"" + _this.options.rows + "\" cols=\"" + _this.options.cols + "\"></textarea></li>"));
+          textarea = el.find('textarea');
+          textarea.val(default_value);
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            _this.recalcPreview(contentId);
+            return _this.recalcMath();
+          };
+          textarea.bind('keyup change', recalc);
+          return el;
+        };
+        addInput = function(type, element, default_value, recalc_preview) {
+          var el, elid, recalc;
+
+          elid = "" + contentId + element;
+          el = jQuery(("<li><label for=\"" + elid + "\">") + utils.tr(element) + ("</label><input type=\"" + type + "\" id=\"" + elid + "\"/></li>"));
+          if (el.find('input').is('input[type="checkbox"]') && default_value === "true") {
+            el.find('input').attr('checked', true);
+          } else if (default_value) {
+            el.find('input').val(default_value);
+          }
+          recalc = function() {
+            _this.recalcHTML(contentId);
+            if (recalc_preview) {
+              _this.recalcPreview(contentId);
+              return _this.recalcMath();
+            }
+          };
+          el.find('input').bind('keyup change', recalc);
+          return el;
+        };
+        addButton = function(element, event_handler) {
+          var el, elid;
+
+          elid = "" + contentId + element;
+          el = jQuery("<button class=\"action_button\" id=\"" + _this.elid + "\">" + utils.tr(element) + "</button>");
+          el.bind('click', event_handler);
+          return el;
+        };
+        if (this.has_mathjax) {
+          contentAreaUL.append(addInput("text", "title", this.options.title, false));
+          contentAreaUL.append(addArea("latex", this.options["default"]));
+          contentInfoText = jQuery('<li><label for="' + contentId + 'formula">' + utils.tr('preview') + '</label><span class="formula preview">' + this.options.mathjax_delim_left + this.options["default"] + this.options.mathjax_delim_right + '</span><span class="formula preview_over"></span></li>');
+          contentInfoText.find('.preview_over').bind('click', function(event) {
+            return event.preventDefault();
+          });
+          contentAreaUL.append(contentInfoText);
+          contentAreaUL.append(addInput("checkbox", "inline", this.options.inline, true));
+          buttons = jQuery('<div>');
+          buttons_li = jQuery('<li></li>').append('<label></label>');
+          buttons_label = buttons_li.find('>label');
+          buttons_label.after(addButton('compose formula', function() {
+            return wke.openUrlInBrowser(_this.options.mathjax_alternative + '?latex=' + $('#' + contentId + 'latex').val());
+          }));
+          buttons.append(buttons_li);
+        } else {
+          buttons_li = jQuery('<li></li>').append('<label></label>');
+          buttons_label = buttons_li.find('>label');
+          buttons_label.after(addButton('compose formula', function() {
+            return wke.openUrlInBrowser(_this.options.mathjax_alternative);
+          }));
+          buttons.append(buttons_li);
+          buttons_li = $('<li></li>').append('<label></label>');
+          buttons_label = buttons_li.find('>label');
+          buttons_label.after(addButton('compose formula base', function() {
+            return wke.openUrlInBrowser(_this.options.mathjax_base_alternative);
+          }));
+          buttons.append(buttons_li);
+        }
+        buttons.find('button').addClass('external_button');
+        contentAreaUL.append(buttons.children());
+        buttons = jQuery('<li>');
+        buttons.append(addButton("apply", function() {
+          var formula, formulas;
+
+          _this.recalcHTML(contentId);
+          _this.recalcMath();
+          formula = $('#' + _this.tmpid);
+          if (formula.length) {
+            if (!formula[0].nextSibling) {
+              jQuery('<br/>').insertAfter(formula);
+            }
+            formula.removeAttr('id');
+          } else {
+            formulas = $('.formula').each(function(index, item) {
+              return jQuery(item).removeAttr('id');
+            });
+          }
+          return _this.dropdownform.hallodropdownform('hideForm');
+        }));
+        buttons.append(addButton("remove", function() {
+          $('#' + _this.tmpid).remove();
+          return _this.dropdownform.hallodropdownform('hideForm');
+        }));
+        contentAreaUL.append(buttons);
+        return contentArea;
+      },
+      _prepareButton: function(setup, target) {
+        var buttonElement, button_label;
+
+        buttonElement = jQuery('<span></span>');
+        button_label = 'formula';
+        if (window.action_list && window.action_list['hallojs_formula'] !== void 0) {
+          button_label = window.action_list['hallojs_formula'].title;
+        }
+        buttonElement.hallodropdownform({
+          uuid: this.options.uuid,
+          editable: this.options.editable,
+          label: button_label,
+          command: 'formula',
           icon: 'icon-text-height',
           target: target,
           setup: setup,
@@ -1833,44 +2526,49 @@
             button_label = window.action_list['hallojs_cleanup_' + element].title;
             button_tooltip = window.action_list['hallojs_cleanup_' + element].tooltip;
           }
-          el = jQuery("<div><button class=\"action_button\" id=\"" + _this.tmpid + element + "\" title=\"" + button_tooltip + "\">" + button_label + "</button></div>");
+          el = jQuery("<li><div><button class=\"action_button\" id=\"" + _this.tmpid + element + "\" title=\"" + button_tooltip + "\">" + button_label + "</button></div></li>");
           el.find('button').bind('click', event_handler);
           return el;
         };
         contentAreaUL.append(addButton("clean_html", function() {
           var dom, nugget;
 
+          _this.options.editable.storeContentPosition();
           if (_this.debug) {
             console.log('cleanhtml');
           }
           jQuery('.misspelled').remove();
           dom = new IDOM();
           if (dom) {
-            dom.fixNesting(_this.options.editable.element);
-            dom.fixDeprecated(_this.options.editable.element);
-            dom.fixAttributes(_this.options.editable.element);
+            dom.clean(_this.options.editable.element);
             _this.options.editable.element.html(_this.options.editable.element.html().replace(/&nbsp;/g, ' '));
           }
           _this.dropdownform.hallodropdownform('hideForm');
           _this.options.editable.store();
           nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
-            return nugget.resetCitations(_this.options.editable.element);
+            return nugget.resetCitations(_this.options.editable.element).done(function() {
+              return _this.options.editable.restoreContentPosition();
+            });
           });
         }));
-        return contentAreaUL.append(addButton("clean_plain", function() {
+        contentAreaUL.append(addButton("clean_plain", function() {
           var dom, nugget;
 
           jQuery('.misspelled').remove();
+          _this.options.editable.storeContentPosition();
           dom = new IDOM();
           dom.plainTextParagraphs(_this.options.editable.element);
-          _this.dropdownform.hallodropdownform('hideForm');
           _this.options.editable.store();
+          _this.dropdownform.hallodropdownform('hideForm');
           nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
-            return nugget.resetCitations(_this.options.editable.element);
+            return nugget.resetCitations(_this.options.editable.element).done(function() {
+              return _this.options.editable.restoreContentPosition();
+            });
           });
         }));
+        return contentArea;
       },
       _prepareButton: function(setup, target) {
         var buttonElement, button_label;
@@ -2017,6 +2715,14 @@
         setup = function() {
           var range, recalc, sel, selected_character;
 
+          jQuery(target).find('select').each(function(index, item) {
+            return jQuery(item).selectBox();
+          });
+          target.bind('hide', function() {
+            return jQuery(target).find('select').each(function(index, item) {
+              return jQuery(item).selectBox('destroy');
+            });
+          });
           _this.tmpid = 'mod_' + (new Date()).getTime();
           sel = window.getSelection();
           range = sel.getRangeAt();
@@ -2030,9 +2736,17 @@
             selectbox = $('#' + contentId + 'group');
             if (selectbox.length) {
               if (window._character_select_range) {
-                selectbox.selectBox('value', window._character_select_range);
+                if (typeof selectbox.selectBox === 'function') {
+                  selectbox.selectBox('value', window._character_select_range);
+                } else {
+                  selectbox.val(window._character_select_range);
+                }
               }
-              _this.recalcRange(selectbox.selectBox('value'));
+              if (typeof selectbox.selectBox === 'function') {
+                _this.recalcRange(selectbox.selectBox('value'));
+              } else {
+                _this.recalcRange(selectbox.val());
+              }
             }
             return _this.updateCharacterSelectRecent();
           };
@@ -2040,16 +2754,6 @@
           return true;
         };
         this.dropdownform = this._prepareButton(setup, target);
-        target.bind('hide', function() {
-          return jQuery('a').each(function(index, item) {
-            if (!window.__start_mini_activity) {
-              jQuery(item).removeAttr('id');
-            }
-            if (jQuery(item).attr('href') === '') {
-              return jQuery(item).remove();
-            }
-          });
-        });
         buttonset.append(this.dropdownform);
         return toolbar.append(buttonset);
       },
@@ -2099,23 +2803,6 @@
         }
         selected_character = '&#' + this.selected_range_start + ';';
         all_chars = form.find('.character');
-        all_chars.css({
-          'width': '32px',
-          'height': '32px',
-          'line-height': '32px',
-          'border': '1px solid black',
-          'display': 'inline-block',
-          'text-align': 'center',
-          'cursor': 'pointer',
-          '-webkit-user-select': 'none'
-        });
-        characters.css({
-          'overflow-y': 'auto',
-          'overflow-x': 'hidden',
-          'padding-right': '20px',
-          'max-height': '192px',
-          'margin-left': '-1px'
-        });
         all_chars.unbind('click');
         all_chars.unbind('dblclick');
         all_chars.unbind('mouseover');
@@ -2190,19 +2877,22 @@
 
           elid = "" + contentId + element;
           el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><select id=\"" + elid + "\"/></li>"));
-          selectbox = el.find('select');
+          selectbox = el.find('#' + elid);
           jQuery.each(elements, function(label, value) {
             return selectbox.append('<option value="' + value + '">' + label + '</option>');
           });
           recalc = function() {
             var char_range;
 
-            char_range = selectbox.selectBox('value');
+            if (typeof selectbox.selectBox === 'function') {
+              char_range = selectbox.selectBox('value');
+            } else {
+              char_range = selectbox.val();
+            }
             window._character_select_range = char_range;
             return _this.recalcRange(char_range);
           };
           selectbox.bind('keyup change', recalc);
-          selectbox.selectBox();
           return el;
         };
         addButton = function(element, event_handler) {
@@ -2213,25 +2903,9 @@
           return el;
         };
         if (this.options.select) {
-          contentAreaUL.append(addSelect("group", this._blockNames()));
+          this.select = contentAreaUL.append(addSelect("group", this._blockNames()));
         }
         contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>');
-        contentAreaUL.find('.character_preview').css({
-          'width': '64px',
-          'height': '64px',
-          'line-height': '64px',
-          'font-size': '400%',
-          'vertical-align': 'middle',
-          'text-align': 'center',
-          'float': 'left'
-        });
-        contentAreaUL.find('.character_recent').css({
-          'height': '32px',
-          'line-height': '32px',
-          'font-size': '200%',
-          'vertical-align': 'middle',
-          'text-align': 'center'
-        });
         this_editable = this.options.editable;
         contentAreaUL.append(addButton("Apply", function() {
           return _this._applyAction();
@@ -2248,9 +2922,9 @@
         var character;
 
         this.recalcHTML();
-        character = $('#' + this.tmpid);
+        character = jQuery('#' + this.tmpid);
         this._addRecent(character.html());
-        character.replaceWith(character.html());
+        character.contents().unwrap();
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _insertAction: function() {
@@ -2261,18 +2935,13 @@
         character_content = $('<span>' + character.html() + '</span>');
         character_content.insertBefore(character);
         this._addRecent(character.html());
-        character_content.replaceWith(character.html());
-        return character.html('');
+        return character.html('&#64;');
       },
       _cancelAction: function() {
-        var range, range_contents;
-
-        window.getSelection().removeAllRanges();
-        range = document.createRange();
-        range.selectNode($('#' + this.tmpid)[0]);
-        range_contents = jQuery(range.extractContents()).text();
-        window.getSelection().addRange(range);
-        range.deleteContents();
+        $('#' + this.tmpid).remove();
+        if (typeof this.select.selectBox === 'function') {
+          this.select.selectBox('destroy');
+        }
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _prepareButton: function(setup, target) {
@@ -2303,13 +2972,16 @@
           window._character_select_recent = [];
         }
         already_recent = false;
+        while (window._character_select_recent.length > this.options.max_recent) {
+          window._character_select_recent.pop();
+        }
         $.each(window._character_select_recent, function(index, value) {
           if (value === charcode) {
             return already_recent = true;
           }
         });
         if (!already_recent) {
-          window._character_select_recent.push(charcode);
+          window._character_select_recent.unshift(charcode);
         }
         return this.updateCharacterSelectRecent();
       },
@@ -2531,6 +3203,7 @@
         ov_data += '</ul>';
         target.append(ov_data);
         sourcedescriptioneditor = function() {
+          console.warn('@editable.undoWaypoint()');
           return jQuery('body').hallosourcedescriptioneditor({
             'loid': _this.citation_data.loid,
             'data': _this.citation_data,
@@ -2543,8 +3216,9 @@
         target.find('.edit').bind('click', sourcedescriptioneditor);
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
-          var citation, citation_html, cite, is_auto_cite, loid, nugget, range, selection;
+          var citation, citation_html, cite, is_auto_cite, loid, nugget, selection;
 
+          console.warn('@editable.undoWaypoint()');
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
           is_auto_cite = element.closest('.cite').hasClass('auto-cite');
@@ -2552,25 +3226,13 @@
           selection = window.getSelection();
           if (citation.length) {
             citation_html = citation.html();
-            range = document.createRange();
-            range.selectNodeContents(citation[0]);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            if (document.execCommand('delete', false)) {
-              document.execCommand('insertHTML', false, citation_html);
-            }
+            citation.contents().unwrap();
           }
           if ((element.closest('.cite').length)) {
             cite = element.closest('.cite');
-            cite.attr('contenteditable', true);
-            range = document.createRange();
-            range.selectNodeContents(cite[0]);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            if (!document.execCommand('delete', false)) {
-              $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html);
-              $('.sourcedescription-' + loid).remove();
-            }
+            cite.remove();
+            $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html);
+            $('.sourcedescription-' + loid).remove();
             $('.cite').attr('contenteditable', false);
           }
           jQuery('#' + _this.overlay_id).remove();
@@ -2581,7 +3243,10 @@
           if (_this.editable.element) {
             _this.editable.element.find('.auto-cite').remove();
             return nugget.updateSourceDescriptionData(_this.editable.element).done(function() {
-              return nugget.resetCitations(_this.editable.element);
+              return nugget.resetCitations(_this.editable.element).done(function() {
+                _this.editable.element.hallo('disable');
+                return console.warn('@editable.undoWaypoint()');
+              });
             });
           }
         });
@@ -2600,9 +3265,10 @@
     return jQuery.widget('IKS.hallonuggetselector', {
       widget: null,
       selectables: '',
+      hyperlink: null,
       options: {
         editable: null,
-        hyperlink_id: null,
+        hyperlink_class: null,
         range: null,
         toolbar: null,
         uuid: '',
@@ -2629,18 +3295,17 @@
           'overflow': 'hidden'
         });
         jQuery('body').append(this.widget);
+        this.widget.hide();
+        this.hyperlink = jQuery('.' + this.options.hyperlink_class);
         this.widget.append('<div id="nugget_list" style="background-color:white; margin-bottom: 4px"></div>');
         this.widget.append('<button class="nugget_selector_back action_button">' + utils.tr('back') + '</button>');
         this.widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
         this.widget.css(this.options.default_css);
         this.widget.find('.nugget_selector_back').bind('click', function() {
-          var hyperlinked;
-
-          if (utils.tr('no title provided') === jQuery('#' + _this.options.hyperlink_id).text()) {
-            jQuery('#' + _this.options.hyperlink_id).remove();
+          if (utils.tr('no title provided') === _this.hyperlink.text()) {
+            _this.hyperlink.remove();
           } else {
-            hyperlinked = jQuery('#' + _this.options.hyperlink_id).html();
-            jQuery('#' + _this.options.hyperlink_id).replaceWith(jQuery('<span>' + hyperlinked + '</span>'));
+            _this.hyperlink.contents().unwrap().wrapAll('<span></span>');
           }
           return _this.back();
         });
@@ -2656,7 +3321,7 @@
         jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
           _this.list = new List();
           _this.list.init($('#nugget_list'), omc.NuggetExtendList);
-          return _this.list.setupItemActions($('#nugget_list'), {
+          _this.list.setupItemActions($('#nugget_list'), {
             'node_dblclick': function(node) {
               _this.select(node);
               return _this.apply();
@@ -2665,6 +3330,7 @@
               return _this.select(node);
             }
           });
+          return _this.widget.fadeIn();
         });
         return jQuery(window).resize();
       },
@@ -2678,26 +3344,51 @@
           return _this.back();
         });
         return dfo.done(function(nugget) {
-          var data, hyperlink, new_href;
+          var data, new_href;
 
           data = nugget.loid;
           new_href = 'refeus://localhost/database/self/Variation/' + nugget.guid;
-          hyperlink = jQuery('#' + _this.options.hyperlink_id);
-          hyperlink.attr('href', new_href);
-          hyperlink.removeAttr('id');
-          if (hyperlink.text() === utils.tr('no title provided')) {
-            hyperlink.text(nugget.display_name);
+          _this.hyperlink = _this.options.editable.element.find('.' + _this.options.hyperlink_class);
+          _this.hyperlink.attr('href', new_href);
+          if (_this.hyperlink.text() === utils.tr('no title provided')) {
+            _this.hyperlink.text(nugget.display_name);
           }
           return _this.back();
         });
       },
       back: function() {
-        this.widget.remove();
-        jQuery('#' + this.options.hyperlink_id).removeAttr('id');
+        var _this = this;
+
+        this.widget.fadeOut(100, function() {
+          return _this.widget.remove();
+        });
+        this.hyperlink = this.options.editable.element.find('.' + this.options.hyperlink_class);
+        if (this.hyperlink.length) {
+          this.hyperlink.removeClass(this.options.hyperlink_class);
+          console.log(this.options.editable.element.html());
+          this.options.editable.element.find('.nugget_select_target').removeClass('nugget_select_target');
+          this.options.editable.element.find('a').each(function(index, item) {
+            var link, link_class;
+
+            link = jQuery(item);
+            link_class = link.attr('class');
+            if (typeof link_class === 'undefined') {
+              return;
+            }
+            link_class = link_class.replace(/mod_[0-9]*/, '');
+            if (link_class === '') {
+              return link.removeAttr('class');
+            } else {
+              return link.attr('class', link_class);
+            }
+          });
+          this.options.editable.setContentPosition(this.hyperlink);
+        }
         jQuery('body').css({
           'overflow': 'auto'
         });
-        return this.options.editable.store();
+        this.options.editable.store();
+        return this.options.editable.restoreContentPosition();
       },
       select: function(node) {
         this.current_node = jQuery(node).attr('id');
@@ -2861,7 +3552,18 @@
             });
           });
           return window.setTimeout(function() {
-            return jQuery(window).resize();
+            var pages, selection_end, selection_start;
+
+            jQuery(window).resize();
+            if ((_this.widget.find('#number_of_pages').length)) {
+              pages = _this.widget.find('#number_of_pages');
+              selection_start = 0;
+              selection_end = pages.val().length;
+              if (pages[0].setSelectionRange) {
+                pages[0].focus();
+                return pages[0].setSelectionRange(selection_start, selection_end);
+              }
+            }
           }, 100);
         });
         return jQuery(window).resize();
@@ -3007,13 +3709,13 @@
       },
       updateInformation: function() {
         if (this.activity.step === 0) {
-          $('#information').html(utils.tr('activity quote select publication'));
+          jQuery('#information').html(utils.tr('activity quote select publication'));
         }
         if (this.activity.step === 1) {
-          $('#information').html(utils.tr('activity quote select nugget'));
+          jQuery('#information').html(utils.tr('activity quote select nugget'));
         }
         if (this.activity.step === 2) {
-          return $('#information').html(utils.tr('activity quote select nugget text'));
+          return jQuery('#information').html(utils.tr('activity quote select nugget text'));
         }
       },
       apply: function() {
@@ -3027,6 +3729,9 @@
             return console.log('TODO: update document');
           });
         });
+        return this.cleanup();
+      },
+      cleanup: function() {
         this.widget.remove();
         return jQuery('body').css({
           'overflow': 'auto'
@@ -3034,18 +3739,15 @@
       },
       back: function() {
         if (this.activity.step === 0) {
-          this.widget.remove();
-          jQuery('body').css({
-            'overflow': 'auto'
-          });
+          this.cleanup();
           return;
         } else if (this.activity.step === 1) {
-          $('#nugget_list').hide();
-          $('#publication_list').show();
+          jQuery('#nugget_list').hide();
+          jQuery('#publication_list').show();
           this.activity.step = 0;
         } else if (this.activity.step === 2) {
-          $('#nugget_content').hide();
-          $('#nugget_list').show();
+          jQuery('#nugget_content').hide();
+          jQuery('#nugget_list').show();
           this.activity.step = 1;
         }
         this.updateButtons();
@@ -3058,14 +3760,14 @@
             return;
           }
           this.loadPublicationNuggets(this.activity.publication);
-          $('#publication_list').hide();
+          jQuery('#publication_list').hide();
           this.activity.step = 1;
         } else if (this.activity.step === 1) {
           if (!this.activity.nugget) {
             return;
           }
           this.loadNugget(this.activity.nugget);
-          $('#nugget_list').hide();
+          jQuery('#nugget_list').hide();
           this.activity.step = 2;
         }
         this.updateButtons();
@@ -3086,7 +3788,7 @@
         var content,
           _this = this;
 
-        content = $('#nugget_content');
+        content = jQuery('#nugget_content');
         content.show();
         return omc.NuggetContent(loid).done(function(node_data) {
           var text;
@@ -3111,8 +3813,8 @@
           _this = this;
 
         list = new List();
-        list.init($('#publication_list'), omc.PublicationList);
-        list.setupItemActions($('#publication_list'), {
+        list.init(jQuery('#publication_list'), omc.PublicationList);
+        list.setupItemActions(jQuery('#publication_list'), {
           'node_dblclick': function(node) {
             _this.selectPublication(node);
             return _this.next();
@@ -3121,7 +3823,7 @@
             return _this.selectPublication(node);
           }
         });
-        return $('#publication_list').show();
+        return jQuery('#publication_list').show();
       },
       loadPublicationNuggets: function(loid) {
         var data_fn, list,
@@ -3131,19 +3833,19 @@
         data_fn = function() {
           return omc.SourceDescriptionNuggetList(loid);
         };
-        list.init($('#nugget_list'), data_fn);
-        list.setupItemActions($('#nugget_list'), {
+        list.init(jQuery('#nugget_list'), data_fn);
+        list.setupItemActions(jQuery('#nugget_list'), {
           'node_dblclick': function(node) {
             _this.selectNugget(node);
             return _this.next();
           },
           'node_select': function(node) {
             _this.selectNugget(node);
-            $('.context:visible').hide();
-            return $(node).find('.context').show();
+            jQuery('.context:visible').hide();
+            return jQuery(node).find('.context').show();
           }
         });
-        return $('#nugget_list').show();
+        return jQuery('#nugget_list').show();
       },
       _createInput: function(identifier, label, value) {
         var input,
@@ -3340,29 +4042,30 @@
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _removeAction: function() {
-        var modified, range, range_contents;
+        var modified;
 
-        window.getSelection().removeAllRanges();
         modified = false;
         if ($('#' + this.tmpid).text() !== utils.tr('no title provided')) {
           modified = true;
         }
-        range = document.createRange();
-        range.selectNode($('#' + this.tmpid)[0]);
-        range_contents = jQuery(range.extractContents()).text();
-        window.getSelection().addRange(range);
-        range.deleteContents();
         if (modified) {
-          range.insertNode($('<span>' + range_contents + '</span>')[0]);
+          $('#' + this.tmpid).replaceWith($('#' + this.tmpid).text());
+        } else {
+          $('#' + this.tmpid).remove();
         }
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _selectAction: function() {
-        window.__start_mini_activity = true;
+        var current_hyperlink;
+
+        current_hyperlink = jQuery('#' + this.tmpid);
+        current_hyperlink.removeAttr('id');
+        current_hyperlink.addClass(this.tmpid);
+        current_hyperlink.addClass('nugget_select_target');
         this.dropdownform.hallodropdownform('hideForm');
         return $('body').hallonuggetselector({
           'editable': this.options.editable,
-          'hyperlink_id': this.tmpid
+          'hyperlink_class': this.tmpid
         });
       },
       _prepareButton: function(setup, target) {
@@ -3456,35 +4159,87 @@
         return this.restore();
       },
       commit: function() {
-        this.editable_element.html(this.textarea.val());
+        var selection_pos_end, selection_pos_start, textarea_content, textarea_selected_content;
+
+        selection_pos_start = this.textarea[0].selectionStart;
+        selection_pos_end = this.textarea[0].selectionEnd;
+        textarea_content = this.textarea.val();
+        textarea_selected_content = textarea_content.substring(0, selection_pos_start);
+        textarea_selected_content += '<' + this.options.editable.selection_marker + '>';
+        if (selection_pos_start !== selection_pos_end) {
+          textarea_selected_content += textarea_content.substring(selection_pos_start, selection_pos_end);
+        }
+        textarea_selected_content += '</' + this.options.editable.selection_marker + '>';
+        textarea_selected_content += textarea_content.substring(selection_pos_end);
+        if ((jQuery('<div>' + textarea_selected_content + '</div>').find(this.options.editable.selection_marker).length)) {
+          this.editable_element.html(textarea_selected_content);
+        } else {
+          this.editable_element.html('<' + this.options.editable.selection_marker + '></' + this.options.editable.selection_marker + '>' + textarea_content);
+        }
         this.options.editable.store();
         return this.restore();
       },
       execute: function() {
+        var overlay,
+          _this = this;
+
         jQuery('body').css({
           'overflow': 'hidden'
         });
         this.editable_element.css({
           'opacity': '0.5'
         });
+        this.options.editable.storeContentPosition();
         jQuery('.misspelled').remove();
         this.id = "" + this.options.uuid + "-" + this.widgetName + "-area";
         this.editable_element = this.options.editable.element;
-        if (debug) {
-          console.log(this.editable_element.html());
+        if (this.debug) {
+          console.log('execute::editable html', this.editable_element.html());
         }
-        this.editable_element.parent().append(this._create_overlay(this.id));
-        this.textarea.focus();
-        return this._setup_syntax_highlight();
+        overlay = this._create_overlay(this.id);
+        this.editable_element.parent().append(overlay);
+        return overlay.fadeIn(100, function() {
+          var sel_html, selection_pos_end, selection_pos_start, selm_end, selm_start;
+
+          _this.textarea.focus();
+          sel_html = _this.textarea.val();
+          selm_start = '<' + _this.options.editable.selection_marker + '>';
+          selm_end = '</' + _this.options.editable.selection_marker + '>';
+          selection_pos_start = sel_html.indexOf(selm_start);
+          if (selection_pos_start >= 0) {
+            sel_html = sel_html.replace(new RegExp(selm_start, 'g'), '');
+          }
+          selection_pos_end = sel_html.indexOf(selm_end);
+          if (selection_pos_end >= 0) {
+            sel_html = sel_html.replace(new RegExp(selm_end, 'g'), '');
+          }
+          _this.textarea.val(sel_html);
+          if (selection_pos_start >= 0 && selection_pos_end >= 0) {
+            _this.options.editable.setSelectionRange(_this.textarea.get(0), selection_pos_start, selection_pos_end);
+          }
+          return _this._setup_syntax_highlight();
+        });
       },
       restore: function() {
+        var _this = this;
+
         jQuery('body').css({
           'overflow': 'auto'
         });
         this.editable_element.css({
           'opacity': '1'
         });
-        return this.overlay.remove();
+        return this.overlay.fadeOut(100, function() {
+          var dom;
+
+          _this.overlay.remove();
+          dom = new DOMNugget();
+          dom.prepareTextForEdit(_this.editable_element);
+          if (typeof MathJax === 'object') {
+            MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+          }
+          return _this.options.editable.restoreContentPosition();
+        });
       },
       setup: function() {
         if (!this.options.editable.element) {
@@ -3495,22 +4250,30 @@
       _create_form_button: function(name, event_handler) {
         var btn, button_label, button_tooltip;
 
-        button_label = name;
-        button_tooltip = name;
-        if (window.action_list && window.action_list['hallojs_plaintext_' + name] !== void 0) {
-          button_label = window.action_list['hallojs_plaintext_' + name].title;
-          button_tooltip = window.action_list['hallojs_plaintext_' + name].tooltip;
-        }
+        button_label = utils.tr_action_title(name);
+        button_tooltip = utils.tr_action_tooltip(name);
         btn = jQuery("<button class=\"action_button\" title=\"" + button_tooltip + "\">" + button_label + "</button>");
         btn.bind('click', event_handler);
         btn.addClass('action_button');
         return btn;
+      },
+      _prepare_plain_content: function() {
+        var citeproc, dom, selection_marker;
+
+        dom = new DOMNugget();
+        citeproc = new ICiteProc();
+        citeproc.restoreTextForCitation(this.editable_element);
+        dom.prepareTextForStorage(this.editable_element);
+        selection_marker = this.editable_element.find(this.options.editable.selection_marker);
+        selection_marker.removeAttr('id');
+        return this.editable_element.find('.auto-cite').remove();
       },
       _create_overlay: function(id) {
         var container,
           _this = this;
 
         this.overlay = jQuery("<div id=\"" + id + "\"></div>");
+        this._prepare_plain_content();
         this.overlay.append(this._create_plain(this.editable_element.html()));
         this.overlay.append('<div class="button_container"></div>');
         container = this.overlay.find('.button_container');
@@ -3535,6 +4298,11 @@
         this._plain_resize();
         this.textarea.bind('blur', function() {
           return _this.textarea.focus();
+        });
+        this.textarea.bind('keyup', function(event) {
+          if (event.keyCode === 27) {
+            return _this.cancel();
+          }
         });
         return this.textarea;
       },
@@ -3692,6 +4460,7 @@
         });
       },
       enable: function() {
+        return;
         if (!this.spellcheck_proxy) {
           this.spellcheck_proxy = jQuery.proxy(this.checkSpelling, this);
         }
@@ -3709,7 +4478,7 @@
         if (this.debug) {
           console.log(this.options.editable.element[0].spellcheck, window.spellcheck, event.keyCode);
         }
-        if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode === 17 || event.keyCode === 18) {
+        if ((event.keyCode >= 33 && event.keyCode <= 40) || event.keyCode === 17 || event.keyCode === 18) {
           return;
         }
         if (event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
@@ -3960,14 +4729,11 @@
         target_loid = this.options.editable.element.closest('.Text').attr('id').replace(/node/, '');
         dfo = omc.AssociatePublication(target_loid, publication_loid);
         dfo.fail(function(error) {
-          _this.widget.remove();
-          return jQuery('body').css({
-            'overflow': 'auto'
-          });
+          return _this.back();
         });
         tmp_id = 'tmp_' + (new Date()).getTime();
         return dfo.done(function(result) {
-          var data, element, new_sd_node, nugget, range, scb, selection;
+          var data, element, new_sd_node, nugget, range, scb, sel, selection, selection_nodes;
 
           data = result.loid;
           element = _this.current_node_label;
@@ -3983,22 +4749,23 @@
             replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
             return replacement;
           };
-          selection = _this.options.editable.element.find('.selection');
+          selection = _this.options.editable.element.find(_this.options.editable.selection_marker);
           if (selection.length) {
             range = document.createRange();
+            sel = window.getSelection();
             range.selectNode(selection[0]);
-            if (selection.hasClass('carret')) {
+            if (selection.text() === '') {
               range.setStartAfter(range.endContainer);
             }
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+            sel.removeAllRanges();
+            sel.addRange(range);
             _this.options.editable.replaceSelectionHTML(scb);
-            window.__start_mini_activity = false;
-            _this.options.editable.element.find('.selection').each(function(index, item) {
-              $(item).replaceWith($(item).html());
-              if ($(item).text() === ' ') {
-                return $(item).find('.citation').remove();
-              }
+            selection_nodes = _this.options.editable.element.find(_this.options.editable.selection_marker);
+            selection_nodes.each(function(index, item) {
+              var sel_item;
+
+              sel_item = jQuery(item);
+              return sel_item.contents().unwrap();
             });
           }
           nugget = new DOMNugget();
@@ -4006,7 +4773,7 @@
           occ.UpdateNuggetSourceDescriptions({
             loid: target_loid
           });
-          new_sd_node = $('#' + tmp_id);
+          new_sd_node = jQuery('#' + tmp_id);
           new_sd_node.removeAttr('id');
           nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             var new_sd_class, sd_loid;
@@ -4026,17 +4793,15 @@
               });
             }
           });
-          _this.widget.remove();
-          return jQuery('body').css({
-            'overflow': 'auto'
-          });
+          return _this.back();
         });
       },
       back: function() {
         this.widget.remove();
-        return jQuery('body').css({
+        jQuery('body').css({
           'overflow': 'auto'
         });
+        return this.options.editable.restoreContentPosition();
       },
       select: function(node) {
         this.current_node = jQuery(node).attr('id');
@@ -4127,6 +4892,7 @@
   (function(jQuery) {
     return jQuery.widget('IKS.halloimage', {
       dropdownform: null,
+      debug: true,
       tmpid: 0,
       selected_row: null,
       selected_cell: null,
@@ -4146,25 +4912,35 @@
         contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
-        setup = function() {
+        setup = function(select_target, target_id) {
           var align, alt, border, height, range, recalc, sel, title, url, width;
 
-          if (!window.getSelection().rangeCount) {
+          contentId = target_id;
+          if (_this.debug) {
+            console.log('setup image form', select_target, target_id);
+          }
+          if (!window.getSelection().rangeCount && typeof select_target === 'undefined') {
             return;
           }
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = window.getSelection();
-          range = sel.getRangeAt();
-          _this.cur_image = null;
-          _this.action = 'insert';
-          _this.options.editable.element.find('img').each(function(index, item) {
-            if (sel.containsNode(item, true)) {
-              _this.cur_image = jQuery(item);
-              _this.cur_image.attr('id', _this.tmpid);
-              _this.action = 'update';
-              return false;
-            }
-          });
+          if (typeof select_target !== 'undefined') {
+            console.log('selected target', $(select_target).html());
+            _this.cur_image = $(select_target);
+            _this.action = 'update';
+          } else {
+            sel = window.getSelection();
+            range = sel.getRangeAt();
+            _this.cur_image = null;
+            _this.action = 'insert';
+            _this.options.editable.element.find('img').each(function(index, item) {
+              if (sel.containsNode(item, true)) {
+                _this.cur_image = jQuery(item);
+                _this.cur_image.attr('id', _this.tmpid);
+                _this.action = 'update';
+                return false;
+              }
+            });
+          }
           if (_this.cur_image && _this.cur_image.length) {
             url = _this.cur_image.attr('src');
             alt = _this.cur_image.attr('alt');
@@ -4202,9 +4978,13 @@
             $('#' + contentId + 'height').val(height);
             $('#' + contentId + 'align').val(align);
             $('#' + contentId + 'border').attr('checked', border);
+            _this.cur_image.attr('id', _this.tmpid);
           } else {
             _this.cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
-            range.insertNode(_this.cur_image[0]);
+            _this.cur_image.insertBefore(_this.options.editable.element.find(_this.options.editable.selection_marker));
+            range.selectNode(_this.options.editable.element.find(_this.options.editable.selection_marker)[0]);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
             $('#' + contentId + 'url').val("");
             $('#' + contentId + 'alt').val("");
             $('#' + contentId + 'title').val("");
@@ -4221,14 +5001,7 @@
           return window.setTimeout(recalc, 300);
         };
         this.dropdownform = this._prepareButton(setup, target);
-        target.bind('hide', function() {
-          return jQuery('img').each(function(index, item) {
-            jQuery(item).removeAttr('id');
-            if (jQuery(item).attr('src') === '') {
-              return jQuery(item).remove();
-            }
-          });
-        });
+        this.dropdownform.hallodropdownform('bindShow', 'img');
         buttonset.append(this.dropdownform);
         return toolbar.append(buttonset);
       },
@@ -4323,7 +5096,8 @@
             if (path.indexOf(':') === 1) {
               path = '/' + path;
             }
-            $('#' + contentId + 'url').val('file://' + path);
+            path = 'file://' + path;
+            $('#' + contentId + 'url').val(path);
             delete wkej.instance.insert_image_dfd;
             return _this.updateImageHTML(contentId);
           });
@@ -4331,25 +5105,19 @@
           return wkej.instance.insert_image_dfd.promise();
         }));
         contentAreaUL.append(addButton("apply", function() {
-          var range;
+          var image;
 
           _this.recalcHTML(contentId);
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('insertHTML', false, _this.html);
-          $('#' + _this.tmpid).removeAttr('id');
+          image = $('#' + _this.tmpid);
+          _this.options.editable.setContentPosition(image);
+          image.removeAttr('id');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
-          var range;
+          var image;
 
-          window.getSelection().removeAllRanges();
-          range = document.createRange();
-          range.selectNode($('#' + _this.tmpid)[0]);
-          window.getSelection().addRange(range);
-          document.execCommand('delete', false);
+          image = $('#' + _this.tmpid);
+          image.remove();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;
@@ -4725,6 +5493,7 @@
   (function(jQuery) {
     return jQuery.widget('IKS.halloToolbarAbsolute', {
       toolbar: null,
+      debug: false,
       options: {
         parentElement: 'body',
         editable: null,
@@ -4734,6 +5503,9 @@
         var el, widthToAdd,
           _this = this;
 
+        if (this.debug) {
+          console.log('toolbar created');
+        }
         this.toolbar = this.options.toolbar;
         this.toolbar.show();
         jQuery(this.options.parentElement).append(this.toolbar);
@@ -4781,6 +5553,7 @@
       setPosition: function() {
         this.toolbar.css('position', 'fixed');
         this.toolbar.css('z-index', '99999');
+        this.toolbar.css('top', '0');
         if (this.options.parentElement !== 'body') {
 
         }
@@ -4790,6 +5563,9 @@
         var _this = this;
 
         return this.element.bind('hallodeactivated', function(event, data) {
+          if (_this.debug) {
+            console.log('toolbar deactivated');
+          }
           _this.toolbar.remove();
           return _this.destroy();
         });
