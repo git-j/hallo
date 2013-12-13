@@ -126,10 +126,12 @@
       if last_button.length
         last_button_pos =last_button.position().left
         last_button_pos+=last_button.width()
-      if ( last_button.length && left+target.width() > last_button_pos )
-        target.css 'left', left - target.width()+last_button.width()
-      else
-        target.css 'left', left
+      if ( last_button.length && left + target.width() > last_button_pos )
+        left = left - target.width() + last_button.width()
+
+      if ( left < 0 )
+        left = 0
+      target.css('left', left);
       console.log('target position:',target.position(),top,left,last_button) if @debug
       console.log(target.width(),last_button.width()) if @debug
 
