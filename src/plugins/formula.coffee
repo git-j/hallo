@@ -138,17 +138,20 @@
       formula.html('')
       if ( @has_mathjax )
         if ( inline )
-          formula.contents().unwrap().wrap('<span/>')
-          formula.html(@options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right)
+          string = '<span id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right + '</span>'
+          formula.replaceWith(string)
+          formula = $('#' + @tmpid)
           formula.addClass('inline')
         else
-          formula.contents().unwrap().wrap('<div/>')
-          formula.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
+          string = '<div id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right + '</div>'
+          formula.replaceWith(string);
+          formula = $('#' + @tmpid);
+        if @debug
+          console.log('FormulaWRAPPING',formula,formula.parents(),formula.contents())
       else
         formula.html(latex_formula)
       encoded_latex = encodeURIComponent(latex_formula)
       encoded_title = encodeURIComponent(title)
-      formula.attr('id',@tmpid)
       formula.addClass('formula')
       formula.attr('rel',encoded_latex)
       formula.attr('title',encoded_title)
@@ -227,6 +230,7 @@
           wke.openUrlInBrowser(@options.mathjax_alternative + '?latex=' + $('#' + contentId + 'latex').val())
         buttons.append(buttons_li)
       else
+        buttons = jQuery('<div>')
         buttons_li = jQuery('<li></li>').append('<label></label>')
         buttons_label = buttons_li.find('>label')
         buttons_label.after addButton 'compose formula', () =>
