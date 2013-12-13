@@ -200,14 +200,15 @@ http://hallojs.org
         window._live = {}
       unless window._live['.editableclick']
         window._live['.editableclick'] = true
-        jQuery('[contenteditable=false]').live "click", (event) =>
-          target = event.target
-          if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
-            return
-          window.getSelection().removeAllRanges()
-          range = document.createRange()
-          range.selectNode(target)
-          window.getSelection().addRange(range)
+        if(jQuery('[contenteditable=false]').length>0)
+          jQuery('[contenteditable=false]').live "click", (event) =>
+            target = event.target
+            if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
+              return
+            window.getSelection().removeAllRanges()
+            range = document.createRange()
+            range.selectNode(target)
+            window.getSelection().addRange(range)
 
 
       @_forceStructured() if @options.forceStructured
@@ -388,7 +389,10 @@ http://hallojs.org
       @element[@options.toolbar] toolbarOptions
 
       for plugin of @options.plugins
-        populate = jQuery(@element).data(plugin).populateToolbar
+
+        if ( jQuery(@element).length > 0 && typeof jQuery(@element).data(plugin) != "undefined" )
+            populate = jQuery(@element).data(plugin).populateToolbar
+
         continue unless jQuery.isFunction populate
         @element[plugin] 'populateToolbar', @toolbar
 
@@ -720,6 +724,9 @@ http://hallojs.org
           new_range.insertNode(selection_identifier[0])
           #sel.removeAllRanges()
           #sel.addRange(range)
+        range.selectNode(selection_identifier[0])
+        window.getSelection().removeAllRanges()
+        window.getSelection().addRange(range)
         console.log('after:' + @element.html()) if @debug
         # console.log('selection added',@element.html())
 
