@@ -222,16 +222,9 @@
     _applyAction: () ->
       @recalcHTML()
       character = jQuery('#' + @tmpid)
-      selection_area = jQuery('<span class="selection"></span>')
-      selection_area.insertAfter(character)
 
       @_addRecent(character.html())
-      character.replaceWith(character.html())
-      window.getSelection().removeAllRanges()
-      range = document.createRange()
-      range.selectNode(selection_area[0])
-      range.deleteContents()
-      window.getSelection().addRange(range)
+      character.contents().unwrap();
       @dropdownform.hallodropdownform('hideForm')
 
     _insertAction: () ->
@@ -243,13 +236,6 @@
       character.html('&#64;')
 
     _cancelAction: () ->
-      window.getSelection().removeAllRanges()
-      range = document.createRange()
-      range.selectNode($('#' + @tmpid)[0])
-      range_contents = jQuery(range.extractContents()).text();
-      range.deleteContents();
-      window.getSelection().addRange(range)
-      console.warn('removing tmpid and destroy selectbox');
       $('#' + @tmpid).remove()
       if ( typeof @select.selectBox == 'function' )
         @select.selectBox('destroy')
