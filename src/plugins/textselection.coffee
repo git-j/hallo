@@ -20,6 +20,7 @@
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
+      @_bindKeys()
       setup= =>
         # populate with available actions
         target.find('.element-selector').remove()
@@ -62,6 +63,17 @@
       if ( node.childNodes )
         for child_node in node.childNodes
           @_find_start_container(child_node,search_node)
+    _bindKeys: () ->
+      widget = @options.editable
+      widget.registerKey 'ctrl', 67, (event) => # c
+        widget.execute('copy')
+        event.preventDefault()
+      widget.registerKey 'ctrl', 88, (event) => # x
+        widget.execute('cut')
+        event.preventDefault()
+      widget.registerKey 'ctrl', 86, (event) => # v
+        widget.execute('paste')
+        event.preventDefault()
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"></div>"
@@ -84,11 +96,11 @@
         range_jq = $(range.cloneContents())
         nugget = new DOMNugget();
         if ( element == 'copy' )
-          document.execCommand('copy');
+          this_editable.execute('copy');
         else if ( element == 'cut' )
-          document.execCommand('cut');
+          this_editable.execute('cut');
         else if ( element == 'paste' )
-          document.execCommand('paste');
+          this_editable.execute('paste');
         else if ( element == 'as_name' )
           if ( range_jq.text() != '' )
             nugget.rename(@options.editable.element, range_jq.text())

@@ -161,6 +161,8 @@ http://hallojs.org
       @element.unbind "keydown", @_syskeys
       @element.unbind "keyup mouseup", @_checkSelection
       @element.unbind "paste", @_paste
+      @element.unbind "copy", @_copy
+      @element.unbind "cut", @_cut
       @_key_handlers = []
       @bound = false
 
@@ -199,6 +201,8 @@ http://hallojs.org
         @element.bind "keydown", this, @_syskeys
         @element.bind "keyup mouseup", this, @_checkSelection
         @element.bind "paste", this, @_paste
+        @element.bind "copy", this, @_copy
+        @element.bind "cut", this, @_cut
         @bound = true
       if ( typeof window._live == 'undefined' )
         window._live = {}
@@ -420,14 +424,42 @@ http://hallojs.org
       widget = event.data
       widget.setModified() if widget.isModified()
 
-    _paste: (event) ->
+    _copy: (event) ->
+      console.log('copy',event) if @debug
+      return if ( !window.wke )
       event.preventDefault()
-      pdata = event.originalEvent.clipboardData.getData('text/html')
-      if (typeof pdata == 'undefined' )
+      range = window.getSelection().getRangeAt()
+      rdata = jQuery('<div/>').append(range.cloneContents())
+      dom = new IDOM()
+      dom.cleanExport(rdata);
+
+      console.log(range,rdata,rdata.html()) if @debug
+      utils.storeToClipboard(rdata)
+
+    _cut: (event) ->
+      event.data.undoWaypointStart('cut')
+      event.data._copy(event)
+      range = window.getSelection().getRangeAt()
+      range.deleteContents()
+      event.data.undoWaypointCommit(false)
+
+
+    _paste: (event) ->
+      pdata = ''
+      if jQuery.isArray(event.originalEvent.clipboardData.types)
+        event.originalEvent.clipboardData.types.forEach (type) =>
+          #console.log(type,pdata)
+          return if ( type.indexOf('text/') != 0 )
+          return if ( type == 'text/plain' && pdata != '')
+          pdata = event.originalEvent.clipboardData.getData(type)
+      #console.log(pdata)
+      if (pdata == '' )
         pdata = event.originalEvent.clipboardData.getData('text/plain')
-      if (typeof pdata == 'undefined' )
-        utils.error(utils.tr('invalid clipboard data'))
+      if (typeof pdata == 'undefined' && pdata == '' )
+        #utils.error(utils.tr('invalid clipboard data'))
         return
+      event.preventDefault()
+      event.data.undoWaypointStart('paste')
       pdata = pdata.replace(/<script/g,'<xscript').replace(/<\/script/,'</xscript')
 
       jq_temp = jQuery('<div>' + pdata + '</div>')
@@ -437,7 +469,16 @@ http://hallojs.org
       sel = window.getSelection()
       range = sel.getRangeAt()
       range.deleteContents()
-      range.insertNode(jq_temp[0])
+      if ( pdata.indexOf('<') == 0 )
+        # wrapped in element
+        # console.log('wrapped',jq_temp)
+        range.insertNode(jq_temp[0])
+      else
+        jq_temp = jq_temp.contents()
+        jq_temp.unwrap()
+        # console.log('unwrapped',jq_temp)
+        range.insertNode(jq_temp.contents()[0])
+      event.data.undoWaypointCommit(false)
 
       
     _ignoreKeys: (code) ->
