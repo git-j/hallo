@@ -41,9 +41,11 @@
       @button = @_prepareButton() unless @button
       @element.append @button
       queryState = (event) =>
+        # console.log(@options.command,document.queryCommandState(@options.command))
         return unless @options.command
         return unless ( (event.keyCode >= 33 && event.keyCode <= 40) || event.type == 'mouseup' || event.type == 'hallomodified')
-        if ( window.getSelection().anchorNode != null )
+        if ( window.getSelection().anchorNode == null )
+          # console.log('empty anchorNode',window.getSelection().anchorNode )
           return;
         try
           # HACK for qt-webkit
@@ -79,14 +81,23 @@
         catch e
           console.error(e)
           return
-
-      if @options.command
+      if typeof @options.command_function == 'function'
+        @button.bind 'click', @options.command_function
+        #command_function = () =>
+        #    range = window.getSelection().getRangeAt()
+        #    console.log(range)
+        #    if ( range.collapsed )
+        #        console.log('TODO: select entire text node')
+        #        range.selectNode(range.startContainer)
+        #        window.getSelection().addRange(range)
+        #    widget.execute(format, false, null)
+      else if typeof @options.command == 'string'
         @button.bind 'click', (event) =>
           jQuery('.misspelled').remove()
           # HACK for qt-webkit
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
             range = window.getSelection().getRangeAt()
-            node  = $(range.startContainer)
+            node  = jQuery(range.startContainer)
             state = false
             if node.closest('SUB').length && @options.command == 'subscript'
               state = true
@@ -124,9 +135,9 @@
 
     refresh: ->
       if @isChecked
-        @button.addClass 'ui-state-active_'
+        @button.addClass 'ui-state-active'
       else
-        @button.removeClass 'ui-state-active_'
+        @button.removeClass 'ui-state-active'
 
     checked: (checked) ->
       @isChecked = checked
