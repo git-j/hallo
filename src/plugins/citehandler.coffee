@@ -50,7 +50,7 @@ class _Citehandler
     return domnugget.getSourceDescriptionData(element)
   
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
-    @_updateSettings
+    @_updateSettings()
     ov_data = ''
     @_updateCitationDisplay(element).done (current_citation_data) =>
       @citation_data = current_citation_data
