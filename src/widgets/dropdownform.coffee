@@ -51,25 +51,23 @@
 
 
       @element.append @button
+    bindShowHandler: (event) ->
+      @_showTarget(event.target)
     bindShow: (selector) ->
       event_name = 'click'
-      if ( window._life_map && window._life_map[selector + event_name + @bindShowHandler] )
-        return
-      if ( typeof window._life_map == 'undefined' )
-        window._life_map = {}
-      window._life_map[selector + event_name + @bindShowHandler] = true;
-      console.log('dropdownfor bindShow',event_name,selector) if @debug
-      jQuery(selector).live event_name, =>
+      console.log('bindShow:',selector,event_name) if @debug
+      jQuery(document).delegate selector, event_name, =>
+      #jQuery(selector).live event_name, =>
         console.log(event.target) if @debug
-        # find the toolbar and reset the button/@options.target members
-        # they were destroyed when the user changes the editable
-        # this is NOT as expected!
+      #   # find the toolbar and reset the button/@options.target members
+      #   # they were destroyed when the user changes the editable
+      #   # this is NOT as expected!
         if ( jQuery(event.target).closest('.dropdown-form-' + @options.command).length )
           return
         toolbar = jQuery('.hallotoolbar').eq(0)
         return if ( !toolbar.length )
         target = toolbar.find('.dropdown-form-' + @options.command)
-        window.live_target = event.target # HACK
+      #   window.live_target = event.target # HACK
         target.trigger('bindShowTrigger')
 
     _showTarget: (select_target) ->
