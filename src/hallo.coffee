@@ -161,6 +161,7 @@ http://hallojs.org
       @element.unbind "keydown", @_syskeys
       @element.unbind "keyup mouseup", @_checkSelection
       @element.unbind "paste", @_paste
+      @_key_handlers = []
       @bound = false
 
       jQuery(@element).removeClass 'isModified'
@@ -549,6 +550,30 @@ http://hallojs.org
       return true if ( code == 20 ) #caps
 
       return false
+    registerKey: (modifier,keyCode,callback_fn) ->
+      check_fn = (event) =>
+        check_modifiers = 
+          'ctrlKey': modifier.indexOf('ctrl')>=0
+          'shiftKey': modifier.indexOf('shift')>=0
+          'altKey': modifier.indexOf('alt')>=0
+          # always true'metaKey': modifier.indexOf('meta')>=0
+        mod_state = true
+        jQuery.each check_modifiers, (key,value) =>
+          mod_state = mod_state & event[key] == value
+        if ( mod_state ) 
+          if ( event.keyCode == keyCode )
+            callback_fn(event)
+            return true
+        return false
+      @_key_handlers.push(check_fn)
+
+    checkRegisteredKeys: (event) ->
+      found_handler = false
+      @_key_handlers.forEach (key_handler) =>
+        return if ( found_handler )
+        found_handler = key_handler(event)
+      return found_handler
+
     _keys: (event) ->
       widget = event.data
       #if event.keyCode == 27
@@ -753,6 +778,7 @@ http://hallojs.org
 
       unless event.data._protectToolbarFocus is true
         # console.log('hallo deactivated')
+        event.data._key_handlers = []
         event.data.turnOff()
       else
         setTimeout ->
