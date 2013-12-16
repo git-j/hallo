@@ -75,7 +75,8 @@
           $('#' + contentId + 'border').attr('checked',border)
           @cur_image.attr('id',@tmpid)
         else
-          @cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
+          # TODO use wke env to get theme
+          @cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
           @cur_image.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
           range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
           window.getSelection().removeAllRanges()
@@ -111,8 +112,9 @@
       height = "auto" if ( height == '' )
       align = "center" if ( align == '' )
       #console.log(url)
+      # TODO use wke env to get theme
       if ( url == '' )
-          url = '../icons/types/PubArtwork.png'
+          url = '../styles/default/icons/types/PubArtwork.png'
       image.attr('src',url)
       image.attr('alt',alt)
       image.attr('title',title)
