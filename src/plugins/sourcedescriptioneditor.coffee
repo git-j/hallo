@@ -86,14 +86,48 @@
           orig_values = jQuery.extend({},@options.orig_values)
           @options.values = {}
           @options.orig_values = {}
+          loid = @options.loid
+          nugget_loid = @options.nugget_loid
+          if ( typeof window.__current_undo_command != 'undefined' ) # uses global as editable is destroyed, set in sourcedescription.coffee
+            undo_command = window.__current_undo_command
+          else
+            if ( typeof UndoCommand != 'undefined')
+              undo_command = new UndoCommand()
+            else
+              undo_command = {}
+          # console.log(num_updates,values)
+
+          # make editing of values undoable
+          undo_command.redo = (event) =>
+            undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each values, (key, value) =>
               dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
             jQuery.when.apply(jQuery,dfdlist).done () =>
+              undo_command.dfd.resolve()
+            undo_command.dfd.promise()
+
+          undo_command.undo = (event) =>
+            undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each orig_values, (key, value) =>
               dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
             jQuery.when.apply(jQuery,dfdlist).done () =>
+              undo_command.dfd.resolve()
+            undo_command.dfd.promise()
+
+          undo_command.postdo = () =>
+            undo_command.dfd.done () =>
+              if ( nugget_loid )
+                update_nugget = jQuery('#' + nugget_loid )
+                # console.log(update_nugget)
+                nugget.updateSourceDescriptionData(update_nugget).done =>
+                  nugget.resetCitations(update_nugget)
+                  occ.UpdateNuggetSourceDescriptions
+                    loid:nugget_loid
+          # run the action
+          undo_command.redo()
+          window.__current_undo_command = undo_command # uses global object as editable is destroyed
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
