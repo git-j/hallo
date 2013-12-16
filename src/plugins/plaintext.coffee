@@ -56,6 +56,7 @@
       @options.editable.storeContentPosition()
       @options.editable.undoWaypointStart('plaintext')
 
+
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
       @editable_element = @options.editable.element
@@ -63,6 +64,7 @@
       overlay = @_create_overlay(@id)
       @editable_element.parent().append overlay
       overlay.fadeIn 100, =>
+        @options.editable._ignoreEvents = true
         @textarea.focus()
         sel_html = @textarea.val();
         # 8< prepareTextForStorage
@@ -81,6 +83,7 @@
         if ( selection_pos_start >= 0 && selection_pos_end >= 0)
           @options.editable.setSelectionRange(@textarea.get(0),selection_pos_start,selection_pos_end)
         @_setup_syntax_highlight()
+        @options.editable._ignoreEvents = false
 
     restore: () ->
       jQuery('body').css
