@@ -177,21 +177,17 @@
         });
         return this.element.append(this.button);
       },
+      bindShowHandler: function(event) {
+        return this._showTarget(event.target);
+      },
       bindShow: function(selector) {
         var event_name,
           _this = this;
         event_name = 'click';
-        if (window._life_map && window._life_map[selector + event_name + this.bindShowHandler]) {
-          return;
-        }
-        if (typeof window._life_map === 'undefined') {
-          window._life_map = {};
-        }
-        window._life_map[selector + event_name + this.bindShowHandler] = true;
         if (this.debug) {
-          console.log('dropdownfor bindShow', event_name, selector);
+          console.log('bindShow:', selector, event_name);
         }
-        return jQuery(selector).live(event_name, function() {
+        return jQuery(document).delegate(selector, event_name, function() {
           var target, toolbar;
           if (_this.debug) {
             console.log(event.target);
@@ -204,7 +200,6 @@
             return;
           }
           target = toolbar.find('.dropdown-form-' + _this.options.command);
-          window.live_target = event.target;
           return target.trigger('bindShowTrigger');
         });
       },
@@ -500,7 +495,7 @@
           if (!((event.keyCode >= 33 && event.keyCode <= 40) || event.type === 'mouseup' || event.type === 'hallomodified')) {
             return;
           }
-          if (window.getSelection().anchorNode !== null) {
+          if (window.getSelection().anchorNode === null) {
             return;
           }
           try {
@@ -551,13 +546,15 @@
             console.error(e);
           }
         };
-        if (this.options.command) {
+        if (typeof this.options.command_function === 'function') {
+          this.button.bind('click', this.options.command_function);
+        } else if (typeof this.options.command === 'string') {
           this.button.bind('click', function(event) {
             var node, range, state;
             jQuery('.misspelled').remove();
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
               range = window.getSelection().getRangeAt();
-              node = $(range.startContainer);
+              node = jQuery(range.startContainer);
               state = false;
               if (node.closest('SUB').length && _this.options.command === 'subscript') {
                 state = true;
@@ -600,9 +597,9 @@
       },
       refresh: function() {
         if (this.isChecked) {
-          return this.button.addClass('ui-state-active_');
+          return this.button.addClass('ui-state-active');
         } else {
-          return this.button.removeClass('ui-state-active_');
+          return this.button.removeClass('ui-state-active');
         }
       },
       checked: function(checked) {
@@ -656,10 +653,13 @@
       uuid: '',
       selection: null,
       _keepActivated: false,
+      _ignoreEvents: false,
       originalHref: null,
-      undoHistory: [],
+      _undo_stack: null,
       selection_marker: 'content_selection_marker',
       auto_store_timeout: 3000,
+      debug: false,
+      _key_handlers: [],
       options: {
         editable: true,
         plugins: {},
@@ -731,6 +731,9 @@
         this.element.unbind("keydown", this._syskeys);
         this.element.unbind("keyup mouseup", this._checkSelection);
         this.element.unbind("paste", this._paste);
+        this.element.unbind("copy", this._copy);
+        this.element.unbind("cut", this._cut);
+        this._key_handlers = [];
         this.bound = false;
         jQuery(this.element).removeClass('isModified');
         jQuery(this.element).removeClass('inEditMode');
@@ -774,6 +777,8 @@
           this.element.bind("keydown", this, this._syskeys);
           this.element.bind("keyup mouseup", this, this._checkSelection);
           this.element.bind("paste", this, this._paste);
+          this.element.bind("copy", this, this._copy);
+          this.element.bind("cut", this, this._cut);
           this.bound = true;
         }
         if (typeof window._live === 'undefined') {
@@ -919,8 +924,8 @@
         return this.element.html(this.originalContent);
       },
       execute: function(command, value) {
-        var selection, style_attr;
-        this.undoWaypoint();
+        var range, selection, style_attr;
+        this.undoWaypointStart();
         if (command.indexOf('justify') === 0) {
           this.storeContentPosition();
           selection = this.element.find(this.selection_marker);
@@ -941,9 +946,15 @@
             selection = selection.parent();
           }
         }
-        if (document.execCommand(command, false, value)) {
-          return this.element.trigger("change");
+        range = window.getSelection().getRangeAt();
+        if (range.collapsed) {
+          range.selectNode(range.startContainer);
+          window.getSelection().addRange(range);
         }
+        if (document.execCommand(command, false, value)) {
+          this.element.trigger("change");
+        }
+        return this.undoWaypointCommit(false);
       },
       protectFocusFrom: function(el) {
         var _this = this;
@@ -1021,17 +1032,55 @@
           return widget.setModified();
         }
       },
-      _paste: function(event) {
-        var dom, html, jq_temp, pdata, range, sel;
-        event.preventDefault();
-        pdata = event.originalEvent.clipboardData.getData('text/html');
-        if (typeof pdata === 'undefined') {
-          pdata = event.originalEvent.clipboardData.getData('text/plain');
+      _copy: function(event) {
+        var dom, range, rdata;
+        if (this.debug) {
+          console.log('copy', event);
         }
-        if (typeof pdata === 'undefined') {
-          utils.error(utils.tr('invalid clipboard data'));
+        if (!window.wke) {
           return;
         }
+        event.preventDefault();
+        range = window.getSelection().getRangeAt();
+        rdata = jQuery('<div/>').append(range.cloneContents());
+        dom = new IDOM();
+        dom.cleanExport(rdata);
+        if (this.debug) {
+          console.log(range, rdata, rdata.html());
+        }
+        return utils.storeToClipboard(rdata);
+      },
+      _cut: function(event) {
+        var range;
+        event.data.undoWaypointStart('cut');
+        event.data._copy(event);
+        range = window.getSelection().getRangeAt();
+        range.deleteContents();
+        return event.data.undoWaypointCommit(false);
+      },
+      _paste: function(event) {
+        var dom, html, jq_temp, pdata, range, sel,
+          _this = this;
+        pdata = '';
+        if (jQuery.isArray(event.originalEvent.clipboardData.types)) {
+          event.originalEvent.clipboardData.types.forEach(function(type) {
+            if (type.indexOf('text/') !== 0) {
+              return;
+            }
+            if (type === 'text/plain' && pdata !== '') {
+              return;
+            }
+            return pdata = event.originalEvent.clipboardData.getData(type);
+          });
+        }
+        if (pdata === '') {
+          pdata = event.originalEvent.clipboardData.getData('text/plain');
+        }
+        if (typeof pdata === 'undefined' && pdata === '') {
+          return;
+        }
+        event.preventDefault();
+        event.data.undoWaypointStart('paste');
         pdata = pdata.replace(/<script/g, '<xscript').replace(/<\/script/, '</xscript');
         jq_temp = jQuery('<div>' + pdata + '</div>');
         dom = new IDOM();
@@ -1040,7 +1089,14 @@
         sel = window.getSelection();
         range = sel.getRangeAt();
         range.deleteContents();
-        return range.insertNode(jq_temp[0]);
+        if (pdata.indexOf('<') === 0) {
+          range.insertNode(jq_temp[0]);
+        } else {
+          jq_temp = jq_temp.contents();
+          jq_temp.unwrap();
+          range.insertNode(jq_temp.contents()[0]);
+        }
+        return event.data.undoWaypointCommit(false);
       },
       _ignoreKeys: function(code) {
         if (code >= 33 && code <= 40) {
@@ -1051,6 +1107,42 @@
         }
         return false;
       },
+      registerKey: function(modifier, keyCode, callback_fn) {
+        var check_fn,
+          _this = this;
+        check_fn = function(event) {
+          var check_modifiers, mod_state;
+          check_modifiers = {
+            'ctrlKey': modifier.indexOf('ctrl') >= 0,
+            'shiftKey': modifier.indexOf('shift') >= 0,
+            'altKey': modifier.indexOf('alt') >= 0
+          };
+          mod_state = true;
+          jQuery.each(check_modifiers, function(key, value) {
+            return mod_state = mod_state & event[key] === value;
+          });
+          if (mod_state) {
+            if (event.keyCode === keyCode) {
+              callback_fn(event);
+              return true;
+            }
+          }
+          return false;
+        };
+        return this._key_handlers.push(check_fn);
+      },
+      checkRegisteredKeys: function(event) {
+        var found_handler,
+          _this = this;
+        found_handler = false;
+        this._key_handlers.forEach(function(key_handler) {
+          if (found_handler) {
+            return;
+          }
+          return found_handler = key_handler(event);
+        });
+        return found_handler;
+      },
       _keys: function(event) {
         var widget,
           _this = this;
@@ -1058,14 +1150,18 @@
         if (widget._ignoreKeys(event.keyCode)) {
           return;
         }
+        if ((event.keyCode === 32 || event.keyCode === 13 || event.keyCode === 8) && !event.ctrlKey) {
+          widget.undoWaypointCommit();
+          widget.undoWaypointStart('text');
+        }
         if (event.keyCode === 66 && event.ctrlKey) {
-          document.execCommand("bold", false);
+          widget.execute("bold");
         }
         if (event.keyCode === 73 && event.ctrlKey) {
-          document.execCommand("italic", false);
+          widget.execute("italic");
         }
         if (event.keyCode === 85 && event.ctrlKey) {
-          document.execCommand("underline", false);
+          widget.execute("underline");
         }
         if (!event.ctrlKey && !event.shiftKey && event.keyCode !== 17 && event.keycode !== 16) {
           if (widget.autostore_timer) {
@@ -1093,6 +1189,9 @@
         if (widget._ignoreKeys(event.keyCode)) {
           return;
         }
+        if (widget.checkRegisteredKeys(event)) {
+          return;
+        }
         if (event.keyCode === 9 && !event.shiftKey) {
           range = window.getSelection().getRangeAt();
           li = $(range.startContainer).closest('li');
@@ -1103,7 +1202,7 @@
             if (widget.element.closest('li').length && widget.element.closest('li')[0] === li[0]) {
               return;
             }
-            document.execCommand("indent", false);
+            widget.execute("indent");
             event.preventDefault();
             return;
           }
@@ -1138,7 +1237,7 @@
             if (widget.element.closest('li').length && widget.element.closest('li')[0] === li[0]) {
               return;
             }
-            document.execCommand("outdent", false);
+            widget.execute("outdent");
             event.preventDefault();
             return;
           }
@@ -1278,6 +1377,12 @@
       },
       _activated: function(event) {
         var _this = this;
+        if (event.data._ignoreEvents) {
+          return;
+        }
+        if (this.debug) {
+          console.log('hallo activated');
+        }
         if ((jQuery('.dropdown-form:visible').length)) {
           jQuery('.dropdown-form:visible').each(function(index, item) {
             return jQuery(item).hallodropdownform('hideForm');
@@ -1285,16 +1390,24 @@
           event.data.turnOff();
         }
         event.data.turnOn();
-        return event.data.restoreContentPosition();
+        event.data.restoreContentPosition();
+        return event.data.undoWaypointLoad();
       },
       _deactivated: function(event) {
         var contents;
+        if (this.debug) {
+          console.log('hallo deactivated, set window.debug_hallotoolbar true to prevent');
+        }
         if (window.debug_hallotoolbar) {
+          return;
+        }
+        if (event.data._ignoreEvents) {
           return;
         }
         if (this.autostore_timer) {
           window.clearTimeout(this.autostore_timer);
         }
+        event.data.undoWaypointCommit(true);
         event.data.storeContentPosition();
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
@@ -1310,6 +1423,7 @@
           return;
         }
         if (event.data._protectToolbarFocus !== true) {
+          event.data._key_handlers = [];
           return event.data.turnOff();
         } else {
           return setTimeout(function() {
@@ -1338,23 +1452,116 @@
       checkTouch: function() {
         return this.options.touchScreen = !!('createTouch' in document);
       },
-      undoWaypoint: function() {
-        var waypoint, _results;
-        waypoint = {
-          'date': Date.now(),
-          'content': jQuery(this.element).html()
+      undoWaypointStart: function(id) {
+        if (typeof UndoCommand === 'undefined') {
+          return;
+        }
+        this._current_undo_command = new UndoCommand();
+        this._current_undo_command.before_data = this.element.html();
+        if (typeof id !== 'undefined') {
+          return this._current_undo_command.id = id;
+        }
+      },
+      undoWaypointCommit: function(auto) {
+        var previous_command, undo_command,
+          _this = this;
+        if (typeof UndoCommand === 'undefined') {
+          return;
+        }
+        if (typeof UndoStack === 'undefined') {
+          return;
+        }
+        if (!this._current_undo_command) {
+          return;
+        }
+        if (auto && this._undo_stack.canRedo()) {
+          return;
+        }
+        undo_command = this._current_undo_command;
+        undo_command.after_data = this.element.html();
+        if (undo_command.after_data === undo_command.before_data) {
+          return;
+        }
+        this._undo_stack.target = this.element;
+        undo_command.undo = function() {
+          _this._undo_stack.target.html(undo_command.before_data);
+          _this.restoreContentPosition();
+          return undo_command.postdo();
         };
-        if (this.undoHistory.length) {
-          if (waypoint.content === this.undoHistory[this.undoHistory.length - 1].content) {
-            return;
+        undo_command.redo = function() {
+          _this._undo_stack.target.html(undo_command.after_data);
+          _this.restoreContentPosition();
+          return undo_command.postdo();
+        };
+        if (undo_command.id === 'text') {
+          previous_command = this._undo_stack.peek();
+          if (previous_command) {
+            previous_command.mergeWith = function(current_command) {
+              if (previous_command.after_data === current_command.after_data || Math.abs(previous_command.after_data.length - current_command.after_data.length) < 5) {
+                previous_command.after_data = current_command.after_data;
+                return true;
+              }
+              return false;
+            };
           }
         }
-        this.undoHistory.push(waypoint);
-        _results = [];
-        while (this.undoHistory.length > this.options.maxUndoEntries) {
-          _results.push(this.undoHistory.shift());
+        if (this.debug) {
+          console.log('pushing undo:', undo_command.after_data, undo_command);
         }
-        return _results;
+        this._undo_stack.push(undo_command);
+        return this._current_undo_command = null;
+      },
+      undo: function(target) {
+        var undo_command;
+        if (!this._undo_stack) {
+          return;
+        }
+        if (target) {
+          this._undo_stack.target = target;
+        }
+        if (!this._undo_stack.canRedo()) {
+          undo_command = this._undo_stack.command(this._undo_stack.current_index);
+          undo_command.after_data = this._undo_stack.target.html();
+        }
+        return this._undo_stack.undo();
+      },
+      redo: function(target) {
+        if (!this._undo_stack) {
+          return;
+        }
+        if (target) {
+          this._undo_stack.target = target;
+        }
+        return this._undo_stack.redo();
+      },
+      undoWaypointIdentifier: function() {
+        var classname, id, pelement;
+        classname = this.element.attr('class');
+        classname = classname.replace(/\s/g, '');
+        classname = classname.replace(/isModified/g, '');
+        classname = classname.replace(/inEditMode/g, '');
+        id = this.element.attr('id');
+        pelement = this.element.parent();
+        while (typeof id === 'undefined' && pelement) {
+          id = pelement.attr('id');
+          pelement = pelement.parent();
+          if (!pelement) {
+            id = 'unknown';
+          }
+        }
+        return classname + id;
+      },
+      undoWaypointLoad: function() {
+        var wpid;
+        if (typeof UndoManager === 'undefined') {
+          return;
+        }
+        if (typeof UndoStack === 'undefined') {
+          return;
+        }
+        wpid = this.undoWaypointIdentifier();
+        this._undo_stack = (new UndoManager()).getStack(wpid);
+        return this._undo_stack.setUndoLimit(64);
       },
       restoreContentPosition: function() {
         var e, range, stored_selection;
@@ -1363,16 +1570,20 @@
         }
         stored_selection = this.element.find(this.selection_marker);
         if (stored_selection.length) {
+          if (this.debug) {
+            console.log('selection to restore:', stored_selection);
+          }
           window.getSelection().removeAllRanges();
+          this._ignoreEvents = true;
           try {
             range = document.createRange();
             range.selectNode(stored_selection[0]);
             window.getSelection().removeAllRanges();
             window.getSelection().addRange(range);
-            return this.undoWaypoint();
           } catch (_error) {
             e = _error;
           }
+          return this._ignoreEvents = false;
         }
       },
       storeContentPosition: function() {
@@ -1381,8 +1592,10 @@
         if (this.debug) {
           console.log('storeContentPosition');
         }
-        this.undoWaypoint();
         sel = window.getSelection();
+        if (this.debug) {
+          console.log('ranges to store:' + sel.rangeCount);
+        }
         if (sel.rangeCount > 0) {
           range = sel.getRangeAt();
           tmp_id = 'range' + Date.now();
@@ -1401,22 +1614,34 @@
             marker = remove_queue[_i];
             marker.remove();
           }
-          if (this.debug) {
+          if (this.debug & 2) {
             console.log('before:' + this.element.html());
           }
           selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
+          this._ignoreEvents = true;
           try {
-            range.surroundContents(selection_identifier[0]);
+            if (this.debug) {
+              console.log(selection_identifier);
+            }
+            selection_identifier[0].appendChild(range.extractContents());
+            range.insertNode(selection_identifier[0]);
+            if (this.debug) {
+              console.log('stored');
+            }
           } catch (_error) {
             e = _error;
             new_range = range.cloneRange();
             new_range.collapse(false);
             new_range.insertNode(selection_identifier[0]);
+            if (this.debug) {
+              console.log('block contents');
+            }
           }
           range.selectNode(selection_identifier[0]);
           window.getSelection().removeAllRanges();
           window.getSelection().addRange(range);
-          if (this.debug) {
+          this._ignoreEvents = false;
+          if (this.debug & 2) {
             return console.log('after:' + this.element.html());
           }
         }
@@ -1592,6 +1817,7 @@
           var dom, has_block_contents, nugget, replacement, selection;
           if (element === '__associate') {
             window.__start_mini_activity = true;
+            window.__current_undo_command = this_editable._current_undo_command;
             return jQuery('body').hallopublicationselector({
               'editable': this_editable
             });
@@ -1780,7 +2006,7 @@
             });
           } else {
             table_placeholder = '<table id="' + _this.tmpid + '" border="1" class="table-border"></table>';
-            document.execCommand('insertHTML', false, table_placeholder);
+            _this.options.editable.execute('insertHTML', table_placeholder);
           }
           recalc = function() {
             return _this.recalcHTML(target.attr('id'));
@@ -1987,6 +2213,10 @@
           if (!window.getSelection().rangeCount) {
             return;
           }
+          _this.options.editable.undoWaypointStart('formula');
+          _this.options.editable._current_undo_command.postdo = function() {
+            return _this.recalcMath();
+          };
           contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
           sel = window.getSelection();
@@ -2218,10 +2448,12 @@
               return jQuery(item).removeAttr('id');
             });
           }
+          _this.options.editable.undoWaypointCommit();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         buttons.append(addButton("remove", function() {
           $('#' + _this.tmpid).remove();
+          _this.options.editable.undoWaypointCommit();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(buttons);
@@ -2446,6 +2678,7 @@
         contentAreaUL.append(addButton("clean_html", function() {
           var dom, nugget;
           _this.options.editable.storeContentPosition();
+          _this.options.editable.undoWaypointStart('cleanup');
           if (_this.debug) {
             console.log('cleanhtml');
           }
@@ -2460,7 +2693,8 @@
           nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             return nugget.resetCitations(_this.options.editable.element).done(function() {
-              return _this.options.editable.restoreContentPosition();
+              _this.options.editable.restoreContentPosition();
+              return _this.options.editable.undoWaypointCommit();
             });
           });
         }));
@@ -2468,6 +2702,7 @@
           var dom, nugget;
           jQuery('.misspelled').remove();
           _this.options.editable.storeContentPosition();
+          _this.options.editable.undoWaypointStart('cleanup');
           dom = new IDOM();
           dom.plainTextParagraphs(_this.options.editable.element);
           _this.options.editable.store();
@@ -2475,7 +2710,8 @@
           nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             return nugget.resetCitations(_this.options.editable.element).done(function() {
-              return _this.options.editable.restoreContentPosition();
+              _this.options.editable.restoreContentPosition();
+              return _this.options.editable.undoWaypointCommit();
             });
           });
         }));
@@ -2618,6 +2854,7 @@
         toolbar.append(target);
         setup = function() {
           var range, recalc, sel, selected_character;
+          _this.options.editable.undoWaypointStart('characterselect');
           jQuery(target).find('select').each(function(index, item) {
             return jQuery(item).selectBox();
           });
@@ -2802,7 +3039,7 @@
         contentAreaUL.append(addButton("Insert", function() {
           return _this._insertAction();
         }));
-        contentAreaUL.append(addButton("Cancel", function() {
+        contentAreaUL.append(addButton("Close", function() {
           return _this._cancelAction();
         }));
         return contentArea;
@@ -2813,6 +3050,7 @@
         character = jQuery('#' + this.tmpid);
         this._addRecent(character.html());
         character.contents().unwrap();
+        this.options.editable.undoWaypointCommit();
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _insertAction: function() {
@@ -3050,7 +3288,7 @@
     _Citehandler.prototype._makeTip = function(target, element) {
       var ov_data,
         _this = this;
-      this._updateSettings;
+      this._updateSettings();
       ov_data = '';
       return this._updateCitationDisplay(element).done(function(current_citation_data) {
         var sourcedescriptioneditor;
@@ -3289,6 +3527,7 @@
         has_changed: false,
         publication: {},
         values: {},
+        orig_values: {},
         default_css: {
           'width': '100%',
           'height': '100%',
@@ -3375,34 +3614,63 @@
             return jQuery('#sourcedescriptioneditor_selectable').selectBox();
           });
           jQuery('#sourcedescriptioneditor_apply').bind('click', function() {
-            var dfd_stored, num_updates;
+            var loid, nugget_loid, orig_values, undo_command, values;
             _this.widget.focus();
-            num_updates = 0;
-            jQuery.each(_this.options.values, function(key, value) {
-              return num_updates = num_updates + 1;
-            });
-            dfd_stored = jQuery.Deferred();
-            jQuery.each(_this.options.values, function(key, value) {
-              return omc.storePublicationDescriptionAttribute(_this.options.loid, key, value).done(function() {
-                num_updates = num_updates - 1;
-                if (num_updates === 0) {
-                  return dfd_stored.resolve();
+            values = jQuery.extend({}, _this.options.values);
+            orig_values = jQuery.extend({}, _this.options.orig_values);
+            _this.options.values = {};
+            _this.options.orig_values = {};
+            loid = _this.options.loid;
+            nugget_loid = _this.options.nugget_loid;
+            if (typeof window.__current_undo_command !== 'undefined') {
+              undo_command = window.__current_undo_command;
+            } else {
+              if (typeof UndoCommand !== 'undefined') {
+                undo_command = new UndoCommand();
+              } else {
+                undo_command = {};
+              }
+            }
+            undo_command.redo = function(event) {
+              var dfdlist;
+              undo_command.dfd = jQuery.Deferred();
+              dfdlist = [];
+              jQuery.each(values, function(key, value) {
+                return dfdlist.push(omc.storePublicationDescriptionAttribute(loid, key, value));
+              });
+              jQuery.when.apply(jQuery, dfdlist).done(function() {
+                return undo_command.dfd.resolve();
+              });
+              return undo_command.dfd.promise();
+            };
+            undo_command.undo = function(event) {
+              var dfdlist;
+              undo_command.dfd = jQuery.Deferred();
+              dfdlist = [];
+              jQuery.each(orig_values, function(key, value) {
+                return dfdlist.push(omc.storePublicationDescriptionAttribute(loid, key, value));
+              });
+              jQuery.when.apply(jQuery, dfdlist).done(function() {
+                return undo_command.dfd.resolve();
+              });
+              return undo_command.dfd.promise();
+            };
+            undo_command.postdo = function() {
+              return undo_command.dfd.done(function() {
+                var update_nugget;
+                if (nugget_loid) {
+                  update_nugget = jQuery('#' + nugget_loid);
+                  return nugget.updateSourceDescriptionData(update_nugget).done(function() {
+                    nugget.resetCitations(update_nugget);
+                    return occ.UpdateNuggetSourceDescriptions({
+                      loid: nugget_loid
+                    });
+                  });
                 }
               });
-            });
-            _this.options.values = {};
-            dfd_stored.done(function() {
-              var update_nugget;
-              if (_this.options.nugget_loid) {
-                update_nugget = jQuery('#' + _this.options.nugget_loid);
-                return nugget.updateSourceDescriptionData(update_nugget).done(function() {
-                  nugget.resetCitations(update_nugget);
-                  return occ.UpdateNuggetSourceDescriptions({
-                    loid: _this.options.nugget_loid
-                  });
-                });
-              }
-            });
+            };
+            undo_command.redo();
+            window.__current_undo_command = undo_command;
             jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             _this.widget.remove();
             return jQuery('body').css({
@@ -3411,6 +3679,7 @@
           });
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
+            _this.options.orig_values = {};
             jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             jQuery('.form_display').remove();
             return jQuery('body').css({
@@ -3418,15 +3687,14 @@
             });
           });
           return window.setTimeout(function() {
-            var pages, selection_end, selection_start;
+            var pages;
             jQuery(window).resize();
             if ((_this.widget.find('#number_of_pages').length)) {
               pages = _this.widget.find('#number_of_pages');
-              selection_start = 0;
-              selection_end = pages.val().length;
-              if (pages[0].setSelectionRange) {
-                pages[0].focus();
-                return pages[0].setSelectionRange(selection_start, selection_end);
+              pages.closest('div').find('label').append('(' + _this.options.publication.number_of_pages + ')');
+              if (_this.widget.find('#number_of_pages').val() === _this.options.publication.number_of_pages) {
+                pages.val('');
+                return pages[0].focus();
               }
             }
           }, 100);
@@ -3460,6 +3728,7 @@
         input.find('input').bind('blur', function(event) {
           return _this._formChanged(event, _this.options);
         });
+        this.options.orig_values[identifier] = value;
         return input;
       },
       _formChanged: function(event, options) {
@@ -3664,7 +3933,7 @@
           text = content.find('.content');
           text.attr('contenteditable', 'true');
           text.focus();
-          return document.execCommand('selectAll', false);
+          return _this.options.editable.execute('selectAll');
         });
       },
       loadPublications: function(loid) {
@@ -3756,6 +4025,7 @@
           if (!window.getSelection().rangeCount) {
             return;
           }
+          _this.options.editable.undoWaypointStart('hyperlink');
           _this.tmpid = 'mod_' + (new Date()).getTime();
           sel = window.getSelection();
           range = sel.getRangeAt();
@@ -3888,6 +4158,7 @@
       _applyAction: function() {
         this.recalcHTML();
         $('#' + this.tmpid).removeAttr('id');
+        this.options.editable.undoWaypointCommit();
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _removeAction: function() {
@@ -3901,6 +4172,7 @@
         } else {
           $('#' + this.tmpid).remove();
         }
+        this.options.editable.undoWaypointCommit();
         return this.dropdownform.hallodropdownform('hideForm');
       },
       _selectAction: function() {
@@ -4032,6 +4304,7 @@
           'opacity': '0.5'
         });
         this.options.editable.storeContentPosition();
+        this.options.editable.undoWaypointStart('plaintext');
         jQuery('.misspelled').remove();
         this.id = "" + this.options.uuid + "-" + this.widgetName + "-area";
         this.editable_element = this.options.editable.element;
@@ -4042,6 +4315,7 @@
         this.editable_element.parent().append(overlay);
         return overlay.fadeIn(100, function() {
           var sel_html, selection_pos_end, selection_pos_start, selm_end, selm_start;
+          _this.options.editable._ignoreEvents = true;
           _this.textarea.focus();
           sel_html = _this.textarea.val();
           selm_start = '<' + _this.options.editable.selection_marker + '>';
@@ -4056,9 +4330,11 @@
           }
           _this.textarea.val(sel_html);
           if (selection_pos_start >= 0 && selection_pos_end >= 0) {
+            console.log(selection_pos_start, selection_pos_end);
             _this.options.editable.setSelectionRange(_this.textarea.get(0), selection_pos_start, selection_pos_end);
           }
-          return _this._setup_syntax_highlight();
+          _this._setup_syntax_highlight();
+          return _this.options.editable._ignoreEvents = false;
         });
       },
       restore: function() {
@@ -4077,6 +4353,7 @@
           if (typeof MathJax === 'object') {
             MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
           }
+          _this.options.editable.undoWaypointCommit();
           return _this.options.editable.restoreContentPosition();
         });
       },
@@ -4170,7 +4447,7 @@
           'position': 'fixed',
           'top': '5px',
           'left': '8px',
-          'width': $(window).width(),
+          'width': ($(window).width() - 16) + 'px',
           'height': ($(window).height() - 48) + 'px',
           'max-width': $(window).width(),
           'max-height': $(window).height()
@@ -4238,7 +4515,7 @@
         var buttonize, buttonset,
           _this = this;
         buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
-        buttonize = function(cmd, label) {
+        buttonize = function(label, cmd, cmd_fn) {
           var buttonElement, button_label;
           button_label = label;
           if (window.action_list && window.action_list['hallojs_' + cmd] !== void 0) {
@@ -4251,17 +4528,46 @@
             label: button_label,
             icon: cmd === 'undo' ? 'icon-undo' : 'icon-repeat',
             command: cmd,
+            command_function: cmd_fn,
             queryState: false,
             cssClass: _this.options.buttonCssClass
           });
           return buttonset.append(buttonElement);
         };
-        buttonize("undo", "Undo");
-        buttonize("redo", "Redo");
+        if (window.wke) {
+          this.options.editable.registerKey('ctrl', 90, function(event) {
+            event.preventDefault();
+            return _this._undo(jQuery(event.currentTarget));
+          });
+          this.options.editable.registerKey('ctrl,shift', 90, function(event) {
+            event.preventDefault();
+            return _this._redo(jQuery(event.currentTarget));
+          });
+          buttonize("Undo", 'undo', function() {
+            return _this._undo(_this.options.editable);
+          });
+          buttonize("Redo", 'redo', function() {
+            return _this._redo(_this.options.editable);
+          });
+        } else {
+          buttonize("Undo", "undo");
+          buttonize("Redo", "redo");
+        }
         buttonset.hallobuttonset();
         return toolbar.append(buttonset);
       },
-      _init: function() {}
+      _init: function() {},
+      _undo: function(target) {
+        console.log('undo toolbar fn');
+        return this.options.editable.undo(target);
+      },
+      _redo: function(target) {
+        console.log('redo toolbar fn');
+        if (typeof this.options.editable._undo_stack !== 'object') {
+          return;
+        }
+        return this.options.editable.redo(target);
+      }
     });
   })(jQuery);
 
@@ -4727,6 +5033,7 @@
           if (!window.getSelection().rangeCount && typeof select_target === 'undefined') {
             return;
           }
+          _this.options.editable.undoWaypointStart('image');
           _this.tmpid = 'mod_' + (new Date()).getTime();
           if (typeof select_target !== 'undefined') {
             console.log('selected target', $(select_target).html());
@@ -4785,7 +5092,7 @@
             $('#' + contentId + 'border').attr('checked', border);
             _this.cur_image.attr('id', _this.tmpid);
           } else {
-            _this.cur_image = jQuery('<img src="../icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
+            _this.cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
             _this.cur_image.insertBefore(_this.options.editable.element.find(_this.options.editable.selection_marker));
             range.selectNode(_this.options.editable.element.find(_this.options.editable.selection_marker)[0]);
             window.getSelection().removeAllRanges();
@@ -4830,7 +5137,7 @@
           align = "center";
         }
         if (url === '') {
-          url = '../icons/types/PubArtwork.png';
+          url = '../styles/default/icons/types/PubArtwork.png';
         }
         image.attr('src', url);
         image.attr('alt', alt);
@@ -4911,12 +5218,14 @@
           image = $('#' + _this.tmpid);
           _this.options.editable.setContentPosition(image);
           image.removeAttr('id');
+          _this.options.editable.undoWaypointCommit();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
           var image;
           image = $('#' + _this.tmpid);
           image.remove();
+          _this.options.editable.undoWaypointCommit();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;
@@ -4964,6 +5273,7 @@
         buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
         contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
         target = this._prepareDropdown(contentId);
+        this._bindKeys();
         setup = function() {
           var has_selection, is_citation, is_direct_citation, is_indirect_citation, range, range_ca, range_jq, selection;
           target.find('.element-selector').remove();
@@ -5033,6 +5343,23 @@
           return _results;
         }
       },
+      _bindKeys: function() {
+        var widget,
+          _this = this;
+        widget = this.options.editable;
+        widget.registerKey('ctrl', 67, function(event) {
+          widget.execute('copy');
+          return event.preventDefault();
+        });
+        widget.registerKey('ctrl', 88, function(event) {
+          widget.execute('cut');
+          return event.preventDefault();
+        });
+        return widget.registerKey('ctrl', 86, function(event) {
+          widget.execute('paste');
+          return event.preventDefault();
+        });
+      },
       _prepareDropdown: function(contentId) {
         var contentArea;
         contentArea = jQuery("<div id=\"" + contentId + "\"></div>");
@@ -5060,11 +5387,11 @@
           range_jq = $(range.cloneContents());
           nugget = new DOMNugget();
           if (element === 'copy') {
-            document.execCommand('copy');
+            this_editable.execute('copy');
           } else if (element === 'cut') {
-            document.execCommand('cut');
+            this_editable.execute('cut');
           } else if (element === 'paste') {
-            document.execCommand('paste');
+            this_editable.execute('paste');
           } else if (element === 'as_name') {
             if (range_jq.text() !== '') {
               nugget.rename(_this.options.editable.element, range_jq.text());
