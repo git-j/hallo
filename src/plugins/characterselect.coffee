@@ -216,7 +216,7 @@
         @_applyAction()
       contentAreaUL.append addButton "Insert", =>
         @_insertAction()
-      contentAreaUL.append addButton "Cancel", =>
+      contentAreaUL.append addButton "Close", =>
         @_cancelAction()
 
       contentArea
