@@ -163,6 +163,7 @@ http://hallojs.org
       @element.unbind "paste", @_paste
       @element.unbind "copy", @_copy
       @element.unbind "cut", @_cut
+      # toolbar activated/deactivated happens on focusin/out
       @_key_handlers = []
       @bound = false
 
@@ -341,7 +342,7 @@ http://hallojs.org
 
     # Execute a contentEditable command
     execute: (command, value) ->
-      @undoWaypoint()
+      @undoWaypointStart()
       if ( command.indexOf('justify') == 0 )
         # when <p style="text-align:left"><span style="text-align:left">test</span></p>
         # is in the content, after aligning the content to the right, it is no longer
@@ -363,8 +364,14 @@ http://hallojs.org
             else
               selection.attr('style',style_attr)
           selection = selection.parent()
+      range = window.getSelection().getRangeAt()
+      if ( range.collapsed )
+        range.selectNode(range.startContainer)
+        window.getSelection().addRange(range)
+
       if document.execCommand command, false, value
         @element.trigger "change"
+      @undoWaypointCommit(false)
 
     protectFocusFrom: (el) ->
       el.bind "mousedown", (event) =>
@@ -626,12 +633,15 @@ http://hallojs.org
       #        thrown: old
       #    widget.turnOff()
       return if widget._ignoreKeys(event.keyCode)
+      if ( event.keyCode == 32 || event.keyCode == 13 || event.keyCode == 8 ) && !event.ctrlKey
+        widget.undoWaypointCommit()
+        widget.undoWaypointStart('text')
       if event.keyCode == 66 && event.ctrlKey #b
-          document.execCommand("bold",false)
+          widget.execute("bold")
       if event.keyCode == 73 && event.ctrlKey #i
-          document.execCommand("italic",false)
+          widget.execute("italic")
       if event.keyCode == 85 && event.ctrlKey #u
-          document.execCommand("underline",false)
+          widget.execute("underline")
       if ( !event.ctrlKey && !event.shiftKey && event.keyCode != 17 && event.keycode != 16 )
         # helps but gets _slow_ widget.element[0].blur()
         # widget.element[0].focus()
@@ -639,7 +649,6 @@ http://hallojs.org
         if ( widget.autostore_timer )
           window.clearTimeout(widget.autostore_timer)
         widget.autostore_timer = window.setTimeout =>
-
           widget.storeContentPosition()
           widget.store()
           widget.restoreContentPosition()
@@ -655,13 +664,14 @@ http://hallojs.org
     _syskeys: (event) ->
       widget = event.data
       return if widget._ignoreKeys(event.keyCode)
+      return if widget.checkRegisteredKeys(event)
       if event.keyCode == 9 && !event.shiftKey  #tab
         range = window.getSelection().getRangeAt()
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
         if ( li.length )
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
-          document.execCommand("indent",false)
+          widget.execute("indent")
           event.preventDefault()
           return
         td = $(range.startContainer).closest('td,th')
@@ -685,7 +695,7 @@ http://hallojs.org
         li = $(range.endContainer).closest('li') if !li.length
         if ( li.length )
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
-          document.execCommand("outdent",false)
+          widget.execute("outdent")
           event.preventDefault()
           return
         td = $(range.startContainer).closest('td,th')
@@ -764,7 +774,6 @@ http://hallojs.org
         #this.setContents ' '
         force_focus = =>
           return if !jQuery(@element).hasClass 'inEditMode'
-          #document.execCommand('selectAll',false,null);
           new_range = document.createRange()
           content_node = jQuery(@element)[0] #//? is element a DOMnode?
           new_range.selectNodeContents(content_node);
@@ -784,6 +793,7 @@ http://hallojs.org
       contents = @getContents()
       if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
         @setContents @options.placeholder
+
     store: () ->
       if ( @autostore_timer )
         window.clearTimeout(@autostore_timer)
@@ -793,18 +803,23 @@ http://hallojs.org
           @setContents ''
         @options.store_callback(@getContents())
     _activated: (event) ->
-      # console.log('hallo activated')
+      return if event.data._ignoreEvents
+      console.log('hallo activated') if @debug
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
           jQuery(item).hallodropdownform('hideForm')
         event.data.turnOff()
       event.data.turnOn()
       event.data.restoreContentPosition()
+      event.data.undoWaypointLoad()
 
     _deactivated: (event) ->
+      console.log('hallo deactivated, set window.debug_hallotoolbar true to prevent') if @debug
       return if window.debug_hallotoolbar
+      return if event.data._ignoreEvents
       if ( @autostore_timer )
         window.clearTimeout(@autostore_timer)
+      event.data.undoWaypointCommit(true)
       event.data.storeContentPosition()
       if event.data.options.store_callback
         contents = event.data.getContents()
