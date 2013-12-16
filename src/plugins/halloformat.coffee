@@ -21,7 +21,7 @@
             buttonize = (format) =>
                 format_label = format
                 if ( window.action_list && window.action_list['hallojs_' + format] != undefined )
-                  format_label =  window.action_list['hallojs_' + format].title
+                    format_label =  window.action_list['hallojs_' + format].title
                 buttonHolder = jQuery '<span></span>'
                 buttonHolder.hallobutton
                   label: format_label
