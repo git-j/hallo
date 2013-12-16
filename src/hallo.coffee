@@ -89,10 +89,13 @@ http://hallojs.org
     uuid: ''
     selection: null
     _keepActivated: false
+    _ignoreEvents: false
     originalHref: null
-    undoHistory: []
+    _undo_stack: null
     selection_marker: 'content_selection_marker'
     auto_store_timeout: 3000
+    debug: false
+    _key_handlers: []
 
     options:
       editable: true
@@ -666,40 +669,107 @@ http://hallojs.org
     checkTouch: ->
       @options.touchScreen = !!('createTouch' of document)
 
-    undoWaypoint: ->
-      waypoint = 
-        'date': Date.now()
-        'content': jQuery(@element).html()
-      if ( @undoHistory.length )
-        if ( waypoint.content == @undoHistory[@undoHistory.length - 1].content )
-          return
-      @undoHistory.push(waypoint)
-      while @undoHistory.length > @options.maxUndoEntries
-        @undoHistory.shift()
-      # console.log('undo waypoint',@undoHistory)
+    undoWaypointStart: (id) ->
+      return if ( typeof UndoCommand == 'undefined' )
+      @_current_undo_command = new UndoCommand()
+      @_current_undo_command.before_data = @element.html()
+      if ( typeof id != 'undefined' )
+        @_current_undo_command.id = id
+
+    undoWaypointCommit: (auto) ->
+      return if ( typeof UndoCommand == 'undefined' )
+      return if ( typeof UndoStack == 'undefined' )
+      return if ( !@_current_undo_command )
+      return if ( auto && @_undo_stack.canRedo() )
+      undo_command = @_current_undo_command
+      undo_command.after_data = @element.html()
+      return if undo_command.after_data == undo_command.before_data
+      @_undo_stack.target = @element
+      undo_command.undo = () =>
+        #console.log('undo command executing',undo_command.before_data,@_undo_stack.target.html())
+        @_undo_stack.target.html(undo_command.before_data)
+        @restoreContentPosition()
+        undo_command.postdo()
+        #utils.info('undone' + @_undo_stack.index() + '/' + @_undo_stack.length)
+      undo_command.redo = () =>
+        #console.log('redo command executing',undo_command.after_data)
+        @_undo_stack.target.html(undo_command.after_data)
+        @restoreContentPosition()
+        undo_command.postdo()
+        #utils.info('redone' + @_undo_stack.index() + '/' + @_undo_stack.length)
+      if ( undo_command.id == 'text' )
+        previous_command = @_undo_stack.peek()
+        if ( previous_command )
+          previous_command.mergeWith = (current_command) =>
+            if ( previous_command.after_data == current_command.after_data || Math.abs(previous_command.after_data.length - current_command.after_data.length)< 5 )
+              # make sure the latest state is stored
+              previous_command.after_data = current_command.after_data
+              return true
+
+            return false
+      console.log('pushing undo:',undo_command.after_data,undo_command) if @debug
+      @_undo_stack.push(undo_command)
+      @_current_undo_command = null
+    
+    undo: (target) ->
+      return if (!@_undo_stack)
+      @_undo_stack.target = target if ( target )
+      if !@_undo_stack.canRedo()
+        undo_command = @_undo_stack.command(@_undo_stack.current_index)
+        undo_command.after_data = @_undo_stack.target.html() 
+      @_undo_stack.undo()
+    
+    redo: (target) ->
+      return if (!@_undo_stack)
+      @_undo_stack.target = target if ( target )
+      @_undo_stack.redo()
+
+    undoWaypointIdentifier: ->
+      classname = @element.attr('class')
+      classname = classname.replace(/\s/g,'')
+      classname = classname.replace(/isModified/g,'')
+      classname = classname.replace(/inEditMode/g,'')
+      id = @element.attr('id')
+      pelement = @element.parent()
+      while ( typeof id == 'undefined' && pelement )
+        id = pelement.attr('id')
+        pelement = pelement.parent()
+        if ( !pelement )
+          id = 'unknown'
+      # console.log('wpid',classname,id)
+      return classname + id
+
+
+    undoWaypointLoad: ->
+      return if ( typeof UndoManager == 'undefined' )
+
+      return if ( typeof UndoStack == 'undefined' )
+      wpid = @undoWaypointIdentifier()
+      @_undo_stack = (new UndoManager()).getStack(wpid)
+      @_undo_stack.setUndoLimit(64) # 64x128x6editors ~ 48mb of worst case undo buffering
 
     restoreContentPosition: ->
-      console.log('restoreContentPosition') if  @debug
+      console.log('restoreContentPosition') if @debug
       stored_selection = @element.find(@selection_marker)
       if ( stored_selection.length )
-        # console.log('selection to restore:',stored_selection)
+        console.log('selection to restore:',stored_selection) if @debug
         window.getSelection().removeAllRanges()
+        @_ignoreEvents = true # avoid deactivating because of addRange
         try
         
           range = document.createRange()
           range.selectNode(stored_selection[0])
           window.getSelection().removeAllRanges()
           window.getSelection().addRange(range)
-          @undoWaypoint()
         catch e
           # ignore
+        @_ignoreEvents = false # avoid deactivating because of addRange
 
 
     storeContentPosition: ->
       console.log('storeContentPosition') if @debug
-      @undoWaypoint()
       sel = window.getSelection()
-      # console.log('ranges to store:' + sel.rangeCount)
+      console.log('ranges to store:' + sel.rangeCount) if @debug
       if ( sel.rangeCount > 0 )
         range = sel.getRangeAt()
         tmp_id = 'range' + Date.now()
@@ -713,21 +783,30 @@ http://hallojs.org
             marker.contents().unwrap()
         for marker in remove_queue
           marker.remove()
-        console.log('before:' + @element.html()) if @debug
+        console.log('before:' + @element.html()) if @debug & 2
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
+        @_ignoreEvents = true # avoid deactivating because of addRange
         try
-          range.surroundContents(selection_identifier[0])
+          console.log(selection_identifier) if @debug
+          #range.surroundContents(selection_identifier[0])
+          selection_identifier[0].appendChild(range.extractContents());
+          range.insertNode(selection_identifier[0])
+          #range.surroundContents(selection_identifier)
+          console.log('stored') if @debug
         catch e
+          # deactivated - may issue in formula editor
           # utils.info(utils.tr('warning selected block contents'))
           new_range = range.cloneRange()
           new_range.collapse(false) # to end
           new_range.insertNode(selection_identifier[0])
+          console.log('block contents') if @debug
           #sel.removeAllRanges()
           #sel.addRange(range)
         range.selectNode(selection_identifier[0])
         window.getSelection().removeAllRanges()
         window.getSelection().addRange(range)
-        console.log('after:' + @element.html()) if @debug
+        @_ignoreEvents=false
+        console.log('after:' + @element.html()) if @debug & 2
         # console.log('selection added',@element.html())
 
     setContentPosition: (jq_node) ->
