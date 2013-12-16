@@ -20,6 +20,7 @@
       has_changed: false
       publication: {}
       values: {}
+      orig_values: {}
       default_css:
         'width': '100%'
         'height': '100%'
@@ -81,28 +82,18 @@
           #/bind change selectable
         jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
-          num_updates = 0
-          jQuery.each @options.values, (key, value) =>
-            num_updates = num_updates + 1
-          dfd_stored = jQuery.Deferred()
-          # console.log(num_updates,@options.values)
-          jQuery.each @options.values, (key, value) =>
-            omc.storePublicationDescriptionAttribute(@options.loid,key,value).done =>
-              # console.log(num_updates)
-              num_updates = num_updates - 1
-              if ( num_updates == 0 )
-                dfd_stored.resolve()
-            # console.log(@options.loid,key,value)
+          values = jQuery.extend({},@options.values)
+          orig_values = jQuery.extend({},@options.orig_values)
           @options.values = {}
-          dfd_stored.done =>
-            # console.log('updating sourcedescription after all attributes are stored')
-            if ( @options.nugget_loid )
-              update_nugget = jQuery('#' + @options.nugget_loid )
-              # console.log(update_nugget)
-              nugget.updateSourceDescriptionData(update_nugget).done =>
-                nugget.resetCitations(update_nugget)
-                occ.UpdateNuggetSourceDescriptions
-                  loid:@options.nugget_loid
+          @options.orig_values = {}
+            dfdlist = []
+            jQuery.each values, (key, value) =>
+              dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
+            jQuery.when.apply(jQuery,dfdlist).done () =>
+            dfdlist = []
+            jQuery.each orig_values, (key, value) =>
+              dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
+            jQuery.when.apply(jQuery,dfdlist).done () =>
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
@@ -110,6 +101,7 @@
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
+          @options.orig_values = {}
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('body').css({'overflow':'auto'})
@@ -118,11 +110,11 @@
           jQuery(window).resize()
           if ( @widget.find('#number_of_pages').length )
             pages = @widget.find('#number_of_pages')
-            selection_start = 0
-            selection_end = pages.val().length
-            if ( pages[0].setSelectionRange )
+
+            pages.closest('div').find('label').append('(' + @options.publication.number_of_pages + ')')
+            if ( @widget.find('#number_of_pages').val() == @options.publication.number_of_pages )
+              pages.val('')
               pages[0].focus();
-              pages[0].setSelectionRange(selection_start, selection_end)
         , 100
       jQuery(window).resize()
 
@@ -141,6 +133,7 @@
         dp = input.find('input').datepicker({showOn: "button", onChangeMonthYear: fn_update_select, beforeShow: fn_update_select, buttonImage: "../icons/actions/datepicker-p.png", buttonImageOnly: true, dateFormat: "yy-mm-dd", changeMonth: false, changeYear: false, constrainInput: false})
       input.find('input').bind 'blur', (event) =>
         @_formChanged(event,@options)
+      @options.orig_values[identifier] = value
       input
     _formChanged: (event, options) ->
       target = jQuery(event.target)
