@@ -11,7 +11,7 @@
 
         populateToolbar: (toolbar) ->
             buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
-            buttonize = (cmd, label) =>
+            buttonize = (label,cmd,cmd_fn) =>
                 button_label = label
                 if ( window.action_list && window.action_list['hallojs_' + cmd] != undefined )
                   button_label =  window.action_list['hallojs_' + cmd].title
@@ -22,15 +22,38 @@
                   label: button_label
                   icon: if cmd is 'undo' then 'icon-undo' else 'icon-repeat'
                   command: cmd
+                  command_function: cmd_fn
                   queryState: false
                   cssClass: @options.buttonCssClass
                 buttonset.append buttonElement
-            buttonize "undo", "Undo"
-            buttonize "redo", "Redo"
+            if ( window.wke )
+              @options.editable.registerKey 'ctrl', 90, (event) =>
+                event.preventDefault()
+                @_undo(jQuery(event.currentTarget))
+              @options.editable.registerKey 'ctrl,shift', 90, (event) =>
+                event.preventDefault()
+                @_redo(jQuery(event.currentTarget))
+
+              buttonize "Undo", 'undo', () =>
+                @_undo(@options.editable)
+              buttonize "Redo", 'redo', () =>
+                @_redo(@options.editable)
+            else
+              buttonize "Undo", "undo"
+              buttonize "Redo", "redo"
 
             buttonset.hallobuttonset()
             toolbar.append buttonset
 
         _init: ->
+
+        _undo: (target) ->
+          console.log('undo toolbar fn')
+          @options.editable.undo(target)
+
+        _redo: (target) ->
+          console.log('redo toolbar fn')
+          return if ( typeof @options.editable._undo_stack != 'object' )
+          @options.editable.redo(target)
 
 )(jQuery)
