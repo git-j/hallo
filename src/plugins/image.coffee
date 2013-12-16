@@ -30,6 +30,7 @@
         contentId = target_id
         console.log('setup image form',select_target,target_id) if @debug
         return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
+        @options.editable.undoWaypointStart('image')
         @tmpid='mod_' + (new Date()).getTime()
         if ( typeof select_target != 'undefined' )
           console.log('selected target',$(select_target).html())
@@ -186,10 +187,12 @@
         image = $('#' + @tmpid)
         @options.editable.setContentPosition(image)
         image.removeAttr('id')
+        @options.editable.undoWaypointCommit()
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
         image = $('#' + @tmpid)
         image.remove()
+        @options.editable.undoWaypointCommit()
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 

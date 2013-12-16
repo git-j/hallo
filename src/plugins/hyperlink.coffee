@@ -25,6 +25,7 @@
       toolbar.append target
       setup= =>
         return if !window.getSelection().rangeCount
+        @options.editable.undoWaypointStart('hyperlink')
         @tmpid='mod_' + (new Date()).getTime()
         sel = window.getSelection()
         range = sel.getRangeAt()
@@ -140,6 +141,7 @@
     _applyAction: () ->
       @recalcHTML()
       $('#' + @tmpid).removeAttr('id')
+      @options.editable.undoWaypointCommit()
       @dropdownform.hallodropdownform('hideForm')
     _removeAction: () ->
       modified = false
@@ -151,6 +153,7 @@
       else
         $('#' + @tmpid).remove()
 
+      @options.editable.undoWaypointCommit()
       @dropdownform.hallodropdownform('hideForm')
     _selectAction: () ->
       current_hyperlink = jQuery('#' + @tmpid)

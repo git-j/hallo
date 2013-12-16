@@ -57,6 +57,9 @@
       toolbar.append target
       setup= (select_target,target_id) =>
         return if !window.getSelection().rangeCount
+        @options.editable.undoWaypointStart('formula')
+        @options.editable._current_undo_command.postdo = () =>
+          @recalcMath()
         contentId = target_id
         # target_id != parent-function:contentId
         # as the setup function is called by live()
@@ -256,9 +259,11 @@
         else
           formulas = $('.formula').each (index,item) =>
             jQuery(item).removeAttr('id')
+        @options.editable.undoWaypointCommit()
         @dropdownform.hallodropdownform('hideForm')
       buttons.append addButton "remove", =>
         $('#' + @tmpid).remove()
+        @options.editable.undoWaypointCommit()
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append(buttons)
       contentArea

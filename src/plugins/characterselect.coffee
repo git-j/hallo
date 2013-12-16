@@ -25,6 +25,7 @@
       toolbar.append target
       setup= =>
         # return if !window.getSelection().rangeCount
+        @options.editable.undoWaypointStart('characterselect')
         jQuery(target).find('select').each (index,item) =>
           jQuery(item).selectBox()
         target.bind 'hide', =>
@@ -225,6 +226,7 @@
 
       @_addRecent(character.html())
       character.contents().unwrap();
+      @options.editable.undoWaypointCommit()
       @dropdownform.hallodropdownform('hideForm')
 
     _insertAction: () ->

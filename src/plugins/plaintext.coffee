@@ -54,6 +54,7 @@
       @editable_element.css
         'opacity': '0.5'
       @options.editable.storeContentPosition()
+      @options.editable.undoWaypointStart('plaintext')
 
       jQuery('.misspelled').remove()
       @id = "#{@options.uuid}-#{@widgetName}-area"
@@ -92,6 +93,7 @@
         dom.prepareTextForEdit(@editable_element)
         if ( typeof MathJax == 'object' )
           MathJax.Hub.Queue(['Typeset',MathJax.Hub])
+        @options.editable.undoWaypointCommit()
         @options.editable.restoreContentPosition()
 
     setup: () ->

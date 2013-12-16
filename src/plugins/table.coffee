@@ -65,7 +65,7 @@
         else
           #create
           table_placeholder = '<table id="' + @tmpid + '" border="1" class="table-border"></table>'
-          document.execCommand('insertHTML',false,table_placeholder)
+          @options.editable.execute('insertHTML',table_placeholder)
         recalc = =>
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300

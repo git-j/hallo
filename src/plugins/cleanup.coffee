@@ -51,6 +51,7 @@
         el
       contentAreaUL.append addButton "clean_html", =>
         @options.editable.storeContentPosition()
+        @options.editable.undoWaypointStart('cleanup')
         console.log('cleanhtml') if @debug
         jQuery('.misspelled').remove()
         dom = new IDOM()
@@ -71,11 +72,13 @@
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element).done =>
             @options.editable.restoreContentPosition()
+            @options.editable.undoWaypointCommit()
 
 
       contentAreaUL.append addButton "clean_plain", =>
         jQuery('.misspelled').remove()
         @options.editable.storeContentPosition()
+        @options.editable.undoWaypointStart('cleanup')
         dom = new IDOM()
         dom.plainTextParagraphs(@options.editable.element)
         @options.editable.store()
@@ -85,6 +88,8 @@
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element).done => 
             @options.editable.restoreContentPosition()
+            @options.editable.undoWaypointCommit()
+
       contentArea
 
     _prepareButton: (setup, target) ->

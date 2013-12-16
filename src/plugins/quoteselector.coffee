@@ -148,7 +148,7 @@
         text = content.find('.content')
         text.attr('contenteditable','true');
         text.focus();
-        document.execCommand('selectAll',false)
+        @options.editable.execute('selectAll')
 
     loadPublications: (loid) ->
       list = new List();
