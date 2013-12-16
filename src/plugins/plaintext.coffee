@@ -177,7 +177,7 @@
         'position': 'fixed'
         'top': '5px'
         'left': '8px'
-        'width': $(window).width()
+        'width': ($(window).width() - 16) + 'px'
         'height': ($(window).height() - 48) + 'px'
         'max-width':  $(window).width()
         'max-height': $(window).height()
