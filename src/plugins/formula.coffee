@@ -57,6 +57,7 @@
       toolbar.append target
       setup= (select_target,target_id) =>
         return if !window.getSelection().rangeCount
+        @options.editable.restoreContentPosition()
         @options.editable.undoWaypointStart('formula')
         @options.editable._current_undo_command.postdo = () =>
           @recalcMath()
@@ -68,6 +69,7 @@
 
         @tmpid = 'mod_' + (new Date()).getTime()
         sel = window.getSelection()
+        # sel may not be correct
         range = sel.getRangeAt()
         @cur_formula = null
         @action = 'insert'
@@ -102,8 +104,10 @@
           if ( @options.inline )
             @cur_formula.find('.formula').addClass('inline')
           #range.insertNode(@cur_formula[0])
-          @cur_formula.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
-          range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
+          selection_marker = @options.editable.element.find(@options.editable.selection_marker)
+          if ( selection_marker.length )
+            @cur_formula.insertBefore(selection_marker)
+            range.selectNode(selection_marker[0])
           window.getSelection().removeAllRanges()
           window.getSelection().addRange(range)
 
