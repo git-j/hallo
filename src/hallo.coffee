@@ -860,6 +860,7 @@ http://hallojs.org
       @_current_undo_command.before_data = @element.html()
       if ( typeof id != 'undefined' )
         @_current_undo_command.id = id
+      @_current_undo_command
 
     undoWaypointCommit: (auto) ->
       return if ( typeof UndoCommand == 'undefined' )
