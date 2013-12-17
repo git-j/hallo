@@ -98,7 +98,7 @@
           # console.log(num_updates,values)
 
           # make editing of values undoable
-          undo_command.redo = (event) =>
+          undo_command.redo = (event) => # event may be undefined
             undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each values, (key, value) =>
@@ -106,8 +106,9 @@
             jQuery.when.apply(jQuery,dfdlist).done () =>
               undo_command.dfd.resolve()
             undo_command.dfd.promise()
+            undo_command.postdo()
 
-          undo_command.undo = (event) =>
+          undo_command.undo = (event) => # event may be undefined
             undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each orig_values, (key, value) =>
@@ -115,6 +116,7 @@
             jQuery.when.apply(jQuery,dfdlist).done () =>
               undo_command.dfd.resolve()
             undo_command.dfd.promise()
+            undo_command.postdo()
 
           undo_command.postdo = () =>
             undo_command.dfd.done () =>
@@ -127,7 +129,7 @@
                     loid:nugget_loid
           # run the action
           undo_command.redo()
-          window.__current_undo_command = undo_command # uses global object as editable is destroyed
+          undo_manager = (new UndoManager()).getStack()
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
