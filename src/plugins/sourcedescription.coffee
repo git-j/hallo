@@ -106,7 +106,6 @@
             replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
 
             if ( has_block_contents )
-              # wrong range:document.execCommand('insertHTML',false,replacement)
               utils.info(utils.tr('warning selected block contents'))
               selection.parent().append(replacement)
             else
