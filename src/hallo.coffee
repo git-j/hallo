@@ -811,7 +811,6 @@ http://hallojs.org
         event.data.turnOff()
       event.data.turnOn()
       event.data.restoreContentPosition()
-      event.data.undoWaypointLoad()
 
     _deactivated: (event) ->
       console.log('hallo deactivated, set window.debug_hallotoolbar true to prevent') if @debug
@@ -866,11 +865,11 @@ http://hallojs.org
       return if ( typeof UndoCommand == 'undefined' )
       return if ( typeof UndoStack == 'undefined' )
       return if ( !@_current_undo_command )
+      @_undo_stack = @undoWaypointLoad(@element)
       return if ( auto && @_undo_stack.canRedo() )
       undo_command = @_current_undo_command
       undo_command.after_data = @element.html()
       return if undo_command.after_data == undo_command.before_data
-      @_undo_stack.target = @element
       undo_command.undo = () =>
         #console.log('undo command executing',undo_command.before_data,@_undo_stack.target.html())
         @_undo_stack.target.html(undo_command.before_data)
@@ -898,25 +897,30 @@ http://hallojs.org
       @_current_undo_command = null
     
     undo: (target) ->
+      if ( target )
+        # use event trigger element
+        @_undo_stack = @undoWaypointLoad(target)
       return if (!@_undo_stack)
-      @_undo_stack.target = target if ( target )
-      if !@_undo_stack.canRedo()
+
+      if !@_undo_stack.canRedo() && @_undo_stack.canUndo()
         undo_command = @_undo_stack.command(@_undo_stack.current_index)
         undo_command.after_data = @_undo_stack.target.html() 
       @_undo_stack.undo()
     
     redo: (target) ->
+      if ( target )
+        # use event trigger element
+        @_undo_stack = @undoWaypointLoad(target)
       return if (!@_undo_stack)
-      @_undo_stack.target = target if ( target )
       @_undo_stack.redo()
 
-    undoWaypointIdentifier: ->
-      classname = @element.attr('class')
+    undoWaypointIdentifier: (target) ->
+      classname = target.attr('class')
       classname = classname.replace(/\s/g,'')
       classname = classname.replace(/isModified/g,'')
       classname = classname.replace(/inEditMode/g,'')
-      id = @element.attr('id')
-      pelement = @element.parent()
+      id = target.attr('id')
+      pelement = target.parent()
       while ( typeof id == 'undefined' && pelement )
         id = pelement.attr('id')
         pelement = pelement.parent()
@@ -926,13 +930,15 @@ http://hallojs.org
       return classname + id
 
 
-    undoWaypointLoad: ->
+    undoWaypointLoad: (target) ->
       return if ( typeof UndoManager == 'undefined' )
 
       return if ( typeof UndoStack == 'undefined' )
-      wpid = @undoWaypointIdentifier()
+      wpid = @undoWaypointIdentifier(target)
       @_undo_stack = (new UndoManager()).getStack(wpid)
       @_undo_stack.setUndoLimit(64) # 64x128x6editors ~ 48mb of worst case undo buffering
+      @_undo_stack.target = target
+      return @_undo_stack
 
     restoreContentPosition: ->
       console.log('restoreContentPosition') if @debug
