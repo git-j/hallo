@@ -43,20 +43,18 @@
         @options.target = toolbar.find('.dropdown-form-' + @options.command)
         return if ( !@options.target.length )
         @button = toolbar.find('.' + @options.command + '_button')
-        if ( window.live_target )
-          @_showTarget(window.live_target)
-          window.live_target = null
-        else
-          @_showTarget(event.target)
+        @_showTarget(@options.target)
 
 
       @element.append @button
     bindShowHandler: (event) ->
       @_showTarget(event.target)
+
     bindShow: (selector) ->
       event_name = 'click'
       console.log('bindShow:',selector,event_name) if @debug
-      jQuery(document).delegate selector, event_name, =>
+      jQuery(document).undelegate selector, event_name
+      jQuery(document).delegate selector, event_name, (event) =>
       #jQuery(selector).live event_name, =>
         console.log(event.target) if @debug
       #   # find the toolbar and reset the button/@options.target members
