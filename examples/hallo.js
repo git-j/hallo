@@ -168,12 +168,7 @@
             return;
           }
           _this.button = toolbar.find('.' + _this.options.command + '_button');
-          if (window.live_target) {
-            _this._showTarget(window.live_target);
-            return window.live_target = null;
-          } else {
-            return _this._showTarget(event.target);
-          }
+          return _this._showTarget(_this.options.target);
         });
         return this.element.append(this.button);
       },
@@ -187,7 +182,8 @@
         if (this.debug) {
           console.log('bindShow:', selector, event_name);
         }
-        return jQuery(document).delegate(selector, event_name, function() {
+        jQuery(document).undelegate(selector, event_name);
+        return jQuery(document).delegate(selector, event_name, function(event) {
           var target, toolbar;
           if (_this.debug) {
             console.log(event.target);
@@ -813,6 +809,9 @@
         range = this.getSelection();
         return this.element.has(range.startContainer).length > 0;
       },
+      getInstance: function(api_cb) {
+        return api_cb(this);
+      },
       getSelection: function() {
         var range, sel;
         sel = rangy.getSelection();
@@ -1390,8 +1389,7 @@
           event.data.turnOff();
         }
         event.data.turnOn();
-        event.data.restoreContentPosition();
-        return event.data.undoWaypointLoad();
+        return event.data.restoreContentPosition();
       },
       _deactivated: function(event) {
         var contents;
@@ -1459,8 +1457,9 @@
         this._current_undo_command = new UndoCommand();
         this._current_undo_command.before_data = this.element.html();
         if (typeof id !== 'undefined') {
-          return this._current_undo_command.id = id;
+          this._current_undo_command.id = id;
         }
+        return this._current_undo_command;
       },
       undoWaypointCommit: function(auto) {
         var previous_command, undo_command,
@@ -1474,6 +1473,7 @@
         if (!this._current_undo_command) {
           return;
         }
+        this._undo_stack = this.undoWaypointLoad(this.element);
         if (auto && this._undo_stack.canRedo()) {
           return;
         }
@@ -1482,7 +1482,6 @@
         if (undo_command.after_data === undo_command.before_data) {
           return;
         }
-        this._undo_stack.target = this.element;
         undo_command.undo = function() {
           _this._undo_stack.target.html(undo_command.before_data);
           _this.restoreContentPosition();
@@ -1513,35 +1512,35 @@
       },
       undo: function(target) {
         var undo_command;
+        if (target) {
+          this._undo_stack = this.undoWaypointLoad(target);
+        }
         if (!this._undo_stack) {
           return;
         }
-        if (target) {
-          this._undo_stack.target = target;
-        }
-        if (!this._undo_stack.canRedo()) {
+        if (!this._undo_stack.canRedo() && this._undo_stack.canUndo()) {
           undo_command = this._undo_stack.command(this._undo_stack.current_index);
           undo_command.after_data = this._undo_stack.target.html();
         }
         return this._undo_stack.undo();
       },
       redo: function(target) {
+        if (target) {
+          this._undo_stack = this.undoWaypointLoad(target);
+        }
         if (!this._undo_stack) {
           return;
         }
-        if (target) {
-          this._undo_stack.target = target;
-        }
         return this._undo_stack.redo();
       },
-      undoWaypointIdentifier: function() {
+      undoWaypointIdentifier: function(target) {
         var classname, id, pelement;
-        classname = this.element.attr('class');
+        classname = target.attr('class');
         classname = classname.replace(/\s/g, '');
         classname = classname.replace(/isModified/g, '');
         classname = classname.replace(/inEditMode/g, '');
-        id = this.element.attr('id');
-        pelement = this.element.parent();
+        id = target.attr('id');
+        pelement = target.parent();
         while (typeof id === 'undefined' && pelement) {
           id = pelement.attr('id');
           pelement = pelement.parent();
@@ -1551,7 +1550,7 @@
         }
         return classname + id;
       },
-      undoWaypointLoad: function() {
+      undoWaypointLoad: function(target) {
         var wpid;
         if (typeof UndoManager === 'undefined') {
           return;
@@ -1559,9 +1558,11 @@
         if (typeof UndoStack === 'undefined') {
           return;
         }
-        wpid = this.undoWaypointIdentifier();
+        wpid = this.undoWaypointIdentifier(target);
         this._undo_stack = (new UndoManager()).getStack(wpid);
-        return this._undo_stack.setUndoLimit(64);
+        this._undo_stack.setUndoLimit(64);
+        this._undo_stack.target = target;
+        return this._undo_stack;
       },
       restoreContentPosition: function() {
         var e, range, stored_selection;
@@ -1817,7 +1818,6 @@
           var dom, has_block_contents, nugget, replacement, selection;
           if (element === '__associate') {
             window.__start_mini_activity = true;
-            window.__current_undo_command = this_editable._current_undo_command;
             return jQuery('body').hallopublicationselector({
               'editable': this_editable
             });
@@ -2209,10 +2209,11 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var latex_formula, range, recalc, sel, selected_formula, title;
+          var latex_formula, range, recalc, sel, selected_formula, selection_marker, title;
           if (!window.getSelection().rangeCount) {
             return;
           }
+          _this.options.editable.restoreContentPosition();
           _this.options.editable.undoWaypointStart('formula');
           _this.options.editable._current_undo_command.postdo = function() {
             return _this.recalcMath();
@@ -2261,8 +2262,11 @@
             if (_this.options.inline) {
               _this.cur_formula.find('.formula').addClass('inline');
             }
-            _this.cur_formula.insertBefore(_this.options.editable.element.find(_this.options.editable.selection_marker));
-            range.selectNode(_this.options.editable.element.find(_this.options.editable.selection_marker)[0]);
+            selection_marker = _this.options.editable.element.find(_this.options.editable.selection_marker);
+            if (selection_marker.length) {
+              _this.cur_formula.insertBefore(selection_marker);
+              range.selectNode(selection_marker[0]);
+            }
             window.getSelection().removeAllRanges();
             window.getSelection().addRange(range);
             $('#' + contentId + 'latex').val(_this.options["default"]);
@@ -3305,8 +3309,9 @@
         ov_data += '</ul><ul>';
         ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button>';
         if (!_this.editable || _this.editable.nugget_only) {
-          _this.editable = {};
-          _this.editable.element = element.closest('.nugget');
+          jQuery(element.closest('.inEditMode')).hallo('getInstance', function(element_editable) {
+            return _this.editable = element_editable;
+          });
           _this.editable.nugget_only = true;
         }
         if (_this.editable.element) {
@@ -3319,7 +3324,6 @@
         ov_data += '</ul>';
         target.append(ov_data);
         sourcedescriptioneditor = function() {
-          console.warn('@editable.undoWaypoint()');
           return jQuery('body').hallosourcedescriptioneditor({
             'loid': _this.citation_data.loid,
             'data': _this.citation_data,
@@ -3332,13 +3336,18 @@
         target.find('.edit').bind('click', sourcedescriptioneditor);
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
-          var citation, citation_html, cite, is_auto_cite, loid, nugget, selection;
+          var citation, citation_html, cite, is_auto_cite, loid, nugget, publication_loid, sd_loid, selection, undo_command;
           console.warn('@editable.undoWaypoint()');
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
           is_auto_cite = element.closest('.cite').hasClass('auto-cite');
           citation_html = '';
           selection = window.getSelection();
+          if (typeof UndoCommand === 'undefined') {
+            undo_command = new UndoCommand();
+            undo_command.id = 'remove-publication';
+            undo_command.before_data = _this.editable.element.html();
+          }
           if (citation.length) {
             citation_html = citation.html();
             citation.contents().unwrap();
@@ -3353,7 +3362,19 @@
           jQuery('#' + _this.overlay_id).remove();
           nugget = new DOMNugget();
           if (is_auto_cite) {
-            nugget.removeSourceDescription(_this.editable.element, _this.citation_data.loid);
+            element = _this.editable.element;
+            sd_loid = _this.citation_data.loid;
+            publication_loid = _this.citation_data.ploid;
+            nugget = element.closest('.nugget').attr('id');
+            undo_command.undo = function(event) {
+              undo_command.dfd = omc.AssociatePublication(nugget_loid, publication_loid);
+              return undo_command.postdo();
+            };
+            undo_command.redo = function(event) {
+              undo_command.dfd = nugget.removeSourceDescription(_this.editable.element, sd_loid);
+              return undo_command.postdo();
+            };
+            undo_command.postdo = function(event) {};
           }
           if (_this.editable.element) {
             _this.editable.element.find('.auto-cite').remove();
@@ -3614,7 +3635,7 @@
             return jQuery('#sourcedescriptioneditor_selectable').selectBox();
           });
           jQuery('#sourcedescriptioneditor_apply').bind('click', function() {
-            var loid, nugget_loid, orig_values, undo_command, values;
+            var loid, nugget_loid, orig_values, undo_command, undo_manager, values;
             _this.widget.focus();
             values = jQuery.extend({}, _this.options.values);
             orig_values = jQuery.extend({}, _this.options.orig_values);
@@ -3641,7 +3662,8 @@
               jQuery.when.apply(jQuery, dfdlist).done(function() {
                 return undo_command.dfd.resolve();
               });
-              return undo_command.dfd.promise();
+              undo_command.dfd.promise();
+              return undo_command.postdo();
             };
             undo_command.undo = function(event) {
               var dfdlist;
@@ -3653,7 +3675,8 @@
               jQuery.when.apply(jQuery, dfdlist).done(function() {
                 return undo_command.dfd.resolve();
               });
-              return undo_command.dfd.promise();
+              undo_command.dfd.promise();
+              return undo_command.postdo();
             };
             undo_command.postdo = function() {
               return undo_command.dfd.done(function() {
@@ -3670,7 +3693,7 @@
               });
             };
             undo_command.redo();
-            window.__current_undo_command = undo_command;
+            undo_manager = (new UndoManager()).getStack();
             jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             _this.widget.remove();
             return jQuery('body').css({
@@ -4330,7 +4353,6 @@
           }
           _this.textarea.val(sel_html);
           if (selection_pos_start >= 0 && selection_pos_end >= 0) {
-            console.log(selection_pos_start, selection_pos_end);
             _this.options.editable.setSelectionRange(_this.textarea.get(0), selection_pos_start, selection_pos_end);
           }
           _this._setup_syntax_highlight();
@@ -4855,31 +4877,26 @@
         });
         tmp_id = 'tmp_' + (new Date()).getTime();
         return dfo.done(function(result) {
-          var data, element, new_sd_node, nugget, range, scb, sel, selection, selection_nodes;
+          var data, element, new_sd_node, nugget, old, range, replacement, sel, selection, selection_nodes;
           data = result.loid;
           element = _this.current_node_label;
-          scb = function(parent, old) {
-            var replacement;
-            replacement = false;
-            if (old.html() === "" || old.html() === "&nbsp;" || old.text() === " ") {
-              replacement = "";
-            } else {
-              replacement = "<span class=\"citation\">" + old.html() + "</span>";
-            }
-            replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
-            return replacement;
-          };
           selection = _this.options.editable.element.find(_this.options.editable.selection_marker);
+          old = selection;
+          if (old.html() === "" || old.html() === "&nbsp;" || old.text() === " ") {
+            replacement = "";
+          } else {
+            replacement = "<span class=\"citation\">" + old.html() + "</span>";
+          }
+          replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
           if (selection.length) {
             range = document.createRange();
             sel = window.getSelection();
             range.selectNode(selection[0]);
             if (selection.text() === '') {
-              range.setStartAfter(range.endContainer);
+              jQuery(replacement).insertAfter(selection.parent());
+            } else {
+              selection.html(replacement);
             }
-            sel.removeAllRanges();
-            sel.addRange(range);
-            _this.options.editable.replaceSelectionHTML(scb);
             selection_nodes = _this.options.editable.element.find(_this.options.editable.selection_marker);
             selection_nodes.each(function(index, item) {
               var sel_item;
