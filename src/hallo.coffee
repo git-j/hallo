@@ -190,9 +190,10 @@ http://hallojs.org
 
       unless @element.html().trim()
         @element.html this.options.placeholder
-        @element.css
-          'min-width': @element.innerWidth()
-          'min-height': @element.innerHeight()
+        unless ( @element.is('h1,h2,h3,h4,h5,h6'))
+          @element.css
+            'min-width': @element.innerWidth()
+            'min-height': @element.innerHeight()
 
       unless @bound
         @element.bind "focus", this, @_activated
