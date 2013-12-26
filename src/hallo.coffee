@@ -820,7 +820,7 @@ http://hallojs.org
       if ( @autostore_timer )
         window.clearTimeout(@autostore_timer)
       event.data.undoWaypointCommit(true)
-      event.data.storeContentPosition()
+      event.data.storeContentPosition(true)
       if event.data.options.store_callback
         contents = event.data.getContents()
         if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
@@ -960,7 +960,7 @@ http://hallojs.org
         @_ignoreEvents = false # avoid deactivating because of addRange
 
 
-    storeContentPosition: ->
+    storeContentPosition: (avoid_change_selection)->
       console.log('storeContentPosition') if @debug
       sel = window.getSelection()
       console.log('ranges to store:' + sel.rangeCount) if @debug
@@ -996,9 +996,11 @@ http://hallojs.org
           console.log('block contents') if @debug
           #sel.removeAllRanges()
           #sel.addRange(range)
-        range.selectNode(selection_identifier[0])
-        window.getSelection().removeAllRanges()
-        window.getSelection().addRange(range)
+        if ( typeof avoid_change_selection == 'undefined' )
+          range.selectNode(selection_identifier[0])
+          window.getSelection().removeAllRanges()
+          window.getSelection().addRange(range)
+
         @_ignoreEvents=false
         console.log('after:' + @element.html()) if @debug & 2
         # console.log('selection added',@element.html())
