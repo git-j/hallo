@@ -62,11 +62,16 @@ class _Citehandler
         ov_data+= '<li class="footnote">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
       if ( @citation_data.creates_bibliography )
         ov_data+= '<li class="bibliography">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
-      ov_data+= '</ul><ul>'
-      ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button>'
+      ov_data+= '</ul><ul class="actions">'
+      # TODO: rewrite to use actions
+      ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
+      ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
+      ov_data+= '<li>'
       if ( !@editable || @editable.nugget_only )
-        @editable = {}
-        @editable.element = element.closest('.nugget')
+        jQuery(element.closest('.inEditMode')).hallo 'getInstance', (element_editable) =>
+          @editable = element_editable
+        if ( typeof @editable == 'undefined' )
+          @editable = {}
         @editable.nugget_only = true #     console.log('TODO: find reset point for switching nuggets, otherwise wrong nugget');
       if ( @editable.element )
         if ( element.closest('.cite').hasClass('auto-cite') )
@@ -77,7 +82,6 @@ class _Citehandler
 
       target.append(ov_data)
       sourcedescriptioneditor= =>
-        console.warn('@editable.undoWaypoint()')
         jQuery('body').hallosourcedescriptioneditor
           'loid':@citation_data.loid
           'data':@citation_data
@@ -86,6 +90,9 @@ class _Citehandler
           'back':true
           'nugget_loid':@editable.element.closest('.Text').attr('id')
       target.find('.edit').bind 'click', sourcedescriptioneditor
+      target.find('.goto').bind 'click', (ev) =>
+        console.log(@citation_data)
+        occ.GotoObject(@citation_data.publication_loid)
       element.bind 'click', sourcedescriptioneditor
       target.find('.remove').bind 'click', (ev) =>
         #debug.log(element)
