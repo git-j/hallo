@@ -760,10 +760,12 @@
         this.element.attr("contentEditable", true);
         if (!this.element.html().trim()) {
           this.element.html(this.options.placeholder);
-          this.element.css({
-            'min-width': this.element.innerWidth(),
-            'min-height': this.element.innerHeight()
-          });
+          if (!(this.element.is('h1,h2,h3,h4,h5,h6'))) {
+            this.element.css({
+              'min-width': this.element.innerWidth(),
+              'min-height': this.element.innerHeight()
+            });
+          }
         }
         if (!this.bound) {
           this.element.bind("focus", this, this._activated);
@@ -1406,7 +1408,7 @@
           window.clearTimeout(this.autostore_timer);
         }
         event.data.undoWaypointCommit(true);
-        event.data.storeContentPosition();
+        event.data.storeContentPosition(true);
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
           if (contents === '' || contents === ' ' || contents === '<br>' || contents === event.data.options.placeholder) {
@@ -1587,7 +1589,7 @@
           return this._ignoreEvents = false;
         }
       },
-      storeContentPosition: function() {
+      storeContentPosition: function(avoid_change_selection) {
         var e, marker, new_range, range, remove_queue, sel, selection_identifier, tmp_id, _i, _len,
           _this = this;
         if (this.debug) {
@@ -1638,9 +1640,11 @@
               console.log('block contents');
             }
           }
-          range.selectNode(selection_identifier[0]);
-          window.getSelection().removeAllRanges();
-          window.getSelection().addRange(range);
+          if (typeof avoid_change_selection === 'undefined') {
+            range.selectNode(selection_identifier[0]);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+          }
           this._ignoreEvents = false;
           if (this.debug & 2) {
             return console.log('after:' + this.element.html());
@@ -3306,12 +3310,17 @@
         if (_this.citation_data.creates_bibliography) {
           ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
         }
-        ov_data += '</ul><ul>';
-        ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button>';
+        ov_data += '</ul><ul class="actions">';
+        ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
+        ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
+        ov_data += '<li>';
         if (!_this.editable || _this.editable.nugget_only) {
           jQuery(element.closest('.inEditMode')).hallo('getInstance', function(element_editable) {
             return _this.editable = element_editable;
           });
+          if (typeof _this.editable === 'undefined') {
+            _this.editable = {};
+          }
           _this.editable.nugget_only = true;
         }
         if (_this.editable.element) {
@@ -3334,6 +3343,10 @@
           });
         };
         target.find('.edit').bind('click', sourcedescriptioneditor);
+        target.find('.goto').bind('click', function(ev) {
+          console.log(_this.citation_data);
+          return occ.GotoObject(_this.citation_data.publication_loid);
+        });
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
           var citation, citation_html, cite, is_auto_cite, loid, nugget, publication_loid, sd_loid, selection, undo_command;
