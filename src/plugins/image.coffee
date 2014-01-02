@@ -66,6 +66,9 @@
             border = true if border == "1"
           else
             border = false
+          url = url.replace(/^file:\/\//,'')
+          url = url.replace(/^\/(.):/,'$1:')
+          url = wkej.instance.updateRefeusPath(url)
           $('#' + contentId + 'url').val(url)
           $('#' + contentId + 'alt').val(alt)
           $('#' + contentId + 'title').val(title)
@@ -114,7 +117,15 @@
       #console.log(url)
       # TODO use wke env to get theme
       if ( url == '' )
-          url = '../styles/default/icons/types/PubArtwork.png'
+        url = '../styles/default/icons/types/PubArtwork.png'
+      else
+        url = wkej.instance.updateLocalPath(url)
+        if ( url.indexOf(':') == 1 )
+          url = '/' + url
+
+        url = 'file://' + url
+
+
       image.attr('src',url)
       image.attr('alt',alt)
       image.attr('title',title)
@@ -174,15 +185,14 @@
       contentAreaUL.append addButton "browse", =>
         wkej.instance.insert_image_dfd = new $.Deferred();
         wkej.instance.insert_image_dfd.done (path) =>
-          if ( path.indexOf(':') == 1 )
-            path = '/' + path
-          path = 'file://' + path
-          # TODO: update App::mediaPath('images') if applicable
-          # to refeus://localhost/...
+          path = wkej.instance.updateRefeusPath(path);
           $('#' + contentId + 'url').val(path)
           delete wkej.instance.insert_image_dfd
           @updateImageHTML(contentId)
-        occ.SelectImage()
+        path = $('#' + contentId + 'url').val()
+        path = wke.storageLocation('PicturesLocation') if ( typeof path == 'undefined' || path == '' )
+        path = wkej.instance.updateLocalPath(path)
+        occ.SelectImage(path);
         wkej.instance.insert_image_dfd.promise()
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
