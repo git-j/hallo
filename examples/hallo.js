@@ -948,12 +948,20 @@
           }
         }
         range = window.getSelection().getRangeAt();
-        if (range.collapsed) {
+        if (range.collapsed && command.indexOf('paste') !== 0) {
           range.selectNode(range.startContainer);
           window.getSelection().addRange(range);
         }
-        if (document.execCommand(command, false, value)) {
-          this.element.trigger("change");
+        if (command.indexOf('copy') === 0) {
+          this._copy();
+        } else if (command.indexOf('cut') === 0) {
+          this._cut({
+            data: this
+          });
+        } else {
+          if (document.execCommand(command, false, value)) {
+            this.element.trigger("change");
+          }
         }
         return this.undoWaypointCommit(false);
       },
@@ -1041,11 +1049,14 @@
         if (!window.wke) {
           return;
         }
-        event.preventDefault();
+        if (typeof event === 'object' && typeof event.preventDefault === 'function') {
+          event.preventDefault();
+        }
         range = window.getSelection().getRangeAt();
         rdata = jQuery('<div/>').append(range.cloneContents());
         dom = new IDOM();
         dom.cleanExport(rdata);
+        rdata.find(this.selection_marker).unwrap();
         if (this.debug) {
           console.log(range, rdata, rdata.html());
         }
@@ -1077,7 +1088,7 @@
         if (pdata === '') {
           pdata = event.originalEvent.clipboardData.getData('text/plain');
         }
-        if (typeof pdata === 'undefined' && pdata === '') {
+        if (typeof pdata === 'undefined' || pdata === '') {
           return;
         }
         event.preventDefault();
@@ -1090,13 +1101,17 @@
         sel = window.getSelection();
         range = sel.getRangeAt();
         range.deleteContents();
-        if (pdata.indexOf('<') === 0) {
+        if (jq_temp.contents().length > 1) {
           range.insertNode(jq_temp[0]);
         } else {
           jq_temp = jq_temp.contents();
           jq_temp.unwrap();
-          range.insertNode(jq_temp.contents()[0]);
+          range.insertNode(jq_temp[0]);
         }
+        range.selectNode(jq_temp[0]);
+        range.collapse(false);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
         return event.data.undoWaypointCommit(false);
       },
       _ignoreKeys: function(code) {
@@ -5113,6 +5128,9 @@
             } else {
               border = false;
             }
+            url = url.replace(/^file:\/\//, '');
+            url = url.replace(/^\/(.):/, '$1:');
+            url = wkej.instance.updateRefeusPath(url);
             $('#' + contentId + 'url').val(url);
             $('#' + contentId + 'alt').val(alt);
             $('#' + contentId + 'title').val(title);
@@ -5168,6 +5186,12 @@
         }
         if (url === '') {
           url = '../styles/default/icons/types/PubArtwork.png';
+        } else {
+          url = wkej.instance.updateLocalPath(url);
+          if (url.indexOf(':') === 1) {
+            url = '/' + url;
+          }
+          url = 'file://' + url;
         }
         image.attr('src', url);
         image.attr('alt', alt);
@@ -5229,17 +5253,20 @@
         contentAreaUL.append(addInput("text", "align", "center"));
         contentAreaUL.append(addInput("checkbox", "border", false));
         contentAreaUL.append(addButton("browse", function() {
+          var path;
           wkej.instance.insert_image_dfd = new $.Deferred();
           wkej.instance.insert_image_dfd.done(function(path) {
-            if (path.indexOf(':') === 1) {
-              path = '/' + path;
-            }
-            path = 'file://' + path;
+            path = wkej.instance.updateRefeusPath(path);
             $('#' + contentId + 'url').val(path);
             delete wkej.instance.insert_image_dfd;
             return _this.updateImageHTML(contentId);
           });
-          occ.SelectImage();
+          path = $('#' + contentId + 'url').val();
+          if (typeof path === 'undefined' || path === '') {
+            path = wke.storageLocation('PicturesLocation');
+          }
+          path = wkej.instance.updateLocalPath(path);
+          occ.SelectImage(path);
           return wkej.instance.insert_image_dfd.promise();
         }));
         contentAreaUL.append(addButton("apply", function() {
