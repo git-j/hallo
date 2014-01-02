@@ -234,6 +234,10 @@ http://hallojs.org
       range = @getSelection()
       return @element.has(range.startContainer).length > 0
 
+    # Get current Instance to use it in external plugins
+    # a bit hacky but otherwise the hallo-instance is not exposed properly
+    getInstance: (api_cb) ->
+      api_cb(@)
     # Only supports one range for now (i.e. no multiselection)
     getSelection: ->
       sel = rangy.getSelection()
@@ -366,12 +370,16 @@ http://hallojs.org
               selection.attr('style',style_attr)
           selection = selection.parent()
       range = window.getSelection().getRangeAt()
-      if ( range.collapsed )
+      if ( range.collapsed && command.indexOf('paste') != 0 )
         range.selectNode(range.startContainer)
         window.getSelection().addRange(range)
-
-      if document.execCommand command, false, value
-        @element.trigger "change"
+      if ( command.indexOf('copy') == 0 )
+        @_copy()
+      else if ( command.indexOf('cut') == 0 )
+        @_cut
+          data: @
+      else
+        @element.trigger "change" if document.execCommand command, false, value
       @undoWaypointCommit(false)
 
     protectFocusFrom: (el) ->
@@ -435,11 +443,12 @@ http://hallojs.org
     _copy: (event) ->
       console.log('copy',event) if @debug
       return if ( !window.wke )
-      event.preventDefault()
+      event.preventDefault() if ( typeof event == 'object' && typeof event.preventDefault == 'function' )
       range = window.getSelection().getRangeAt()
       rdata = jQuery('<div/>').append(range.cloneContents())
       dom = new IDOM()
       dom.cleanExport(rdata);
+      rdata.find(@selection_marker).unwrap()
 
       console.log(range,rdata,rdata.html()) if @debug
       utils.storeToClipboard(rdata)
@@ -463,7 +472,7 @@ http://hallojs.org
       #console.log(pdata)
       if (pdata == '' )
         pdata = event.originalEvent.clipboardData.getData('text/plain')
-      if (typeof pdata == 'undefined' && pdata == '' )
+      if (typeof pdata == 'undefined' || pdata == '' )
         #utils.error(utils.tr('invalid clipboard data'))
         return
       event.preventDefault()
@@ -477,7 +486,7 @@ http://hallojs.org
       sel = window.getSelection()
       range = sel.getRangeAt()
       range.deleteContents()
-      if ( pdata.indexOf('<') == 0 )
+      if ( jq_temp.contents().length > 1 )
         # wrapped in element
         # console.log('wrapped',jq_temp)
         range.insertNode(jq_temp[0])
@@ -485,7 +494,11 @@ http://hallojs.org
         jq_temp = jq_temp.contents()
         jq_temp.unwrap()
         # console.log('unwrapped',jq_temp)
-        range.insertNode(jq_temp.contents()[0])
+        range.insertNode(jq_temp[0])
+      range.selectNode(jq_temp[0])
+      range.collapse(false) # collapse to end
+      window.getSelection().removeAllRanges()
+      window.getSelection().addRange(range)
       event.data.undoWaypointCommit(false)
 
       
