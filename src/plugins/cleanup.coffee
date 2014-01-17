@@ -53,8 +53,8 @@
         @options.editable.storeContentPosition()
         @options.editable.undoWaypointStart('cleanup')
         console.log('cleanhtml') if @debug
-        jQuery('.misspelled').remove()
         dom = new IDOM()
+        nugget = new DOMNugget()
         #if @domnode
         #  @domnode.removeSourceDescriptions()
         if dom
@@ -62,26 +62,30 @@
           #utils.removeBadStyles(@options.editable.element)
           #utils.removeCites(@options.editable.element)
           #utils.
-          dom.clean(@options.editable.element);
+          nugget.prepareTextForEdit(@options.editable.element); # calls dom.clean
           @options.editable.element.html(@options.editable.element.html().replace(/&nbsp;/g,' '));
 
         #@options.editable.element.find('.cite').remove()
         @dropdownform.hallodropdownform('hideForm')
         @options.editable.store()
-        nugget = new DOMNugget()
+
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element).done =>
             @options.editable.restoreContentPosition()
             @options.editable.undoWaypointCommit()
+            if ( typeof MathJax != 'undefined' )
+              MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
 
       contentAreaUL.append addButton "clean_plain", =>
-        jQuery('.misspelled').remove()
         @options.editable.storeContentPosition()
         @options.editable.undoWaypointStart('cleanup')
         dom = new IDOM()
+        nugget = new DOMNugget()
+        nugget.prepareTextForEdit(@options.editable.element); # calls dom.clean
         dom.plainTextParagraphs(@options.editable.element)
         @options.editable.store()
+        nugget.prepareTextForEdit(@options.editable.element); # calls dom.clean / math prepare
 
         @dropdownform.hallodropdownform('hideForm')
         nugget = new DOMNugget()
@@ -89,6 +93,8 @@
           nugget.resetCitations(@options.editable.element).done => 
             @options.editable.restoreContentPosition()
             @options.editable.undoWaypointCommit()
+            if ( typeof MathJax != 'undefined' )
+              MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
       contentArea
 
