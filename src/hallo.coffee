@@ -647,8 +647,8 @@ http://hallojs.org
       #        thrown: old
       #    widget.turnOff()
       return if widget._ignoreKeys(event.keyCode)
-      if ( event.keyCode == 32 || event.keyCode == 13 || event.keyCode == 8 ) && !event.ctrlKey
-        widget.undoWaypointCommit()
+      if ( event.keyCode == 32 || event.keyCode == 13 || event.keyCode == 8 || event.keyCode == 9 ) && !event.ctrlKey
+        widget.undoWaypointCommit(true)
         widget.undoWaypointStart('text')
       if event.keyCode == 66 && event.ctrlKey #b
           widget.execute("bold")
@@ -690,6 +690,8 @@ http://hallojs.org
           return
         td = $(range.startContainer).closest('td,th')
         if ( td.length )
+          widget.undoWaypointCommit(true)
+          widget.undoWaypointStart('text')
           table = td.closest('table')
           use_next = false
           tds = table.find('td,th')
@@ -714,6 +716,8 @@ http://hallojs.org
           return
         td = $(range.startContainer).closest('td,th')
         if ( td.length )
+          widget.undoWaypointCommit(true)
+          widget.undoWaypointStart('text')
           table = td.closest('table')
           use_prev = false
           tds = table.find('td,th')
@@ -818,6 +822,7 @@ http://hallojs.org
         @options.store_callback(@getContents())
     _activated: (event) ->
       return if event.data._ignoreEvents
+      event.data.undoWaypointStart('text')
       console.log('hallo activated') if @debug
       if ( jQuery('.dropdown-form:visible').length )
         jQuery('.dropdown-form:visible').each (index,item) =>
