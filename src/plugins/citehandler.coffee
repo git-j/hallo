@@ -114,6 +114,10 @@ class _Citehandler
         #console.log(citation.length);
         #console.log(element.closest('.cite').length);
         selection = window.getSelection()
+        #if ( typeof UndoCommand != 'undefined' )
+        #  undo_command = new UndoCommand()
+        #  undo_command.id = 'remove-publication'
+        #  undo_command.before_data = @editable.element.html()
         if ( citation.length )
           citation_html = citation.html()
           #not that simple: citation.selectText()
@@ -131,7 +135,24 @@ class _Citehandler
         nugget = new DOMNugget();
         #console.log(@editable.element.html());
         if ( is_auto_cite )
-          nugget.removeSourceDescription(@editable.element,@citation_data.loid)
+          element = @editable.element
+          sd_loid = @citation_data.loid
+          publication_loid = @citation_data.ploid
+          dom_nugget = element.closest('.nugget')
+          nugget.removeSourceDescription(@editable.element,sd_loid)
+          if ( typeof UndoManager != 'undefined' && typeof @editable.undoWaypointIdentifier == 'function' )
+            wpid = @editable.undoWaypointIdentifier(dom_nugget)
+            undo_stack = (new UndoManager()).getStack(wpid)
+            undo_stack.clear()
+          #undo_command.undo = (event) =>
+          #  undo_command.dfd = omc.AssociatePublication(nugget_loid,publication_loid)
+          #  undo_command.postdo()
+          #undo_command.redo = (event) =>
+          #  undo_command.dfd = nugget.removeSourceDescription(@editable.element,sd_loid)
+          #  undo_command.postdo()
+          #undo_command.postdo = (event) =>
+            # nothing            
+
         if ( @editable.element )
           @editable.element.find('.auto-cite').remove()
           nugget.updateSourceDescriptionData(@editable.element).done =>
