@@ -188,6 +188,7 @@ http://hallojs.org
         element.removeAttr 'href'
 
       @element.attr "contentEditable", true
+      window.hallo_current_instance = @ # bad hack!
 
       unless @element.html().trim()
         @element.html this.options.placeholder
@@ -239,6 +240,7 @@ http://hallojs.org
     # Get current Instance to use it in external plugins
     # a bit hacky but otherwise the hallo-instance is not exposed properly
     getInstance: (api_cb) ->
+      window.hallo_current_instance = @ # bad hack!
       api_cb(@)
     # Only supports one range for now (i.e. no multiselection)
     getSelection: ->
