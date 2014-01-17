@@ -113,7 +113,6 @@ class _Citehandler
         citation_html = ''
         #console.log(citation.length);
         #console.log(element.closest('.cite').length);
-        selection = window.getSelection()
         #if ( typeof UndoCommand != 'undefined' )
         #  undo_command = new UndoCommand()
         #  undo_command.id = 'remove-publication'
@@ -155,10 +154,13 @@ class _Citehandler
 
         if ( @editable.element )
           @editable.element.find('.auto-cite').remove()
+          nugget.prepareTextForEdit(@editable.element)
           nugget.updateSourceDescriptionData(@editable.element).done =>
             nugget.resetCitations(@editable.element).done =>
-              @editable.element.hallo('disable')
+              #@editable.element.hallo('disable')
               console.warn('@editable.undoWaypoint()')
+              if ( typeof MathJax != 'undefined' )
+                MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
       if !@citation_data.processed
         target.find('.edit').remove()
