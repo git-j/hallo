@@ -163,6 +163,7 @@ http://hallojs.org
       @element.unbind "paste", @_paste
       @element.unbind "copy", @_copy
       @element.unbind "cut", @_cut
+      @element.unbind "click", @_click
       # toolbar activated/deactivated happens on focusin/out
       @_key_handlers = []
       @bound = false
@@ -205,6 +206,7 @@ http://hallojs.org
         @element.bind "paste", this, @_paste
         @element.bind "copy", this, @_copy
         @element.bind "cut", this, @_cut
+        @element.bind "click", this, @_click
         @bound = true
       if ( typeof window._live == 'undefined' )
         window._live = {}
@@ -439,6 +441,9 @@ http://hallojs.org
     _checkModified: (event) ->
       widget = event.data
       widget.setModified() if widget.isModified()
+
+    _click: (event) ->
+      event.data.storeContentPosition()
 
     _copy: (event) ->
       console.log('copy',event) if @debug
