@@ -164,6 +164,8 @@ http://hallojs.org
       @element.unbind "copy", @_copy
       @element.unbind "cut", @_cut
       @element.unbind "click", @_click
+      @element.unbind "mousedown", @_clickdown
+      @element.unbind "dblclick", @_clickdouble
       # toolbar activated/deactivated happens on focusin/out
       @_key_handlers = []
       @bound = false
@@ -208,6 +210,8 @@ http://hallojs.org
         @element.bind "copy", this, @_copy
         @element.bind "cut", this, @_cut
         @element.bind "click", this, @_click
+        @element.bind "mousedown", this, @_clickdown
+        @element.bind "dblclick", this, @_clickdouble
         @bound = true
       if ( typeof window._live == 'undefined' )
         window._live = {}
@@ -446,6 +450,19 @@ http://hallojs.org
 
     _click: (event) ->
       event.data.storeContentPosition()
+      if ( jQuery('.dropdown-menu').length )
+        jQuery('.dropdown-menu').hide()
+        jQuery('.dropdown-menu').removeClass('open')
+
+    _clickdouble: (event) ->
+      if ( jQuery('.dropdown-menu').length )
+        jQuery('.dropdown-menu').hide()
+        jQuery('.dropdown-menu').removeClass('open')
+
+    _clickdown: (event) ->
+      if ( jQuery('.dropdown-menu').length )
+        jQuery('.dropdown-menu').hide()
+        jQuery('.dropdown-menu').removeClass('open')
 
     _copy: (event) ->
       console.log('copy',event) if @debug
