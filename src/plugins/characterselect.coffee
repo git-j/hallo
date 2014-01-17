@@ -25,6 +25,7 @@
       toolbar.append target
       setup= =>
         # return if !window.getSelection().rangeCount
+        @options.editable.undoWaypointCommit(true)
         @options.editable.undoWaypointStart('characterselect')
         jQuery(target).find('select').each (index,item) =>
           jQuery(item).selectBox()
@@ -233,7 +234,9 @@
       @recalcHTML()
       character = $('#' + @tmpid)
       character_content = $('<span>' + character.html() + '</span>')
+      @options.editable.undoWaypointStart('characterselect')
       character_content.insertBefore(character)
+      @options.editable.undoWaypointCommit()
       @_addRecent(character.html())
       character.html('&#64;')
 
