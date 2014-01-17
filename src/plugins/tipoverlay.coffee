@@ -19,7 +19,7 @@
         'position': 'fixed'
         'margin-top': '1em'
         'min-height': '2em'
-        'min-width': '200px'
+        'min-width': '420px'
         'z-index': '99998'
         'top':'0'
         'left':'0'
