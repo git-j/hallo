@@ -35,9 +35,9 @@
                 @_redo(jQuery(event.currentTarget))
 
               buttonize "Undo", 'undo', () =>
-                @_undo(@options.editable)
+                @_undo(@options.editable.element)
               buttonize "Redo", 'redo', () =>
-                @_redo(@options.editable)
+                @_redo(@options.editable.element)
             else
               buttonize "Undo", "undo"
               buttonize "Redo", "redo"
@@ -48,11 +48,11 @@
         _init: ->
 
         _undo: (target) ->
-          console.log('undo toolbar fn')
+          #console.log('undo toolbar fn')
           @options.editable.undo(target)
 
         _redo: (target) ->
-          console.log('redo toolbar fn')
+          #console.log('redo toolbar fn')
           return if ( typeof @options.editable._undo_stack != 'object' )
           @options.editable.redo(target)
 
