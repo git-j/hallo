@@ -67,11 +67,12 @@ class _Citehandler
       ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
       ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
       ov_data+= '<li>'
-      if ( !@editable || @editable.nugget_only )
+      if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) )
         jQuery(element.closest('.inEditMode')).hallo 'getInstance', (element_editable) =>
-          @editable = element_editable
-        if ( typeof @editable == 'undefined' )
+          @editable = window.hallo_current_instance.editable
+        if ( typeof @editable == 'undefined' || ! @editable )
           @editable = {}
+          @editable.element = element.closest('[contenteditable="true"]')
         @editable.nugget_only = true #     console.log('TODO: find reset point for switching nuggets, otherwise wrong nugget');
       if ( @editable.element )
         if ( element.closest('.cite').hasClass('auto-cite') )
@@ -82,6 +83,11 @@ class _Citehandler
 
       target.append(ov_data)
       sourcedescriptioneditor= =>
+        dom_nugget = element.closest('.nugget')
+        if ( typeof UndoManager != 'undefined' && typeof @editable.undoWaypointIdentifier == 'function' )
+          wpid = @editable.undoWaypointIdentifier(dom_nugget)
+          undo_stack = (new UndoManager()).getStack(wpid)
+          undo_stack.clear()
         jQuery('body').hallosourcedescriptioneditor
           'loid':@citation_data.loid
           'data':@citation_data
