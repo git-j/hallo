@@ -4879,6 +4879,7 @@
     return jQuery.widget('IKS.hallopublicationselector', {
       widget: null,
       selectables: '',
+      citeproc: new ICiteProc(),
       options: {
         editable: null,
         range: null,
@@ -5012,8 +5013,34 @@
         return this.options.editable.restoreContentPosition();
       },
       select: function(node) {
+        var _this = this;
         this.current_node = jQuery(node).attr('id');
-        return this.current_node_label = jQuery(node).text();
+        this.current_node_label = jQuery(node).text();
+        this.widget.find(".citation_data_processed").slideUp('slow', function() {
+          return jQuery(this).remove();
+        });
+        return omc_settings.getSettings().done(function(settings) {
+          return _this.citeproc.init().done(function() {
+            var loid;
+            loid = jQuery(node).attr('id').replace(/node_/, '');
+            return omc.getPublicationCitationData(loid).done(function(citation_data) {
+              var endnotes;
+              if (jQuery(node).find(".citation_data_processed").length === 0) {
+                jQuery(node).append('<div class="citation_data_processed"></div>');
+                jQuery.each(citation_data, function(key, value) {
+                  return jQuery(node).find('.citation_data_processed').append('<span class="cite" id="' + key + '"></span></div>');
+                });
+              }
+              _this.citeproc.resetCitationData();
+              _this.citeproc.appendCitationData(JSON.stringify(citation_data));
+              _this.citeproc.citation_style = settings['default_citation_style'];
+              _this.citeproc.process('#node_' + loid + ' .citation_data_processed', settings.iso_language);
+              endnotes = _this.citeproc.endnotes();
+              endnotes = endnotes.replace(/\[1\]/, '');
+              return jQuery(node).find('.citation_data_processed').html(endnotes).slideDown();
+            });
+          });
+        });
       },
       _createInput: function(identifier, label, value) {
         var input,

@@ -7,6 +7,7 @@
   jQuery.widget 'IKS.hallopublicationselector',
     widget: null
     selectables: ''
+    citeproc: new ICiteProc()
     options:
       editable: null
       range: null
@@ -117,6 +118,23 @@
     select: (node) ->
       @current_node = jQuery(node).attr('id')
       @current_node_label = jQuery(node).text()
+      @widget.find(".citation_data_processed").slideUp 'slow', () ->
+        jQuery(this).remove()
+      omc_settings.getSettings().done (settings) =>
+        @citeproc.init().done =>
+          loid = jQuery(node).attr('id').replace(/node_/,'')
+          omc.getPublicationCitationData(loid).done (citation_data) =>
+            if ( jQuery(node).find(".citation_data_processed").length == 0 )
+              jQuery(node).append('<div class="citation_data_processed"></div>')
+              jQuery.each citation_data, (key,value) =>
+                jQuery(node).find('.citation_data_processed').append('<span class="cite" id="' + key + '"></span></div>')
+            @citeproc.resetCitationData()
+            @citeproc.appendCitationData(JSON.stringify(citation_data))
+            @citeproc.citation_style = settings['default_citation_style']
+            @citeproc.process('#node_' + loid + ' .citation_data_processed', settings.iso_language)
+            endnotes = @citeproc.endnotes()
+            endnotes = endnotes.replace(/\[1\]/,'')
+            jQuery(node).find('.citation_data_processed').html(endnotes).slideDown()
 
     _createInput: (identifier, label, value) ->
       input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
