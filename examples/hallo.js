@@ -729,6 +729,9 @@
         this.element.unbind("paste", this._paste);
         this.element.unbind("copy", this._copy);
         this.element.unbind("cut", this._cut);
+        this.element.unbind("click", this._click);
+        this.element.unbind("mousedown", this._clickdown);
+        this.element.unbind("dblclick", this._clickdouble);
         this._key_handlers = [];
         this.bound = false;
         jQuery(this.element).removeClass('isModified');
@@ -758,6 +761,7 @@
           return element.removeAttr('href');
         });
         this.element.attr("contentEditable", true);
+        window.hallo_current_instance = this;
         if (!this.element.html().trim()) {
           this.element.html(this.options.placeholder);
           if (!(this.element.is('h1,h2,h3,h4,h5,h6'))) {
@@ -777,6 +781,9 @@
           this.element.bind("paste", this, this._paste);
           this.element.bind("copy", this, this._copy);
           this.element.bind("cut", this, this._cut);
+          this.element.bind("click", this, this._click);
+          this.element.bind("mousedown", this, this._clickdown);
+          this.element.bind("dblclick", this, this._clickdouble);
           this.bound = true;
         }
         if (typeof window._live === 'undefined') {
@@ -812,6 +819,7 @@
         return this.element.has(range.startContainer).length > 0;
       },
       getInstance: function(api_cb) {
+        window.hallo_current_instance = this;
         return api_cb(this);
       },
       getSelection: function() {
@@ -1041,6 +1049,25 @@
           return widget.setModified();
         }
       },
+      _click: function(event) {
+        event.data.storeContentPosition();
+        if ((jQuery('.dropdown-menu').length)) {
+          jQuery('.dropdown-menu').hide();
+          return jQuery('.dropdown-menu').removeClass('open');
+        }
+      },
+      _clickdouble: function(event) {
+        if ((jQuery('.dropdown-menu').length)) {
+          jQuery('.dropdown-menu').hide();
+          return jQuery('.dropdown-menu').removeClass('open');
+        }
+      },
+      _clickdown: function(event) {
+        if ((jQuery('.dropdown-menu').length)) {
+          jQuery('.dropdown-menu').hide();
+          return jQuery('.dropdown-menu').removeClass('open');
+        }
+      },
       _copy: function(event) {
         var dom, range, rdata;
         if (this.debug) {
@@ -1166,8 +1193,8 @@
         if (widget._ignoreKeys(event.keyCode)) {
           return;
         }
-        if ((event.keyCode === 32 || event.keyCode === 13 || event.keyCode === 8) && !event.ctrlKey) {
-          widget.undoWaypointCommit();
+        if ((event.keyCode === 32 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 9) && !event.ctrlKey) {
+          widget.undoWaypointCommit(true);
           widget.undoWaypointStart('text');
         }
         if (event.keyCode === 66 && event.ctrlKey) {
@@ -1224,6 +1251,8 @@
           }
           td = $(range.startContainer).closest('td,th');
           if (td.length) {
+            widget.undoWaypointCommit(true);
+            widget.undoWaypointStart('text');
             table = td.closest('table');
             use_next = false;
             tds = table.find('td,th');
@@ -1259,6 +1288,8 @@
           }
           td = $(range.startContainer).closest('td,th');
           if (td.length) {
+            widget.undoWaypointCommit(true);
+            widget.undoWaypointStart('text');
             table = td.closest('table');
             use_prev = false;
             tds = table.find('td,th');
@@ -1396,6 +1427,7 @@
         if (event.data._ignoreEvents) {
           return;
         }
+        event.data.undoWaypointStart('text');
         if (this.debug) {
           console.log('hallo activated');
         }
@@ -2518,7 +2550,7 @@
           'position': 'fixed',
           'margin-top': '1em',
           'min-height': '2em',
-          'min-width': '200px',
+          'min-width': '420px',
           'z-index': '99998',
           'top': '0',
           'left': '0'
@@ -2705,36 +2737,43 @@
           if (_this.debug) {
             console.log('cleanhtml');
           }
-          jQuery('.misspelled').remove();
           dom = new IDOM();
+          nugget = new DOMNugget();
           if (dom) {
-            dom.clean(_this.options.editable.element);
+            nugget.prepareTextForEdit(_this.options.editable.element);
             _this.options.editable.element.html(_this.options.editable.element.html().replace(/&nbsp;/g, ' '));
           }
           _this.dropdownform.hallodropdownform('hideForm');
           _this.options.editable.store();
-          nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             return nugget.resetCitations(_this.options.editable.element).done(function() {
               _this.options.editable.restoreContentPosition();
-              return _this.options.editable.undoWaypointCommit();
+              _this.options.editable.undoWaypointCommit();
+              if (typeof MathJax !== 'undefined') {
+                return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+              }
             });
           });
         }));
         contentAreaUL.append(addButton("clean_plain", function() {
           var dom, nugget;
-          jQuery('.misspelled').remove();
           _this.options.editable.storeContentPosition();
           _this.options.editable.undoWaypointStart('cleanup');
           dom = new IDOM();
+          nugget = new DOMNugget();
+          nugget.prepareTextForEdit(_this.options.editable.element);
           dom.plainTextParagraphs(_this.options.editable.element);
           _this.options.editable.store();
+          nugget.prepareTextForEdit(_this.options.editable.element);
           _this.dropdownform.hallodropdownform('hideForm');
           nugget = new DOMNugget();
           return nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             return nugget.resetCitations(_this.options.editable.element).done(function() {
               _this.options.editable.restoreContentPosition();
-              return _this.options.editable.undoWaypointCommit();
+              _this.options.editable.undoWaypointCommit();
+              if (typeof MathJax !== 'undefined') {
+                return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+              }
             });
           });
         }));
@@ -2877,6 +2916,7 @@
         toolbar.append(target);
         setup = function() {
           var range, recalc, sel, selected_character;
+          _this.options.editable.undoWaypointCommit(true);
           _this.options.editable.undoWaypointStart('characterselect');
           jQuery(target).find('select').each(function(index, item) {
             return jQuery(item).selectBox();
@@ -3081,7 +3121,9 @@
         this.recalcHTML();
         character = $('#' + this.tmpid);
         character_content = $('<span>' + character.html() + '</span>');
+        this.options.editable.undoWaypointStart('characterselect');
         character_content.insertBefore(character);
+        this.options.editable.undoWaypointCommit();
         this._addRecent(character.html());
         return character.html('&#64;');
       },
@@ -3329,12 +3371,13 @@
         ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
         ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
         ov_data += '<li>';
-        if (!_this.editable || _this.editable.nugget_only) {
+        if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only)) {
           jQuery(element.closest('.inEditMode')).hallo('getInstance', function(element_editable) {
-            return _this.editable = element_editable;
+            return _this.editable = window.hallo_current_instance.editable;
           });
-          if (typeof _this.editable === 'undefined') {
+          if (typeof _this.editable === 'undefined' || !_this.editable) {
             _this.editable = {};
+            _this.editable.element = element.closest('[contenteditable="true"]');
           }
           _this.editable.nugget_only = true;
         }
@@ -3348,6 +3391,13 @@
         ov_data += '</ul>';
         target.append(ov_data);
         sourcedescriptioneditor = function() {
+          var dom_nugget, undo_stack, wpid;
+          dom_nugget = element.closest('.nugget');
+          if (typeof UndoManager !== 'undefined' && typeof _this.editable.undoWaypointIdentifier === 'function') {
+            wpid = _this.editable.undoWaypointIdentifier(dom_nugget);
+            undo_stack = (new UndoManager()).getStack(wpid);
+            undo_stack.clear();
+          }
           return jQuery('body').hallosourcedescriptioneditor({
             'loid': _this.citation_data.loid,
             'data': _this.citation_data,
@@ -3364,18 +3414,12 @@
         });
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
-          var citation, citation_html, cite, is_auto_cite, loid, nugget, publication_loid, sd_loid, selection, undo_command;
+          var citation, citation_html, cite, dom_nugget, is_auto_cite, loid, nugget, publication_loid, sd_loid, undo_stack, wpid;
           console.warn('@editable.undoWaypoint()');
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
           is_auto_cite = element.closest('.cite').hasClass('auto-cite');
           citation_html = '';
-          selection = window.getSelection();
-          if (typeof UndoCommand === 'undefined') {
-            undo_command = new UndoCommand();
-            undo_command.id = 'remove-publication';
-            undo_command.before_data = _this.editable.element.html();
-          }
           if (citation.length) {
             citation_html = citation.html();
             citation.contents().unwrap();
@@ -3393,23 +3437,23 @@
             element = _this.editable.element;
             sd_loid = _this.citation_data.loid;
             publication_loid = _this.citation_data.ploid;
-            nugget = element.closest('.nugget').attr('id');
-            undo_command.undo = function(event) {
-              undo_command.dfd = omc.AssociatePublication(nugget_loid, publication_loid);
-              return undo_command.postdo();
-            };
-            undo_command.redo = function(event) {
-              undo_command.dfd = nugget.removeSourceDescription(_this.editable.element, sd_loid);
-              return undo_command.postdo();
-            };
-            undo_command.postdo = function(event) {};
+            dom_nugget = element.closest('.nugget');
+            nugget.removeSourceDescription(_this.editable.element, sd_loid);
+            if (typeof UndoManager !== 'undefined' && typeof _this.editable.undoWaypointIdentifier === 'function') {
+              wpid = _this.editable.undoWaypointIdentifier(dom_nugget);
+              undo_stack = (new UndoManager()).getStack(wpid);
+              undo_stack.clear();
+            }
           }
           if (_this.editable.element) {
             _this.editable.element.find('.auto-cite').remove();
+            nugget.prepareTextForEdit(_this.editable.element);
             return nugget.updateSourceDescriptionData(_this.editable.element).done(function() {
               return nugget.resetCitations(_this.editable.element).done(function() {
-                _this.editable.element.hallo('disable');
-                return console.warn('@editable.undoWaypoint()');
+                console.warn('@editable.undoWaypoint()');
+                if (typeof MathJax !== 'undefined') {
+                  return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+                }
               });
             });
           }
@@ -3459,12 +3503,13 @@
         });
         jQuery('body').append(this.widget);
         this.widget.hide();
-        this.hyperlink = jQuery('.' + this.options.hyperlink_class);
         this.widget.append('<div id="nugget_list" style="background-color:white; margin-bottom: 4px"></div>');
         this.widget.append('<button class="nugget_selector_back action_button">' + utils.tr('back') + '</button>');
         this.widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
+        this.hyperlink = this.options.editable.element.find('.' + this.options.hyperlink_class);
         this.widget.css(this.options.default_css);
         this.widget.find('.nugget_selector_back').bind('click', function() {
+          _this.hyperlink = _this.options.editable.element.find('.' + _this.options.hyperlink_class);
           if (utils.tr('no title provided') === _this.hyperlink.text()) {
             _this.hyperlink.remove();
           } else {
@@ -3481,25 +3526,27 @@
         if (!this.options.default_css.height) {
           this.widget.css('height', jQuery(window).height());
         }
-        jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
-          _this.list = new List();
-          _this.list.init($('#nugget_list'), omc.NuggetExtendList);
-          _this.list.setupItemActions($('#nugget_list'), {
-            'node_dblclick': function(node) {
-              _this.select(node);
-              return _this.apply();
-            },
-            'node_select': function(node) {
-              return _this.select(node);
-            }
-          });
-          return _this.widget.fadeIn();
+        this.list = new List();
+        this.list.init($('#nugget_list'), omc.NuggetExtendList);
+        this.list.setupItemActions($('#nugget_list'), {
+          'node_dblclick': function(node) {
+            _this.select(node);
+            return _this.apply();
+          },
+          'node_select': function(node) {
+            return _this.select(node);
+          }
         });
+        this.widget.fadeIn();
         return jQuery(window).resize();
       },
       apply: function() {
         var dfo, nugget_loid,
           _this = this;
+        if (typeof this.current_node === 'undefined') {
+          utils.error(utils.tr('nothing selected'));
+          return;
+        }
         nugget_loid = this.current_node.replace(/node_/, '');
         dfo = omc.getInstance(nugget_loid);
         dfo.fail(function(error) {
@@ -3872,9 +3919,7 @@
         if (!this.options.default_css.height) {
           this.widget.css('height', jQuery(window).height());
         }
-        jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
-          return _this.loadPublications();
-        });
+        this.loadPublications();
         jQuery(window).resize();
         this.activity.step = 0;
         this.updateButtons;
@@ -4594,10 +4639,10 @@
             return _this._redo(jQuery(event.currentTarget));
           });
           buttonize("Undo", 'undo', function() {
-            return _this._undo(_this.options.editable);
+            return _this._undo(_this.options.editable.element);
           });
           buttonize("Redo", 'redo', function() {
-            return _this._redo(_this.options.editable);
+            return _this._redo(_this.options.editable.element);
           });
         } else {
           buttonize("Undo", "undo");
@@ -4608,11 +4653,9 @@
       },
       _init: function() {},
       _undo: function(target) {
-        console.log('undo toolbar fn');
         return this.options.editable.undo(target);
       },
       _redo: function(target) {
-        console.log('redo toolbar fn');
         if (typeof this.options.editable._undo_stack !== 'object') {
           return;
         }
@@ -4879,24 +4922,26 @@
         if (!this.options.default_css.height) {
           this.widget.css('height', jQuery(window).height());
         }
-        jQuery.when(utils.getJavaScript('lib/refeus/Utilities/List.js')).done(function() {
-          _this.list = new List();
-          _this.list.init($('#publication_list'), omc.PublicationList);
-          return _this.list.setupItemActions($('#publication_list'), {
-            'node_dblclick': function(node) {
-              _this.select(node);
-              return _this.apply();
-            },
-            'node_select': function(node) {
-              return _this.select(node);
-            }
-          });
+        this.list = new List();
+        this.list.init($('#publication_list'), omc.PublicationList);
+        this.list.setupItemActions($('#publication_list'), {
+          'node_dblclick': function(node) {
+            _this.select(node);
+            return _this.apply();
+          },
+          'node_select': function(node) {
+            return _this.select(node);
+          }
         });
         return jQuery(window).resize();
       },
       apply: function() {
         var dfo, publication_loid, target_loid, tmp_id,
           _this = this;
+        if (typeof this.current_node === 'undefined') {
+          utils.error(utils.tr('nothing selected'));
+          return;
+        }
         publication_loid = this.current_node.replace(/node_/, '');
         target_loid = this.options.editable.element.closest('.Text').attr('id').replace(/node/, '');
         dfo = omc.AssociatePublication(target_loid, publication_loid);
