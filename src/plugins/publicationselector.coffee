@@ -56,6 +56,9 @@
       jQuery(window).resize()
 
     apply:  ->
+      if ( typeof @current_node == 'undefined' )
+        utils.error(utils.tr('nothing selected'))
+        return
       publication_loid = @current_node.replace(/node_/,'')
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)

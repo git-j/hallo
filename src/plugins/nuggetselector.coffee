@@ -32,12 +32,14 @@
       jQuery('body').css({'overflow':'hidden'})
       jQuery('body').append(@widget)
       @widget.hide()
-      @hyperlink = jQuery('.' + @options.hyperlink_class)
       @widget.append('<div id="nugget_list" style="background-color:white; margin-bottom: 4px"></div>');
       @widget.append('<button class="nugget_selector_back action_button">' + utils.tr('back') + '</button>');
       @widget.append('<button class="nugget_selector_apply action_button">' + utils.tr('apply') + '</button>');
+      @hyperlink = @options.editable.element.find('.' + @options.hyperlink_class)
+
       @widget.css @options.default_css
       @widget.find('.nugget_selector_back').bind 'click', =>
+        @hyperlink = @options.editable.element.find('.' + @options.hyperlink_class)
         if ( utils.tr('no title provided') == @hyperlink.text() )
           @hyperlink.remove()
         else
@@ -64,6 +66,9 @@
       jQuery(window).resize()
 
     apply:  ->
+      if ( typeof @current_node == 'undefined' )
+        utils.error(utils.tr('nothing selected'))
+        return
       nugget_loid = @current_node.replace(/node_/,'')
       dfo = omc.getInstance(nugget_loid)
       dfo.fail (error) =>
