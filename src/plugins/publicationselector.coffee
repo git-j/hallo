@@ -40,19 +40,16 @@
         @apply()
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
-      jQuery.when(
-          utils.getJavaScript('lib/refeus/Utilities/List.js')
-      ).done =>
-        @list = new List();
-        @list.init($('#publication_list'),omc.PublicationList);
-        @list.setupItemActions($('#publication_list'),{
-          'node_dblclick': (node) =>
-            @select(node)
-            @apply()
-          'node_select': (node) =>
-            @select(node)
-        })
-        #TODO: show filter/sort
+      @list = new List();
+      @list.init($('#publication_list'),omc.PublicationList);
+      @list.setupItemActions($('#publication_list'),{
+        'node_dblclick': (node) =>
+          @select(node)
+          @apply()
+        'node_select': (node) =>
+          @select(node)
+      })
+      #TODO: show filter/sort
       jQuery(window).resize()
 
     apply:  ->

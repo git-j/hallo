@@ -53,10 +53,7 @@
         @apply()
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
-      jQuery.when(
-          utils.getJavaScript('lib/refeus/Utilities/List.js')
-      ).done =>
-        @loadPublications()
+      @loadPublications()
       jQuery(window).resize()
       @activity.step = 0
       @updateButtons

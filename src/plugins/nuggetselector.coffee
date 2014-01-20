@@ -49,20 +49,17 @@
         @apply()
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
-      jQuery.when(
-          utils.getJavaScript('lib/refeus/Utilities/List.js')
-      ).done =>
-        @list = new List()
-        @list.init($('#nugget_list'),omc.NuggetExtendList)
-        @list.setupItemActions($('#nugget_list'),{
-          'node_dblclick': (node) =>
-            @select(node)
-            @apply()
-          'node_select': (node) =>
-            @select(node)
-        })
-        # TODO: display filters / search
-        @widget.fadeIn()
+      @list = new List()
+      @list.init($('#nugget_list'),omc.NuggetExtendList)
+      @list.setupItemActions($('#nugget_list'),{
+        'node_dblclick': (node) =>
+          @select(node)
+          @apply()
+        'node_select': (node) =>
+          @select(node)
+      })
+      # TODO: display filters / search
+      @widget.fadeIn()
       jQuery(window).resize()
 
     apply:  ->
