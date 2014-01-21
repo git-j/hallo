@@ -244,6 +244,7 @@ http://hallojs.org
     # Get current Instance to use it in external plugins
     # a bit hacky but otherwise the hallo-instance is not exposed properly
     getInstance: (api_cb) ->
+      console.warn('bad call, current-instance is updated on enable!')
       window.hallo_current_instance = @ # bad hack!
       api_cb(@)
     # Only supports one range for now (i.e. no multiselection)
