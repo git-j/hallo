@@ -133,6 +133,7 @@
           jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('body').css({'overflow':'auto'})
+          @options.editable.focus() if ( @options.editable)
           #/bind click apply
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>

@@ -67,12 +67,16 @@ class _Citehandler
       ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
       ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
       ov_data+= '<li>'
-      if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) )
-        jQuery(element.closest('.inEditMode')).hallo 'getInstance', (element_editable) =>
-          @editable = window.hallo_current_instance.editable
+      if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) || @editable.is_auto_editable )
+        @editable = window.hallo_current_instance.editable
         if ( typeof @editable == 'undefined' || ! @editable )
           @editable = {}
           @editable.element = element.closest('[contenteditable="true"]')
+          if ( !@editable.element.length )
+            @editable.element = element.closest('.nugget').find('>.content').eq(0)
+          @editable.is_auto_editable = true
+          @editable.element.hallo('enable')
+          @editable.element.focus()
         @editable.nugget_only = true #     console.log('TODO: find reset point for switching nuggets, otherwise wrong nugget');
       if ( @editable.element )
         if ( element.closest('.cite').hasClass('auto-cite') )
@@ -104,7 +108,6 @@ class _Citehandler
         #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
-        console.warn('@editable.undoWaypoint()')
         loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
         #console.log(loid);
 
@@ -130,6 +133,10 @@ class _Citehandler
           $('.sourcedescription-' + loid).remove()
           #console.log('citation removed')
           $('.cite').attr('contenteditable',false)
+          @editable.element.hallo('enable')
+          @editable.element.focus()
+          @editable.element.hallo('setModified')
+          @editable.element.blur()
         jQuery('#' + @overlay_id).remove()
         nugget = new DOMNugget();
         #console.log(@editable.element.html());
@@ -153,7 +160,7 @@ class _Citehandler
             # nothing            
 
         if ( @editable.element )
-          @editable.element.find('.auto-cite').remove()
+          @editable.element.closest('.nugget').find('.auto-cite').remove()
           nugget.prepareTextForEdit(@editable.element)
           nugget.updateSourceDescriptionData(@editable.element).done =>
             nugget.resetCitations(@editable.element).done =>
