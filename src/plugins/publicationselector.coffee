@@ -18,6 +18,8 @@
       data: null
       loid: null
       has_changed: false
+      toolbar_actions:
+        'Filter': null
       default_css:
         'width': '100%'
         'height': '100%'
@@ -50,10 +52,17 @@
         'node_select': (node) =>
           @select(node)
       })
+      @options.toolbar_actions['Filter'] = () =>
+        @_filter()
+      toolbar.displayBase('body','publicationselector',@options.toolbar_actions)
+      jQuery('#basepublicationselectortoolbar').css({'z-index':@options.default_css['z-index'] + 1})
+      toolbar.toggle()
+
       #TODO: show filter/sort
       jQuery(window).resize()
 
     apply:  ->
+      jQuery('#basepublicationselectortoolbar').remove()
       if ( typeof @current_node == 'undefined' )
         utils.error(utils.tr('nothing selected'))
         return
@@ -112,8 +121,10 @@
 
     back: ->
       @widget.remove()
+      jQuery('#basepublicationselectortoolbar').remove()
       jQuery('body').css({'overflow':'auto'})
       @options.editable.restoreContentPosition()
+      @options.editable.activate()
 
     select: (node) ->
       @current_node = jQuery(node).attr('id')
@@ -153,5 +164,22 @@
     _create: ->
       #debug.log('created');
       @
+    _filter: ->
+      if @widget.find('#filter_input').length
+        @widget.find('#filter_input').remove()
+        @widget.find('ul').css({'margin-top':'auto'})
+        return
+      @widget.append('<input type="text" id="filter_input"/>')
+      @widget.find('ul').css({'margin-top':'3em'})
+      filter_input = @widget.find('#filter_input')
+      filter_input.bind 'keyup', (event) =>
+        filter_input.val()
+        rx = new RegExp('.*' + filter_input.val() + '.*')
+        @widget.find('#publication_list li').each (index,item) =>
+          li = jQuery(item)
+          if ( li.text().match(rx) )
+            li.show()
+          else
+            li.hide()
 
 )(jQuery)
