@@ -181,7 +181,7 @@
         options.values[path] = data;
         #omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
-      if path.indexOf("number_of_pages")==0 && !isNaN(data) && !isNaN(options.publication.number_of_pages)
+      if path.indexOf("number_of_pages") == 0 && data != '' && !isNaN(data) && !isNaN(options.publication.number_of_pages)
         try
           user_number = parseInt(data)
           if user_number <= options.publication.number_of_pages
