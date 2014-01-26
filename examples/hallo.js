@@ -819,6 +819,7 @@
         return this.element.has(range.startContainer).length > 0;
       },
       getInstance: function(api_cb) {
+        console.warn('bad call, current-instance is updated on enable!');
         window.hallo_current_instance = this;
         return api_cb(this);
       },
@@ -3371,13 +3372,17 @@
         ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
         ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
         ov_data += '<li>';
-        if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only)) {
-          jQuery(element.closest('.inEditMode')).hallo('getInstance', function(element_editable) {
-            return _this.editable = window.hallo_current_instance.editable;
-          });
+        if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only) || _this.editable.is_auto_editable) {
+          _this.editable = window.hallo_current_instance.editable;
           if (typeof _this.editable === 'undefined' || !_this.editable) {
             _this.editable = {};
             _this.editable.element = element.closest('[contenteditable="true"]');
+            if (!_this.editable.element.length) {
+              _this.editable.element = element.closest('.nugget').find('>.content').eq(0);
+            }
+            _this.editable.is_auto_editable = true;
+            _this.editable.element.hallo('enable');
+            _this.editable.element.focus();
           }
           _this.editable.nugget_only = true;
         }
@@ -3415,7 +3420,6 @@
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
           var citation, citation_html, cite, dom_nugget, is_auto_cite, loid, nugget, publication_loid, sd_loid, undo_stack, wpid;
-          console.warn('@editable.undoWaypoint()');
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
           is_auto_cite = element.closest('.cite').hasClass('auto-cite');
@@ -3430,6 +3434,10 @@
             $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html);
             $('.sourcedescription-' + loid).remove();
             $('.cite').attr('contenteditable', false);
+            _this.editable.element.hallo('enable');
+            _this.editable.element.focus();
+            _this.editable.element.hallo('setModified');
+            _this.editable.element.blur();
           }
           jQuery('#' + _this.overlay_id).remove();
           nugget = new DOMNugget();
@@ -3446,7 +3454,7 @@
             }
           }
           if (_this.editable.element) {
-            _this.editable.element.find('.auto-cite').remove();
+            _this.editable.element.closest('.nugget').find('.auto-cite').remove();
             nugget.prepareTextForEdit(_this.editable.element);
             return nugget.updateSourceDescriptionData(_this.editable.element).done(function() {
               return nugget.resetCitations(_this.editable.element).done(function() {
@@ -3666,7 +3674,7 @@
           _this.selectables = '<option value="">' + utils.tr('more') + '</option>';
           jQuery.each(sdi.description, function(index, value) {
             var qvalue;
-            if (index === '__AUTOIDENT' || index === 'loid' || index === 'type' || index === 'tr_title') {
+            if (index === '__AUTOIDENT' || index === 'loid' || index === 'type' || index === 'tr_title' || index === 'related_persons') {
               return;
             }
             if (sdi.instance[index] === void 0) {
@@ -3771,9 +3779,12 @@
             undo_manager = (new UndoManager()).getStack();
             jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             _this.widget.remove();
-            return jQuery('body').css({
+            jQuery('body').css({
               'overflow': 'auto'
             });
+            if (_this.options.editable) {
+              return _this.options.editable.focus();
+            }
           });
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
@@ -3837,7 +3848,7 @@
         if (omc && options.loid) {
           options.values[path] = data;
         }
-        if (path.indexOf("number_of_pages") === 0 && !isNaN(data) && !isNaN(options.publication.number_of_pages)) {
+        if (path.indexOf("number_of_pages") === 0 && data !== '' && !isNaN(data) && !isNaN(options.publication.number_of_pages)) {
           try {
             user_number = parseInt(data);
             if (user_number <= options.publication.number_of_pages) {
@@ -4880,6 +4891,7 @@
       widget: null,
       selectables: '',
       citeproc: new ICiteProc(),
+      list_toolbar: null,
       options: {
         editable: null,
         range: null,
@@ -4890,6 +4902,9 @@
         data: null,
         loid: null,
         has_changed: false,
+        toolbar_actions: {
+          'Filter': null
+        },
         default_css: {
           'width': '100%',
           'height': '100%',
@@ -4934,6 +4949,15 @@
             return _this.select(node);
           }
         });
+        this.options.toolbar_actions['Filter'] = function() {
+          return _this._filter();
+        };
+        this.list_toolbar = new ToolBarBase();
+        this.list_toolbar.displayBase('body', 'publicationselector', this.options.toolbar_actions);
+        jQuery('#basepublicationselectortoolbar').css({
+          'z-index': this.options.default_css['z-index'] + 1
+        });
+        this.list_toolbar.toggle();
         return jQuery(window).resize();
       },
       apply: function() {
@@ -4943,6 +4967,7 @@
           utils.error(utils.tr('nothing selected'));
           return;
         }
+        jQuery('#basepublicationselectortoolbar').remove();
         publication_loid = this.current_node.replace(/node_/, '');
         target_loid = this.options.editable.element.closest('.Text').attr('id').replace(/node/, '');
         dfo = omc.AssociatePublication(target_loid, publication_loid);
@@ -4967,7 +4992,11 @@
             sel = window.getSelection();
             range.selectNode(selection[0]);
             if (selection.text() === '') {
-              jQuery(replacement).insertAfter(selection.parent());
+              if (selection.parent().attr('contenteditable') !== '') {
+                selection.parent().append(jQuery(replacement));
+              } else {
+                jQuery(replacement).insertAfter(selection.parent());
+              }
             } else {
               selection.html(replacement);
             }
@@ -5007,10 +5036,12 @@
       },
       back: function() {
         this.widget.remove();
+        jQuery('#basepublicationselectortoolbar').remove();
         jQuery('body').css({
           'overflow': 'auto'
         });
-        return this.options.editable.restoreContentPosition();
+        this.options.editable.restoreContentPosition();
+        return this.options.editable.activate();
       },
       select: function(node) {
         var _this = this;
@@ -5062,6 +5093,36 @@
       },
       _create: function() {
         return this;
+      },
+      _filter: function() {
+        var filter_input,
+          _this = this;
+        if (this.widget.find('#filter_input').length) {
+          this.widget.find('#filter_input').remove();
+          this.widget.find('ul').css({
+            'margin-top': 'auto'
+          });
+          return;
+        }
+        this.widget.append('<input type="text" id="filter_input"/>');
+        this.widget.find('ul').css({
+          'margin-top': '3em'
+        });
+        filter_input = this.widget.find('#filter_input');
+        return filter_input.bind('keyup', function(event) {
+          var rx;
+          filter_input.val();
+          rx = new RegExp('.*' + filter_input.val() + '.*');
+          return _this.widget.find('#publication_list li').each(function(index, item) {
+            var li;
+            li = jQuery(item);
+            if (li.text().match(rx)) {
+              return li.show();
+            } else {
+              return li.hide();
+            }
+          });
+        });
       }
     });
   })(jQuery);
