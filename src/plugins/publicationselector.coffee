@@ -89,7 +89,10 @@
           sel = window.getSelection()
           range.selectNode(selection[0])
           if ( selection.text() == '' )
-            jQuery(replacement).insertAfter(selection.parent()) # avoid inserting _in_ hyperlinks
+            if ( selection.parent().attr('contenteditable') != '' )
+              selection.parent().append(jQuery(replacement))
+            else
+              jQuery(replacement).insertAfter(selection.parent()) # avoid inserting _in_ hyperlinks
           else
             selection.html(replacement)
           selection_nodes =  @options.editable.element.find(@options.editable.selection_marker)
