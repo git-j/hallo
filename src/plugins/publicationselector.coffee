@@ -8,6 +8,7 @@
     widget: null
     selectables: ''
     citeproc: new ICiteProc()
+    list_toolbar: null
     options:
       editable: null
       range: null
@@ -54,18 +55,18 @@
       })
       @options.toolbar_actions['Filter'] = () =>
         @_filter()
-      toolbar.displayBase('body','publicationselector',@options.toolbar_actions)
+      @list_toolbar = new ToolBarBase();
+      @list_toolbar.displayBase('body','publicationselector',@options.toolbar_actions)
       jQuery('#basepublicationselectortoolbar').css({'z-index':@options.default_css['z-index'] + 1})
-      toolbar.toggle()
-
+      @list_toolbar.toggle()
       #TODO: show filter/sort
       jQuery(window).resize()
 
     apply:  ->
-      jQuery('#basepublicationselectortoolbar').remove()
       if ( typeof @current_node == 'undefined' )
         utils.error(utils.tr('nothing selected'))
         return
+      jQuery('#basepublicationselectortoolbar').remove()
       publication_loid = @current_node.replace(/node_/,'')
       target_loid = @options.editable.element.closest('.Text').attr('id').replace(/node/,'')
       dfo = omc.AssociatePublication(target_loid,publication_loid)
