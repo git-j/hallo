@@ -51,7 +51,7 @@
         @options.publication = sdi.publication
         @selectables = '<option value="">' + utils.tr('more') + '</option>'
         jQuery.each sdi.description, (index, value) =>
-          return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title'
+          return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title' || index == 'related_persons'
           return if sdi.instance[index] == undefined
           return if !value.label
           qvalue = sdi.instance[index].replace(/"/g,'&#34;'); #"
