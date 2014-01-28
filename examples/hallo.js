@@ -491,12 +491,12 @@
           if (!((event.keyCode >= 33 && event.keyCode <= 40) || event.type === 'mouseup' || event.type === 'hallomodified')) {
             return;
           }
-          if (window.getSelection().anchorNode === null) {
+          if (rangy.getSelection().anchorNode === null) {
             return;
           }
           try {
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
-              range = window.getSelection().getRangeAt();
+              range = rangy.getSelection().getRangeAt(0);
               parent = range.startContainer.parentNode;
               state = false;
               if (parent.nodeName === 'SUB' && _this.options.command === 'subscript') {
@@ -507,7 +507,7 @@
               }
               return _this.checked(state);
             } else if (_this.options.command.indexOf('justify') === 0) {
-              range = window.getSelection().getRangeAt();
+              range = rangy.getSelection().getRangeAt(0);
               node = range.startContainer;
               state = false;
               while (node) {
@@ -549,7 +549,7 @@
             var node, range, state;
             jQuery('.misspelled').remove();
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
-              range = window.getSelection().getRangeAt();
+              range = rangy.getSelection().getRangeAt(0);
               node = jQuery(range.startContainer);
               state = false;
               if (node.closest('SUB').length && _this.options.command === 'subscript') {
@@ -793,15 +793,12 @@
           window._live['.editableclick'] = true;
           if (jQuery('[contenteditable=false]').length > 0) {
             jQuery('[contenteditable=false]').live("click", function(event) {
-              var range, target;
+              var target;
               target = event.target;
               if (jQuery(target).closest('[contenteditable=true]').length === 0) {
                 return;
               }
-              window.getSelection().removeAllRanges();
-              range = document.createRange();
-              range.selectNode(target);
-              return window.getSelection().addRange(range);
+              return _this.setContentPosition(target);
             });
           }
         }
@@ -834,6 +831,56 @@
         }
         return range;
       },
+      getSelectionStartNode: function(node_processing_fn) {
+        var node, saved_selection;
+        saved_selection = rangy.saveSelection();
+        node = this.element.find('.rangySelectionBoundary:first');
+        node_processing_fn(node);
+        return rangy.removeMarkers(saved_selection);
+      },
+      getSelectionEndNode: function(node_processing_fn) {
+        var node, saved_selection;
+        saved_selection = rangy.saveSelection();
+        node = this.element.find('.rangySelectionBoundary:first');
+        node_processing_fn(node);
+        return rangy.removeMarkers(saved_selection);
+      },
+      getSelectionHtml: function() {
+        var html, jq_node, range, selection, text;
+        selection = rangy.getSelection();
+        range = selection.getRangeAt(0);
+        jq_node = $('<div></div>').append(range.cloneContents());
+        html = jq_node.html();
+        text = jq_node.text();
+        if (text.trim() === '') {
+          html = '';
+        }
+        if (html.trim() === '&nbsp;') {
+          html = '';
+        }
+        console.log('selection_html:[' + html + ']');
+        return html;
+      },
+      getSelectionNode: function(node_processing_fn) {
+        var common_node, end_node, node, range, saved_selection, start_node;
+        saved_selection = rangy.saveSelection();
+        start_node = this.element.find('.rangySelectionBoundary').eq(0);
+        end_node = this.element.find('.rangySelectionBoundary').eq(1);
+        range = rangy.getSelection().getRangeAt(0);
+        common_node = range.commonAncestorContainer;
+        node = start_node;
+        while (node.length) {
+          if (node[0] === common_node) {
+            break;
+          }
+          node = node.parent();
+        }
+        if (!node.length) {
+          node = start_node;
+        }
+        node_processing_fn(node);
+        return rangy.removeMarkers(saved_selection);
+      },
       restoreSelection: function(range) {
         var sel;
         sel = rangy.getSelection();
@@ -857,28 +904,29 @@
       },
       replaceSelection: function(cb) {
         var newTextNode, r, range, sel, t;
+        console.warn('Deprecated, do not use');
         if (navigator.appName === 'Microsoft Internet Explorer') {
           t = document.selection.createRange().text;
           r = document.selection.createRange();
           return r.pasteHTML(cb(t));
         } else {
-          sel = window.getSelection();
+          sel = rangy.getSelection();
           range = sel.getRangeAt(0);
           newTextNode = document.createTextNode(cb(range.extractContents()));
           range.insertNode(newTextNode);
           range.setStartAfter(newTextNode);
-          sel.removeAllRanges();
-          return sel.addRange(range);
+          return sel.setSingleRange(range);
         }
       },
       replaceSelectionHTML: function(cb) {
         var r, range, range_content, range_content_jq, range_parent, range_parent_jq, replacement, sel, t;
+        console.warn('Deprecated, do not use');
         if (navigator.appName === 'Microsoft Internet Explorer') {
           t = document.selection.createRange().text;
           r = document.selection.createRange();
           return r.pasteHTML(cb(t));
         } else {
-          sel = window.getSelection();
+          sel = rangy.getSelection();
           range = sel.getRangeAt(0);
           range_parent = range.commonAncestorContainer;
           if (range_parent.nodeType !== 1) {
@@ -893,16 +941,16 @@
           if (replacement) {
             range.insertNode($('<span>' + replacement + '</span>')[0]);
           }
-          sel.removeAllRanges();
-          sel.addRange(range);
+          sel.setSingleRange(range);
           return this.storeContentPosition();
         }
       },
       removeAllSelections: function() {
+        console.warn('Deprecated do not use');
         if (navigator.appName === 'Microsoft Internet Explorer') {
           return range.empty();
         } else {
-          return window.getSelection().removeAllRanges();
+          return rangy.getSelection().removeAllRanges();
         }
       },
       getContents: function() {
@@ -934,32 +982,39 @@
         return this.element.html(this.originalContent);
       },
       execute: function(command, value) {
-        var range, selection, style_attr;
+        var range, sel_all_range,
+          _this = this;
         this.undoWaypointStart();
         if (command.indexOf('justify') === 0) {
           this.storeContentPosition();
-          selection = this.element.find(this.selection_marker);
-          while (selection.length) {
-            if (selection.attr('contenteditable') === 'true') {
-              break;
-            }
-            style_attr = selection.attr('style');
-            if (typeof style_attr !== 'undefined') {
-              style_attr = style_attr.replace(/text-align:[^;]*/, '');
-              style_attr = style_attr.trim();
-              if (style_attr === '' || style_attr === ';') {
-                selection.removeAttr('style');
+          this.getSelectionStartNode(function(selection) {
+            var style_attr, _results;
+            _results = [];
+            while (selection.length) {
+              if (selection.attr('contenteditable') === 'true') {
+                break;
+              }
+              style_attr = selection.attr('style');
+              if (typeof style_attr !== 'undefined') {
+                style_attr = style_attr.replace(/text-align:[^;]*/, '');
+                style_attr = style_attr.trim();
+                if (style_attr === '' || style_attr === ';') {
+                  _results.push(selection.removeAttr('style'));
+                } else {
+                  _results.push(selection.attr('style', style_attr));
+                }
               } else {
-                selection.attr('style', style_attr);
+                _results.push(void 0);
               }
             }
-            selection = selection.parent();
-          }
+            return _results;
+          });
         }
-        range = window.getSelection().getRangeAt();
+        range = rangy.getSelection().getRangeAt(0);
         if (range.collapsed && command.indexOf('paste') !== 0) {
-          range.selectNode(range.startContainer);
-          window.getSelection().addRange(range);
+          sel_all_range = rangy.createRange();
+          sel_all_range.selectNode(range.startContainer);
+          rangy.getSelection().setSingleRange(sel_all_range);
         }
         if (command.indexOf('copy') === 0) {
           this._copy();
@@ -1080,7 +1135,7 @@
         if (typeof event === 'object' && typeof event.preventDefault === 'function') {
           event.preventDefault();
         }
-        range = window.getSelection().getRangeAt();
+        range = rangy.getSelection().getRangeAt(0);
         rdata = jQuery('<div/>').append(range.cloneContents());
         dom = new IDOM();
         dom.cleanExport(rdata);
@@ -1094,7 +1149,7 @@
         var range;
         event.data.undoWaypointStart('cut');
         event.data._copy(event);
-        range = window.getSelection().getRangeAt();
+        range = rangy.getSelection().getRangeAt(0);
         range.deleteContents();
         return event.data.undoWaypointCommit(false);
       },
@@ -1126,8 +1181,8 @@
         dom = new IDOM();
         dom.clean(jq_temp);
         html = jq_temp.html();
-        sel = window.getSelection();
-        range = sel.getRangeAt();
+        sel = rangy.getSelection();
+        range = sel.getRangeAt(0);
         range.deleteContents();
         if (jq_temp.contents().length > 1) {
           range.insertNode(jq_temp[0]);
@@ -1138,8 +1193,7 @@
         }
         range.selectNode(jq_temp[0]);
         range.collapse(false);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
+        rangy.getSelection().setSingleRange(range);
         return event.data.undoWaypointCommit(false);
       },
       _ignoreKeys: function(code) {
@@ -1220,11 +1274,10 @@
       },
       _select_cell_fn: function(cell) {
         var range, sel;
-        sel = window.getSelection();
-        range = document.createRange();
+        sel = rangy.getSelection();
+        range = rangy.createRange();
         range.selectNode(cell);
-        sel.removeAllRanges();
-        return sel.addRange(range);
+        return sel.setSingleRange(range);
       },
       _syskeys: function(event) {
         var li, range, table, td, tds, use_next, use_prev, widget,
@@ -1237,7 +1290,7 @@
           return;
         }
         if (event.keyCode === 9 && !event.shiftKey) {
-          range = window.getSelection().getRangeAt();
+          range = rangy.getSelection().getRangeAt(0);
           li = $(range.startContainer).closest('li');
           if (!li.length) {
             li = $(range.endContainer).closest('li');
@@ -1274,7 +1327,7 @@
           }
         }
         if (event.keyCode === 9 && event.shiftKey) {
-          range = window.getSelection().getRangeAt();
+          range = rangy.getSelection().getRangeAt(0);
           li = $(range.startContainer).closest('li');
           if (!li.length) {
             li = $(range.endContainer).closest('li');
@@ -1382,15 +1435,15 @@
         }
         if (this.getContents() === this.options.placeholder) {
           force_focus = function() {
-            var content_node, new_range;
+            var content_node, new_range, selection;
             if (!jQuery(_this.element).hasClass('inEditMode')) {
               return;
             }
-            new_range = document.createRange();
+            new_range = rangy.createRange();
             content_node = jQuery(_this.element)[0];
             new_range.selectNodeContents(content_node);
-            window.getSelection().removeAllRanges();
-            return window.getSelection().addRange(new_range);
+            selection = rangy.getSelection();
+            return selection.setSingleRange(new_range);
           };
           window.setTimeout(force_focus, 1);
         }
@@ -1615,7 +1668,7 @@
         return this._undo_stack;
       },
       restoreContentPosition: function() {
-        var e, range, stored_selection;
+        var e, stored_selection;
         if (this.debug) {
           console.log('restoreContentPosition');
         }
@@ -1624,13 +1677,9 @@
           if (this.debug) {
             console.log('selection to restore:', stored_selection);
           }
-          window.getSelection().removeAllRanges();
           this._ignoreEvents = true;
           try {
-            range = document.createRange();
-            range.selectNode(stored_selection[0]);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+            rangy.deserializeSelection(stored_selection.attr('rel'), this.element[0]);
           } catch (_error) {
             e = _error;
           }
@@ -1638,74 +1687,30 @@
         }
       },
       storeContentPosition: function(avoid_change_selection) {
-        var e, marker, new_range, range, remove_queue, sel, selection_identifier, tmp_id, _i, _len,
-          _this = this;
-        if (this.debug) {
-          console.log('storeContentPosition');
-        }
-        sel = window.getSelection();
-        if (this.debug) {
-          console.log('ranges to store:' + sel.rangeCount);
-        }
-        if (sel.rangeCount > 0) {
-          range = sel.getRangeAt();
-          tmp_id = 'range' + Date.now();
-          this.element.find(this.selection_marker).removeAttr('id');
-          remove_queue = [];
-          this.element.find(this.selection_marker).each(function(index, item) {
-            var marker;
-            marker = jQuery(item);
-            if (marker.html() === '') {
-              return remove_queue.push(marker);
-            } else {
-              return marker.contents().unwrap();
-            }
-          });
-          for (_i = 0, _len = remove_queue.length; _i < _len; _i++) {
-            marker = remove_queue[_i];
-            marker.remove();
-          }
-          if (this.debug & 2) {
-            console.log('before:' + this.element.html());
-          }
+        var e, range, selection, selection_identifier, serialized_selection, tmp_id;
+        this._ignoreEvents = true;
+        tmp_id = 'range' + Date.now();
+        try {
+          selection = rangy.getSelection();
+          range = selection.getRangeAt();
+          serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
+          this.element.find(this.selection_marker).remove();
           selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
-          this._ignoreEvents = true;
-          try {
-            if (this.debug) {
-              console.log(selection_identifier);
-            }
-            selection_identifier[0].appendChild(range.extractContents());
-            range.insertNode(selection_identifier[0]);
-            if (this.debug) {
-              console.log('stored');
-            }
-          } catch (_error) {
-            e = _error;
-            new_range = range.cloneRange();
-            new_range.collapse(false);
-            new_range.insertNode(selection_identifier[0]);
-            if (this.debug) {
-              console.log('block contents');
-            }
-          }
-          if (typeof avoid_change_selection === 'undefined') {
-            range.selectNode(selection_identifier[0]);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-          }
-          this._ignoreEvents = false;
-          if (this.debug & 2) {
-            return console.log('after:' + this.element.html());
-          }
+          selection_identifier.attr('rel', serialized_selection);
+          this.element.append(selection_identifier);
+        } catch (_error) {
+          e = _error;
+          console.warn('exception during store selection');
         }
+        this.element.find('.rangySelectionBoundary').remove();
+        return this._ignoreEvents = false;
       },
       setContentPosition: function(jq_node) {
         var range, sel;
-        sel = window.getSelection();
-        sel.removeAllRanges();
-        range = document.createRange();
-        range.selectNode(jq_node[0]);
-        sel.addRange(range);
+        sel = rangy.getSelection();
+        range = rangy.createRange();
+        range.selectNodeContents(jq_node[0]);
+        sel.setSingleRange(range);
         return this.storeContentPosition();
       }
     });
@@ -1817,11 +1822,11 @@
         }
         nr = jQuery('<span>' + replacement + '</span>');
         if (has_block_contents) {
-          range = window.getSelection().getRangeAt();
+          range = rangy.getSelection().getRangeAt(0);
           range.setStartAfter(range.endContainer);
           range.insertNode(nr[0]);
         } else {
-          range = window.getSelection().getRangeAt();
+          range = rangy.getSelection().getRangeAt(0);
           range.deleteContents();
           range.insertNode(nr[0]);
         }
@@ -1867,32 +1872,45 @@
         }
         this_editable = this.options.editable;
         return el.bind("click", function(ev) {
-          var dom, has_block_contents, nugget, replacement, selection;
+          var nugget;
           if (element === '__associate') {
             window.__start_mini_activity = true;
+            this_editable.storeContentPosition();
             return jQuery('body').hallopublicationselector({
               'editable': this_editable
             });
           } else {
-            selection = _this.options.editable.element.find(_this.options.editable.selection_marker);
-            if (selection.length) {
-              dom = new IDOM();
-              has_block_contents = dom.hasBlockElement(selection);
-              if (selection.html() !== '' && !has_block_contents) {
-                replacement = "<span class=\"citation\">" + selection.html() + "</span>";
+            _this.options.editable.getSelectionStartNode(function(selection) {
+              var dom, saved_selection;
+              if (selection.length) {
+                dom = new IDOM();
+                saved_selection = rangy.saveSelection();
+                return _this.options.editable.getSelectionNode(function(selection_common) {
+                  var has_block_contents, range, replacement, replacement_node, selection_html;
+                  selection_html = _this.options.editable.getSelectionHtml();
+                  has_block_contents = dom.hasBlockElement(jQuery(selection_html));
+                  if (selection_html !== '' && !has_block_contents) {
+                    replacement = "<span class=\"citation\">" + selection_html + "</span>";
+                  } else {
+                    replacement = "";
+                  }
+                  replacement += "<span class=\"cite sourcedescription-" + data + "\">" + element + "</span>";
+                  replacement_node = jQuery('<span></span>').append(replacement);
+                  if (has_block_contents) {
+                    utils.info(utils.tr('warning selected block contents'));
+                    selection_common.append(replacement_node.contents());
+                  } else {
+                    selection = rangy.getSelection();
+                    range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(replacement_node[0]);
+                  }
+                  return rangy.removeMarkers(saved_selection);
+                });
               } else {
-                replacement = "";
+                return utils.info(utils.tr('no selection'));
               }
-              replacement += "<span class=\"cite sourcedescription-" + data + "\">" + element + "</span>";
-              if (has_block_contents) {
-                utils.info(utils.tr('warning selected block contents'));
-                selection.parent().append(replacement);
-              } else {
-                selection.html(replacement);
-              }
-            } else {
-              utils.info(utils.tr('no selection'));
-            }
+            });
             nugget = new DOMNugget();
             return nugget.updateSourceDescriptionData(this_editable.element).done(function() {
               return nugget.resetCitations(_this.options.editable.element).done(function() {
@@ -1991,13 +2009,13 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var range, recalc, table, table_placeholder, td, tr;
+          var range, recalc, selection, selection_html, table, table_placeholder, table_placeholder_node, td, tr;
           contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          if (!window.getSelection().rangeCount) {
+          if (!rangy.getSelection().rangeCount) {
             return false;
           }
-          range = window.getSelection().getRangeAt();
+          range = rangy.getSelection().getRangeAt(0);
           table = $(range.startContainer).closest('table');
           if (!table.length) {
             table = $(range.endContainer).closest('table');
@@ -2058,7 +2076,20 @@
             });
           } else {
             table_placeholder = '<table id="' + _this.tmpid + '" border="1" class="table-border"></table>';
-            _this.options.editable.execute('insertHTML', table_placeholder);
+            table_placeholder_node = jQuery(table_placeholder);
+            selection_html = _this.options.editable.getSelectionHtml();
+            if (selection_html === '') {
+              _this.options.editable.getSelectionNode(function(selection) {
+                return table_placeholder_node.insertAfter(selection);
+              });
+            } else {
+              selection = rangy.getSelection();
+              range = selection.getRangeAt(0);
+              if (range) {
+                range.deleteContents();
+              }
+              range.insertNode(table_placeholder_node[0]);
+            }
           }
           recalc = function() {
             return _this.recalcHTML(target.attr('id'));
@@ -2190,20 +2221,18 @@
           var sel_cell, table;
           _this.recalcHTML(contentId);
           table = $('#' + _this.tmpid);
-          _this.options.editable.element.find(_this.options.editable.selection_marker).remove();
-          if (!table.find(_this.options.editable.selection_marker).length) {
-            sel_cell = table.find('th:first');
-            if (!sel_cell.length) {
-              sel_cell = table.find('td:first');
-            }
-            sel_cell.contents().wrap('<' + _this.options.editable.selection_marker + '/>');
+          sel_cell = table.find('th:first');
+          if (!sel_cell.length) {
+            sel_cell = table.find('td:first');
           }
+          _this.options.editable.setContentPosition(sel_cell);
           table.removeAttr('id');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
-          _this.options.editable.element.find(_this.options.editable.selection_marker).remove();
-          $('#' + _this.tmpid).replaceWith('<' + _this.options.editable.selection_marker + '></' + _this.options.editable.selection_marker + '>');
+          _this.options.editable.setContentPosition($('#' + _this.tmpid));
+          $('#' + _this.tmpid).remove();
+          _this.options.editable.restoreContentPosition();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;
@@ -2261,8 +2290,8 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var latex_formula, range, recalc, sel, selected_formula, selection_marker, title;
-          if (!window.getSelection().rangeCount) {
+          var latex_formula, range, recalc, sel, selected_formula, title;
+          if (!rangy.getSelection().rangeCount) {
             return;
           }
           _this.options.editable.restoreContentPosition();
@@ -2272,8 +2301,8 @@
           };
           contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = window.getSelection();
-          range = sel.getRangeAt();
+          sel = rangy.getSelection();
+          range = sel.getRangeAt(0);
           _this.cur_formula = null;
           _this.action = 'insert';
           if (typeof select_target === 'object') {
@@ -2314,13 +2343,13 @@
             if (_this.options.inline) {
               _this.cur_formula.find('.formula').addClass('inline');
             }
-            selection_marker = _this.options.editable.element.find(_this.options.editable.selection_marker);
-            if (selection_marker.length) {
-              _this.cur_formula.insertBefore(selection_marker);
-              range.selectNode(selection_marker[0]);
-            }
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+            _this.options.editable.getSelectionStartNode(function(selection) {
+              if (selection.length) {
+                _this.cur_formula.insertBefore(selection);
+                range.selectNode(_this.cur_formula[0]);
+                return rangy.getSelection().setSingleRange(range);
+              }
+            });
             $('#' + contentId + 'latex').val(_this.options["default"]);
             $('#' + contentId + 'inline').attr('checked', _this.options.inline);
             $('#' + contentId + 'title').val();
@@ -2928,8 +2957,8 @@
             });
           });
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = window.getSelection();
-          range = sel.getRangeAt();
+          sel = rangy.getSelection();
+          range = sel.getRangeAt(0);
           selected_character = '&#64';
           _this.cur_character = jQuery('<span id="' + _this.tmpid + '">' + selected_character + '</span>');
           range.insertNode(_this.cur_character[0]);
@@ -3272,12 +3301,11 @@
         range = document.body.createTextRange();
         range.moveToElementText(element);
         return range.select();
-      } else if (window.getSelection) {
-        selection = window.getSelection();
-        range = document.createRange();
+      } else if (rangy.getSelection) {
+        selection = rangy.getSelection();
+        range = rangy.createRange();
         range.selectNodeContents(element);
-        selection.removeAllRanges();
-        return selection.addRange(range);
+        return selection.setSingleRange(range);
       }
     }
   });
@@ -4129,13 +4157,13 @@
         toolbar.append(target);
         setup = function() {
           var cur_selection, notes, range, recalc, sel, title, url;
-          if (!window.getSelection().rangeCount) {
+          if (!rangy.getSelection().rangeCount) {
             return;
           }
           _this.options.editable.undoWaypointStart('hyperlink');
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = window.getSelection();
-          range = sel.getRangeAt();
+          sel = rangy.getSelection();
+          range = sel.getRangeAt(0);
           _this.cur_hyperlink = null;
           _this.action = 'insert';
           _this.options.editable.element.find('a').each(function(index, item) {
@@ -4360,6 +4388,7 @@
       name: "plaintext",
       html: null,
       editable_element: null,
+      stored_content_selection_marker: '',
       plain_editor: null,
       overlay: null,
       debug: false,
@@ -4382,22 +4411,19 @@
         return this.restore();
       },
       commit: function() {
-        var selection_pos_end, selection_pos_start, textarea_content, textarea_selected_content;
-        selection_pos_start = this.textarea[0].selectionStart;
-        selection_pos_end = this.textarea[0].selectionEnd;
-        textarea_content = this.textarea.val();
-        textarea_selected_content = textarea_content.substring(0, selection_pos_start);
-        textarea_selected_content += '<' + this.options.editable.selection_marker + '>';
-        if (selection_pos_start !== selection_pos_end) {
-          textarea_selected_content += textarea_content.substring(selection_pos_start, selection_pos_end);
-        }
-        textarea_selected_content += '</' + this.options.editable.selection_marker + '>';
-        textarea_selected_content += textarea_content.substring(selection_pos_end);
-        if ((jQuery('<div>' + textarea_selected_content + '</div>').find(this.options.editable.selection_marker).length)) {
-          this.editable_element.html(textarea_selected_content);
-        } else {
-          this.editable_element.html('<' + this.options.editable.selection_marker + '></' + this.options.editable.selection_marker + '>' + textarea_content);
-        }
+        var sel_html;
+        sel_html = this.textarea.val();
+        sel_html = sel_html.replace(/\n<table/g, '<table');
+        sel_html = sel_html.replace(/\n<ol/g, '<ol');
+        sel_html = sel_html.replace(/\n<ul/g, '<ul');
+        sel_html = sel_html.replace(/\n <li/g, '<li');
+        sel_html = sel_html.replace(/\n <tr/g, '<tr');
+        sel_html = sel_html.replace(/\n  <td/g, '<td');
+        sel_html = sel_html.replace(/\n<div/g, '<div');
+        sel_html = sel_html.replace(/\n<p/g, '<p');
+        sel_html = sel_html.replace(/\n<br/g, '<br');
+        sel_html = sel_html + this.stored_content_selection_marker;
+        this.editable_element.html(sel_html);
         this.options.editable.store();
         return this.restore();
       },
@@ -4427,6 +4453,21 @@
           sel_html = _this.textarea.val();
           selm_start = '<' + _this.options.editable.selection_marker + '>';
           selm_end = '</' + _this.options.editable.selection_marker + '>';
+          sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/, selm_start);
+          if (sel_html.match(/<span class="rangySelectionBoundary">[^<]*<\/span>/)) {
+            sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/, selm_end);
+          } else {
+            sel_html = sel_html.replace(selm_start, selm_start + selm_end);
+          }
+          sel_html = sel_html.replace(/<table/g, '\n<table');
+          sel_html = sel_html.replace(/<ol/g, '\n<ol');
+          sel_html = sel_html.replace(/<ul/g, '\n<ul');
+          sel_html = sel_html.replace(/<li/g, '\n <li');
+          sel_html = sel_html.replace(/<tr/g, '\n <tr');
+          sel_html = sel_html.replace(/<td/g, '\n  <td');
+          sel_html = sel_html.replace(/<div/g, '\n<div');
+          sel_html = sel_html.replace(/<p/g, '\n<p');
+          sel_html = sel_html.replace(/<br/g, '\n<br');
           selection_pos_start = sel_html.indexOf(selm_start);
           if (selection_pos_start >= 0) {
             sel_html = sel_html.replace(new RegExp(selm_start, 'g'), '');
@@ -4479,13 +4520,25 @@
         return btn;
       },
       _prepare_plain_content: function() {
-        var citeproc, dom, selection_marker;
+        var citeproc, dom, selection_marker,
+          _this = this;
         dom = new DOMNugget();
         citeproc = new ICiteProc();
         citeproc.restoreTextForCitation(this.editable_element);
         dom.prepareTextForStorage(this.editable_element);
+        this.saved_selection = rangy.saveSelection();
         selection_marker = this.editable_element.find(this.options.editable.selection_marker);
-        selection_marker.removeAttr('id');
+        if (selection_marker.length) {
+          this.stored_content_selection_marker = selection_marker[0].outerHTML;
+          selection_marker.remove();
+        }
+        selection_marker = this.editable_element.find('.rangySelectionBoundary');
+        selection_marker.each(function(index, item) {
+          var node;
+          node = jQuery(item);
+          node.removeAttr('id');
+          return node.removeAttr('style');
+        });
         return this.editable_element.find('.auto-cite').remove();
       },
       _create_overlay: function(id) {
@@ -4743,8 +4796,8 @@
           clone = _this.options.editable.element.clone();
           offset = _this.options.editable.element.offset();
           check_node = clone;
-          if ((window.getSelection().rangeCount)) {
-            range = window.getSelection().getRangeAt();
+          if ((rangy.getSelection().rangeCount)) {
+            range = rangy.getSelection().getRangeAt(0);
             range.collapse();
             find_node = function(node) {
               var ret_node;
@@ -4976,37 +5029,33 @@
         });
         tmp_id = 'tmp_' + (new Date()).getTime();
         return dfo.done(function(result) {
-          var data, element, new_sd_node, nugget, old, range, replacement, sel, selection, selection_nodes;
+          var data, element, new_sd_node, nugget;
           data = result.loid;
           element = _this.current_node_label;
-          selection = _this.options.editable.element.find(_this.options.editable.selection_marker);
-          old = selection;
-          if (old.html() === "" || old.html() === "&nbsp;" || old.text() === " ") {
-            replacement = "";
-          } else {
-            replacement = "<span class=\"citation\">" + old.html() + "</span>";
-          }
-          replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
-          if (selection.length) {
-            range = document.createRange();
-            sel = window.getSelection();
-            range.selectNode(selection[0]);
-            if (selection.text() === '') {
-              if (selection.parent().attr('contenteditable') !== '') {
-                selection.parent().append(jQuery(replacement));
+          _this.options.editable.restoreContentPosition();
+          _this.options.editable.getSelectionNode(function(selection_common) {
+            var range, replacement, replacement_node, selection, selection_html;
+            selection_html = _this.options.editable.getSelectionHtml();
+            if (selection_html === "") {
+              replacement = "";
+            } else {
+              replacement = "<span class=\"citation\">" + selection_html + "</span>";
+            }
+            replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
+            replacement_node = jQuery('<span></span>').append(replacement);
+            selection = rangy.getSelection();
+            range = selection.getRangeAt(0);
+            range.deleteContents();
+            if (selection_html === '') {
+              if (selection_common.attr('contenteditable') !== '') {
+                return selection_common.append(replacement_node.contents());
               } else {
-                jQuery(replacement).insertAfter(selection.parent());
+                return replacement_node.insertAfter(selection_common);
               }
             } else {
-              selection.html(replacement);
+              return range.insertNode(replacement_node[0]);
             }
-            selection_nodes = _this.options.editable.element.find(_this.options.editable.selection_marker);
-            selection_nodes.each(function(index, item) {
-              var sel_item;
-              sel_item = jQuery(item);
-              return sel_item.contents().unwrap();
-            });
-          }
+          });
           nugget = new DOMNugget();
           _this.options.editable.element.closest('.nugget').find('.auto-cite').remove();
           occ.UpdateNuggetSourceDescriptions({
@@ -5208,18 +5257,23 @@
           if (_this.debug) {
             console.log('setup image form', select_target, target_id);
           }
-          if (!window.getSelection().rangeCount && typeof select_target === 'undefined') {
+          if (!rangy.getSelection().rangeCount && typeof select_target === 'undefined') {
             return;
           }
           _this.options.editable.undoWaypointStart('image');
           _this.tmpid = 'mod_' + (new Date()).getTime();
+          sel = rangy.getSelection();
+          range = sel.getRangeAt(0);
           if (typeof select_target !== 'undefined') {
-            console.log('selected target', $(select_target).html());
-            _this.cur_image = $(select_target);
-            _this.action = 'update';
+            return;
+            _this.cur_image = $(select_target).find('img').eq(0);
+            if (!_this.cur_image.length) {
+              _this.cur_image = null;
+              _this.action = 'insert';
+            } else {
+              _this.action = 'update';
+            }
           } else {
-            sel = window.getSelection();
-            range = sel.getRangeAt();
             _this.cur_image = null;
             _this.action = 'insert';
             _this.options.editable.element.find('img').each(function(index, item) {
@@ -5274,10 +5328,13 @@
             _this.cur_image.attr('id', _this.tmpid);
           } else {
             _this.cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
-            _this.cur_image.insertBefore(_this.options.editable.element.find(_this.options.editable.selection_marker));
-            range.selectNode(_this.options.editable.element.find(_this.options.editable.selection_marker)[0]);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
+            _this.options.editable.getSelectionStartNode(function(insert_position) {
+              if (insert_position.length) {
+                return _this.cur_image.insertBefore(insert_position);
+              } else {
+                return _this.options.editable.append(_this.cur_image);
+              }
+            });
             $('#' + contentId + 'url').val("");
             $('#' + contentId + 'alt').val("");
             $('#' + contentId + 'title').val("");
@@ -5467,11 +5524,11 @@
         setup = function() {
           var has_selection, is_citation, is_direct_citation, is_indirect_citation, range, range_ca, range_jq, selection;
           target.find('.element-selector').remove();
-          selection = window.getSelection();
+          selection = rangy.getSelection();
           if (!selection.rangeCount) {
             return false;
           }
-          range = selection.getRangeAt();
+          range = selection.getRangeAt(0);
           range_jq = $(range.cloneContents());
           range_ca = null;
           _this.start_container = null;
@@ -5569,11 +5626,11 @@
         this_editable = this.options.editable;
         return el.bind("click", function(ev) {
           var nugget, range, range_jq, selection;
-          selection = window.getSelection();
+          selection = rangy.getSelection();
           if (!selection.rangeCount) {
             return;
           }
-          range = selection.getRangeAt();
+          range = selection.getRangeAt(0);
           range_jq = $(range.cloneContents());
           nugget = new DOMNugget();
           if (element === 'copy') {
