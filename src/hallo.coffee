@@ -222,10 +222,7 @@ http://hallojs.org
             target = event.target
             if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
               return
-            window.getSelection().removeAllRanges()
-            range = document.createRange()
-            range.selectNode(target)
-            window.getSelection().addRange(range)
+            @setContentPosition(target)
 
 
       @_forceStructured() if @options.forceStructured
@@ -256,6 +253,43 @@ http://hallojs.org
       else
         range = rangy.createRange()
       return range
+    getSelectionStartNode: (node_processing_fn) ->
+      saved_selection = rangy.saveSelection()
+      node = @element.find('.rangySelectionBoundary:first')
+      node_processing_fn(node)
+      rangy.removeMarkers(saved_selection)
+    getSelectionEndNode: (node_processing_fn) ->
+      saved_selection = rangy.saveSelection()
+      node = @element.find('.rangySelectionBoundary:first')
+      node_processing_fn(node)
+      rangy.removeMarkers(saved_selection)
+      
+    getSelectionHtml: ->
+      selection = rangy.getSelection()
+      range = selection.getRangeAt(0)
+      jq_node = $('<div></div>').append(range.cloneContents())
+      html = jq_node.html()
+      text = jq_node.text()
+      html = '' if ( text.trim() == '' )
+      html = '' if ( html.trim() == '&nbsp;' )
+      console.log 'selection_html:[' + html + ']'
+      return html
+
+    getSelectionNode: (node_processing_fn) ->
+      saved_selection = rangy.saveSelection()
+      start_node = @element.find('.rangySelectionBoundary').eq(0)
+      end_node = @element.find('.rangySelectionBoundary').eq(1)
+      
+      range = rangy.getSelection().getRangeAt(0)
+      common_node = range.commonAncestorContainer
+      node = start_node
+      while ( node.length )
+        break if ( node[0] == common_node )
+        node = node.parent()
+
+      node = start_node if ( !node.length )
+      node_processing_fn(node)
+      rangy.removeMarkers(saved_selection)
 
     restoreSelection: (range) ->
       sel = rangy.getSelection()
@@ -278,26 +312,27 @@ http://hallojs.org
       @_setSelectionRange(input, pos, pos);
 
     replaceSelection: (cb) ->
+      console.warn('Deprecated, do not use')
       if navigator.appName is 'Microsoft Internet Explorer'
         t = document.selection.createRange().text;
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
       else
-        sel = window.getSelection();
+        sel = rangy.getSelection();
         range = sel.getRangeAt(0);
         newTextNode = document.createTextNode(cb(range.extractContents()));
         range.insertNode(newTextNode);
         range.setStartAfter(newTextNode);
-        sel.removeAllRanges();
-        sel.addRange(range);
+        sel.setSingleRange(range);
 
     replaceSelectionHTML: (cb) ->
+      console.warn('Deprecated, do not use')
       if navigator.appName is 'Microsoft Internet Explorer'
         t = document.selection.createRange().text;
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
       else
-        sel = window.getSelection()
+        sel = rangy.getSelection()
         range = sel.getRangeAt(0)
         # console.log(range)
         range_parent = range.commonAncestorContainer
@@ -309,15 +344,15 @@ http://hallojs.org
         replacement = cb(range_parent_jq, range_content_jq)
         range.deleteContents()
         range.insertNode($('<span>' + replacement + '</span>')[0]) if replacement
-        sel.removeAllRanges();
-        sel.addRange(range);
+        sel.setSingleRange(range);
         @storeContentPosition()
 
     removeAllSelections: () ->
+      console.warn('Deprecated do not use')
       if navigator.appName is 'Microsoft Internet Explorer'
         range.empty()
       else
-        window.getSelection().removeAllRanges()
+        rangy.getSelection().removeAllRanges()
 
     # Get contents of an editable as HTML string
     getContents: ->
@@ -365,23 +400,23 @@ http://hallojs.org
         # related style attributes from the content before executing the command
         # this action breaks the default undo
         @storeContentPosition()
-        selection = @element.find(@selection_marker)
-        while ( selection.length )
-          if ( selection.attr('contenteditable') == 'true' )
-            break
-          style_attr = selection.attr('style')
-          if ( typeof style_attr != 'undefined' )
-            style_attr = style_attr.replace(/text-align:[^;]*/,'')
-            style_attr = style_attr.trim()
-            if ( style_attr == '' || style_attr == ';' )
-              selection.removeAttr('style')
-            else
-              selection.attr('style',style_attr)
-          selection = selection.parent()
-      range = window.getSelection().getRangeAt()
+        @getSelectionStartNode (selection) =>
+          while ( selection.length )
+            if ( selection.attr('contenteditable') == 'true' )
+              break
+            style_attr = selection.attr('style')
+            if ( typeof style_attr != 'undefined' )
+              style_attr = style_attr.replace(/text-align:[^;]*/,'')
+              style_attr = style_attr.trim()
+              if ( style_attr == '' || style_attr == ';' )
+                selection.removeAttr('style')
+              else
+                selection.attr('style',style_attr)
+      range = rangy.getSelection().getRangeAt(0)
       if ( range.collapsed && command.indexOf('paste') != 0 )
-        range.selectNode(range.startContainer)
-        window.getSelection().addRange(range)
+        sel_all_range = rangy.createRange()
+        sel_all_range.selectNode(range.startContainer)
+        rangy.getSelection().setSingleRange(sel_all_range)
       if ( command.indexOf('copy') == 0 )
         @_copy()
       else if ( command.indexOf('cut') == 0 )
@@ -469,7 +504,7 @@ http://hallojs.org
       console.log('copy',event) if @debug
       return if ( !window.wke )
       event.preventDefault() if ( typeof event == 'object' && typeof event.preventDefault == 'function' )
-      range = window.getSelection().getRangeAt()
+      range = rangy.getSelection().getRangeAt(0)
       rdata = jQuery('<div/>').append(range.cloneContents())
       dom = new IDOM()
       dom.cleanExport(rdata);
@@ -481,7 +516,7 @@ http://hallojs.org
     _cut: (event) ->
       event.data.undoWaypointStart('cut')
       event.data._copy(event)
-      range = window.getSelection().getRangeAt()
+      range = rangy.getSelection().getRangeAt(0)
       range.deleteContents()
       event.data.undoWaypointCommit(false)
 
@@ -508,8 +543,8 @@ http://hallojs.org
       dom = new IDOM()
       dom.clean(jq_temp);
       html = jq_temp.html();
-      sel = window.getSelection()
-      range = sel.getRangeAt()
+      sel = rangy.getSelection()
+      range = sel.getRangeAt(0)
       range.deleteContents()
       if ( jq_temp.contents().length > 1 )
         # wrapped in element
@@ -522,8 +557,7 @@ http://hallojs.org
         range.insertNode(jq_temp[0])
       range.selectNode(jq_temp[0])
       range.collapse(false) # collapse to end
-      window.getSelection().removeAllRanges()
-      window.getSelection().addRange(range)
+      rangy.getSelection().setSingleRange(range)
       event.data.undoWaypointCommit(false)
 
       
@@ -694,18 +728,17 @@ http://hallojs.org
         , widget.auto_store_timeout
 
     _select_cell_fn: (cell) ->
-      sel = window.getSelection()
-      range = document.createRange()
+      sel = rangy.getSelection()
+      range = rangy.createRange()
       range.selectNode(cell)
-      sel.removeAllRanges()
-      sel.addRange(range)
+      sel.setSingleRange(range)
 
     _syskeys: (event) ->
       widget = event.data
       return if widget._ignoreKeys(event.keyCode)
       return if widget.checkRegisteredKeys(event)
       if event.keyCode == 9 && !event.shiftKey  #tab
-        range = window.getSelection().getRangeAt()
+        range = rangy.getSelection().getRangeAt(0)
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
         if ( li.length )
@@ -731,7 +764,7 @@ http://hallojs.org
             widget._select_cell_fn(tds[0])
           event.preventDefault()
       if event.keyCode == 9 && event.shiftKey  #shift+tab
-        range = window.getSelection().getRangeAt()
+        range = rangy.getSelection().getRangeAt(0)
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
         if ( li.length )
@@ -817,11 +850,11 @@ http://hallojs.org
         #this.setContents ' '
         force_focus = =>
           return if !jQuery(@element).hasClass 'inEditMode'
-          new_range = document.createRange()
+          new_range = rangy.createRange()
           content_node = jQuery(@element)[0] #//? is element a DOMnode?
           new_range.selectNodeContents(content_node);
-          window.getSelection().removeAllRanges();
-          window.getSelection().addRange(new_range);
+          selection = rangy.getSelection()
+          selection.setSingleRange(new_range);
         window.setTimeout(force_focus,1)
       jQuery(@element).addClass 'inEditMode'
       @_trigger "activated", null, @
@@ -990,70 +1023,35 @@ http://hallojs.org
       stored_selection = @element.find(@selection_marker)
       if ( stored_selection.length )
         console.log('selection to restore:',stored_selection) if @debug
-        window.getSelection().removeAllRanges()
         @_ignoreEvents = true # avoid deactivating because of addRange
         try
-        
-          range = document.createRange()
-          range.selectNode(stored_selection[0])
-          window.getSelection().removeAllRanges()
-          window.getSelection().addRange(range)
+          rangy.deserializeSelection(stored_selection.attr('rel'),@element[0])
         catch e
           # ignore
         @_ignoreEvents = false # avoid deactivating because of addRange
 
 
     storeContentPosition: (avoid_change_selection)->
-      console.log('storeContentPosition') if @debug
-      sel = window.getSelection()
-      console.log('ranges to store:' + sel.rangeCount) if @debug
-      if ( sel.rangeCount > 0 )
-        range = sel.getRangeAt()
-        tmp_id = 'range' + Date.now()
-        @element.find(@selection_marker).removeAttr('id')
-        remove_queue = [];
-        @element.find(@selection_marker).each (index,item) =>
-          marker = jQuery(item)
-          if ( marker.html() == '' )
-            remove_queue.push(marker)
-          else
-            marker.contents().unwrap()
-        for marker in remove_queue
-          marker.remove()
-        console.log('before:' + @element.html()) if @debug & 2
+      @_ignoreEvents = true
+      tmp_id = 'range' + Date.now()
+      try
+        selection = rangy.getSelection()
+        range = selection.getRangeAt()
+        serialized_selection = rangy.serializeSelection(selection,true,@element[0])
+        @element.find(@selection_marker).remove();
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
-        @_ignoreEvents = true # avoid deactivating because of addRange
-        try
-          console.log(selection_identifier) if @debug
-          #range.surroundContents(selection_identifier[0])
-          selection_identifier[0].appendChild(range.extractContents());
-          range.insertNode(selection_identifier[0])
-          #range.surroundContents(selection_identifier)
-          console.log('stored') if @debug
-        catch e
-          # deactivated - may issue in formula editor
-          # utils.info(utils.tr('warning selected block contents'))
-          new_range = range.cloneRange()
-          new_range.collapse(false) # to end
-          new_range.insertNode(selection_identifier[0])
-          console.log('block contents') if @debug
-          #sel.removeAllRanges()
-          #sel.addRange(range)
-        if ( typeof avoid_change_selection == 'undefined' )
-          range.selectNode(selection_identifier[0])
-          window.getSelection().removeAllRanges()
-          window.getSelection().addRange(range)
-
-        @_ignoreEvents=false
-        console.log('after:' + @element.html()) if @debug & 2
-        # console.log('selection added',@element.html())
+        selection_identifier.attr('rel',serialized_selection)
+        @element.append(selection_identifier);
+      catch e
+        console.warn('exception during store selection')
+      @element.find('.rangySelectionBoundary').remove()
+      @_ignoreEvents = false
 
     setContentPosition: (jq_node) ->
-      sel = window.getSelection()
-      sel.removeAllRanges()
-      range = document.createRange()
-      range.selectNode(jq_node[0])
-      sel.addRange(range)
+      sel = rangy.getSelection()
+      range = rangy.createRange()
+      range.selectNodeContents(jq_node[0])
+      sel.setSingleRange(range)
       @storeContentPosition()
 
 

@@ -11,9 +11,8 @@ jQuery.extend jQuery.fn ,
       range = document.body.createTextRange()
       range.moveToElementText(element)
       range.select()
-    else if window.getSelection
-      selection = window.getSelection()
-      range = document.createRange()
+    else if rangy.getSelection
+      selection = rangy.getSelection()
+      range = rangy.createRange()
       range.selectNodeContents(element)
-      selection.removeAllRanges()
-      selection.addRange(range)
+      selection.setSingleRange(range)

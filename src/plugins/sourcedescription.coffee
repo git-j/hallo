@@ -51,11 +51,11 @@
         replacement = "<span class=\"selection\">&nbsp;</span>"
       nr = jQuery('<span>' + replacement + '</span>');
       if has_block_contents
-        range = window.getSelection().getRangeAt()
+        range = rangy.getSelection().getRangeAt(0)
         range.setStartAfter(range.endContainer)
         range.insertNode(nr[0])
       else
-        range = window.getSelection().getRangeAt()
+        range = rangy.getSelection().getRangeAt(0)
         range.deleteContents()
         range.insertNode(nr[0])
       replacement = false
@@ -90,28 +90,38 @@
       el.bind "click", (ev) =>
         if element == '__associate'
           window.__start_mini_activity = true
+          this_editable.storeContentPosition()
           jQuery('body').hallopublicationselector({'editable':this_editable});
         #else if element == '__quote'
         #  window.__start_mini_activity = true
         #  jQuery('body').halloquoteselector({'editable':this_editable});
         else
-          selection = @options.editable.element.find(@options.editable.selection_marker)
-          if ( selection.length )
-            dom = new IDOM()
-            has_block_contents = dom.hasBlockElement(selection)
-            if ( selection.html() != '' && ! has_block_contents )
-              replacement = "<span class=\"citation\">" + selection.html() + "</span>"
-            else
-              replacement = ""
-            replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+          @options.editable.getSelectionStartNode (selection) =>
+            if ( selection.length )
+              dom = new IDOM()
 
-            if ( has_block_contents )
-              utils.info(utils.tr('warning selected block contents'))
-              selection.parent().append(replacement)
+              saved_selection = rangy.saveSelection()
+              @options.editable.getSelectionNode (selection_common) =>
+                selection_html = @options.editable.getSelectionHtml()
+                has_block_contents = dom.hasBlockElement(jQuery(selection_html))
+
+                if ( selection_html != '' && ! has_block_contents )
+                  replacement = "<span class=\"citation\">" + selection_html + "</span>"
+                else
+                  replacement = ""
+                replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+                replacement_node = jQuery('<span></span>').append(replacement)
+                if ( has_block_contents )
+                  utils.info(utils.tr('warning selected block contents'))
+                  selection_common.append(replacement_node.contents())
+                else
+                  selection = rangy.getSelection()
+                  range = selection.getRangeAt(0)
+                  range.deleteContents()
+                  range.insertNode(replacement_node[0])
+                rangy.removeMarkers(saved_selection)
             else
-              selection.html(replacement)
-          else
-            utils.info(utils.tr('no selection'))
+              utils.info(utils.tr('no selection'))
           #console.log(this_editable.element)
           nugget = new DOMNugget()
           #debug.log('sdc::addElement',this_editable)

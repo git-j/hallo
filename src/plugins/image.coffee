@@ -29,16 +29,22 @@
       setup= (select_target,target_id) =>
         contentId = target_id
         console.log('setup image form',select_target,target_id) if @debug
-        return if !window.getSelection().rangeCount && typeof select_target == 'undefined'
+        return if !rangy.getSelection().rangeCount && typeof select_target == 'undefined'
         @options.editable.undoWaypointStart('image')
         @tmpid='mod_' + (new Date()).getTime()
+        sel = rangy.getSelection()
+        range = sel.getRangeAt(0)
         if ( typeof select_target != 'undefined' )
-          console.log('selected target',$(select_target).html())
-          @cur_image = $(select_target)
-          @action = 'update'
+          #console.log('selected target',$(select_target).html())
+          # disabled for now!
+          return
+          @cur_image = $(select_target).find('img').eq(0)
+          if ( !@cur_image.length )
+            @cur_image = null
+            @action = 'insert'
+          else
+            @action = 'update'
         else
-          sel = window.getSelection()
-          range = sel.getRangeAt()
           @cur_image = null
           @action = 'insert'
           @options.editable.element.find('img').each (index,item) =>
@@ -80,10 +86,11 @@
         else
           # TODO use wke env to get theme
           @cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
-          @cur_image.insertBefore(@options.editable.element.find(@options.editable.selection_marker))
-          range.selectNode(@options.editable.element.find(@options.editable.selection_marker)[0])
-          window.getSelection().removeAllRanges()
-          window.getSelection().addRange(range)
+          @options.editable.getSelectionStartNode (insert_position) =>
+            if ( insert_position.length )
+              @cur_image.insertBefore(insert_position)
+            else
+              @options.editable.append(@cur_image)
           $('#' + contentId + 'url').val("")
           $('#' + contentId + 'alt').val("")
           $('#' + contentId + 'title').val("")

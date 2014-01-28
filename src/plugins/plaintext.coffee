@@ -9,6 +9,7 @@
     name: "plaintext"
     html: null
     editable_element: null
+    stored_content_selection_marker: ''
     plain_editor: null # optional component (codeMirror)
     overlay: null
     debug: false
@@ -27,25 +28,18 @@
       console.log('cancel') if @debug
       @restore()
     commit: () ->
-      selection_pos_start = @textarea[0].selectionStart
-      selection_pos_end = @textarea[0].selectionEnd
-      textarea_content = @textarea.val()
-      textarea_selected_content = textarea_content.substring(0,selection_pos_start)
-      textarea_selected_content+= '<' + @options.editable.selection_marker + '>'
-      if ( selection_pos_start != selection_pos_end)
-        textarea_selected_content+= textarea_content.substring(selection_pos_start,selection_pos_end)
-      textarea_selected_content+= '</' + @options.editable.selection_marker + '>'
-      textarea_selected_content+= textarea_content.substring(selection_pos_end)
-      if ( jQuery('<div>' + textarea_selected_content + '</div>').find(@options.editable.selection_marker).length )
-        # the html is not destroyed by the selection
-        @editable_element.html(textarea_selected_content)
-      else
-        #simple1: <b>te|xt</b>
-        #simple2: <i><b|>text</b></i>
-        #medium: <b class="somethi|ng">text</b>
-        #complex: <b class="<some><thi|ng>">text</b>
-        #TODO implement ways for this situation
-        @editable_element.html('<' + @options.editable.selection_marker + '></' + @options.editable.selection_marker + '>' + textarea_content)
+      sel_html = @textarea.val()
+      sel_html = sel_html.replace(/\n<table/g,'<table')
+      sel_html = sel_html.replace(/\n<ol/g,'<ol')
+      sel_html = sel_html.replace(/\n<ul/g,'<ul')
+      sel_html = sel_html.replace(/\n <li/g,'<li')
+      sel_html = sel_html.replace(/\n <tr/g,'<tr')
+      sel_html = sel_html.replace(/\n  <td/g,'<td')
+      sel_html = sel_html.replace(/\n<div/g,'<div')
+      sel_html = sel_html.replace(/\n<p/g,'<p')
+      sel_html = sel_html.replace(/\n<br/g,'<br')
+      sel_html = sel_html + @stored_content_selection_marker
+      @editable_element.html(sel_html)
       @options.editable.store()
       @restore()
     execute: () ->
@@ -67,12 +61,24 @@
         @options.editable._ignoreEvents = true
         @textarea.focus()
         sel_html = @textarea.val();
-        # 8< prepareTextForStorage
-        #sel_html = sel_html.replace(/<p/g,'\n<p')
-        #sel_html = sel_html.replace(/<div/g,'\n<div')
-        #sel_html = sel_html.replace(/<br/g,'\n<br')
         selm_start = '<' + @options.editable.selection_marker + '>'
         selm_end = '</' + @options.editable.selection_marker + '>'
+        sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/,selm_start)
+        if ( sel_html.match(/<span class="rangySelectionBoundary">[^<]*<\/span>/) )
+          sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/,selm_end)
+        else
+          sel_html = sel_html.replace(selm_start,selm_start+selm_end);
+        # 8< prepareTextForStorage
+        #sel_html = sel_html.replace(/<p/g,'\n<p')
+        sel_html = sel_html.replace(/<table/g,'\n<table')
+        sel_html = sel_html.replace(/<ol/g,'\n<ol')
+        sel_html = sel_html.replace(/<ul/g,'\n<ul')
+        sel_html = sel_html.replace(/<li/g,'\n <li')
+        sel_html = sel_html.replace(/<tr/g,'\n <tr')
+        sel_html = sel_html.replace(/<td/g,'\n  <td')
+        sel_html = sel_html.replace(/<div/g,'\n<div')
+        sel_html = sel_html.replace(/<p/g,'\n<p')
+        sel_html = sel_html.replace(/<br/g,'\n<br')
         selection_pos_start = sel_html.indexOf(selm_start)
         if ( selection_pos_start >= 0)
           sel_html = sel_html.replace(new RegExp(selm_start,'g'),'')
@@ -116,8 +122,16 @@
       citeproc = new ICiteProc()
       citeproc.restoreTextForCitation(@editable_element);
       dom.prepareTextForStorage(@editable_element)
+      @saved_selection = rangy.saveSelection()
       selection_marker = @editable_element.find(@options.editable.selection_marker)
-      selection_marker.removeAttr('id')
+      if selection_marker.length
+        @stored_content_selection_marker = selection_marker[0].outerHTML
+        selection_marker.remove()
+      selection_marker = @editable_element.find('.rangySelectionBoundary')
+      selection_marker.each (index,item) =>
+        node = jQuery(item)
+        node.removeAttr('id')
+        node.removeAttr('style')
       @editable_element.find('.auto-cite').remove()
 
     _create_overlay: (id) ->

@@ -24,9 +24,9 @@
       setup= =>
         # populate with available actions
         target.find('.element-selector').remove()
-        selection = window.getSelection()
+        selection = rangy.getSelection()
         return false if !selection.rangeCount
-        range = selection.getRangeAt()
+        range = selection.getRangeAt(0)
         range_jq = $(range.cloneContents())
         range_ca = null
         @start_container = null
@@ -90,9 +90,9 @@
       el = jQuery "<button class=\"element-selector\">#{element_text}</button>"
       this_editable = @options.editable
       el.bind "click", (ev) =>
-        selection = window.getSelection()
+        selection = rangy.getSelection()
         return if !selection.rangeCount
-        range = selection.getRangeAt()
+        range = selection.getRangeAt(0)
         range_jq = $(range.cloneContents())
         nugget = new DOMNugget();
         if ( element == 'copy' )

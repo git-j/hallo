@@ -24,11 +24,11 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= =>
-        return if !window.getSelection().rangeCount
+        return if !rangy.getSelection().rangeCount
         @options.editable.undoWaypointStart('hyperlink')
         @tmpid='mod_' + (new Date()).getTime()
-        sel = window.getSelection()
-        range = sel.getRangeAt()
+        sel = rangy.getSelection()
+        range = sel.getRangeAt(0)
         @cur_hyperlink = null
         @action = 'insert'
         @options.editable.element.find('a').each (index,item) =>

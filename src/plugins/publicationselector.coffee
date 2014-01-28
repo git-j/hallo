@@ -77,28 +77,25 @@
       dfo.done (result) =>
         data = result.loid
         element = @current_node_label
-        selection =  @options.editable.element.find(@options.editable.selection_marker)
-        old = selection
-        if old.html() == "" || old.html() == "&nbsp;" || old.text() == " "
-          replacement = ""
-        else
-          replacement = "<span class=\"citation\">" + old.html() + "</span>"
-        replacement+= "<span class=\"cite sourcedescription-#{data}\" contenteditable=\"false\" id=\"#{tmp_id}\">#{element}</span>"
-        if ( selection.length )
-          range = document.createRange()
-          sel = window.getSelection()
-          range.selectNode(selection[0])
-          if ( selection.text() == '' )
-            if ( selection.parent().attr('contenteditable') != '' )
-              selection.parent().append(jQuery(replacement))
-            else
-              jQuery(replacement).insertAfter(selection.parent()) # avoid inserting _in_ hyperlinks
+        @options.editable.restoreContentPosition()
+        @options.editable.getSelectionNode (selection_common) =>
+          selection_html = @options.editable.getSelectionHtml()
+          if selection_html == ""
+            replacement = ""
           else
-            selection.html(replacement)
-          selection_nodes =  @options.editable.element.find(@options.editable.selection_marker)
-          selection_nodes.each (index,item) =>
-            sel_item = jQuery(item)
-            sel_item.contents().unwrap()
+            replacement = "<span class=\"citation\">" + selection_html + "</span>"
+          replacement+= "<span class=\"cite sourcedescription-#{data}\" contenteditable=\"false\" id=\"#{tmp_id}\">#{element}</span>"
+          replacement_node = jQuery('<span></span>').append(replacement)
+          selection = rangy.getSelection()
+          range = selection.getRangeAt(0)
+          range.deleteContents()
+          if ( selection_html == '' )
+            if ( selection_common.attr('contenteditable') != '' )
+              selection_common.append(replacement_node.contents())
+            else
+              replacement_node.insertAfter(selection_common) # avoid inserting _in_ hyperlinks
+          else
+            range.insertNode(replacement_node[0])
 
         nugget = new DOMNugget()
         @options.editable.element.closest('.nugget').find('.auto-cite').remove()

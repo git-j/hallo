@@ -44,14 +44,14 @@
         # console.log(@options.command,document.queryCommandState(@options.command))
         return unless @options.command
         return unless ( (event.keyCode >= 33 && event.keyCode <= 40) || event.type == 'mouseup' || event.type == 'hallomodified')
-        if ( window.getSelection().anchorNode == null )
-          # console.log('empty anchorNode',window.getSelection().anchorNode )
+        if ( rangy.getSelection().anchorNode == null )
+          # console.log('empty anchorNode',rangy.getSelection().anchorNode )
           return;
         try
           # HACK for qt-webkit
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
             # broken command state for sub/sup
-            range = window.getSelection().getRangeAt()
+            range = rangy.getSelection().getRangeAt(0)
             parent = range.startContainer.parentNode
             state = false
             if parent.nodeName == 'SUB' && @options.command == 'subscript'
@@ -61,7 +61,7 @@
             @checked state
           else if ( @options.command.indexOf('justify') == 0 )
             # broken justify
-            range = window.getSelection().getRangeAt()
+            range = rangy.getSelection().getRangeAt(0)
             node = range.startContainer
             state = false
             while ( node )
@@ -84,19 +84,19 @@
       if typeof @options.command_function == 'function'
         @button.bind 'click', @options.command_function
         #command_function = () =>
-        #    range = window.getSelection().getRangeAt()
+        #    range = rangy.getSelection().getRangeAt(0)
         #    console.log(range)
         #    if ( range.collapsed )
         #        console.log('TODO: select entire text node')
         #        range.selectNode(range.startContainer)
-        #        window.getSelection().addRange(range)
+        #        rangy.getSelection().addRange(range)
         #    widget.execute(format, false, null)
       else if typeof @options.command == 'string'
         @button.bind 'click', (event) =>
           jQuery('.misspelled').remove()
           # HACK for qt-webkit
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
-            range = window.getSelection().getRangeAt()
+            range = rangy.getSelection().getRangeAt(0)
             node  = jQuery(range.startContainer)
             state = false
             if node.closest('SUB').length && @options.command == 'subscript'

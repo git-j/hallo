@@ -56,7 +56,7 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= (select_target,target_id) =>
-        return if !window.getSelection().rangeCount
+        return if !rangy.getSelection().rangeCount
         @options.editable.restoreContentPosition()
         @options.editable.undoWaypointStart('formula')
         @options.editable._current_undo_command.postdo = () =>
@@ -68,9 +68,9 @@
         # and in the keyup/click handlers in _prepareDropdown
 
         @tmpid = 'mod_' + (new Date()).getTime()
-        sel = window.getSelection()
+        sel = rangy.getSelection()
         # sel may not be correct
-        range = sel.getRangeAt()
+        range = sel.getRangeAt(0)
         @cur_formula = null
         @action = 'insert'
         if ( typeof select_target == 'object' )
@@ -103,13 +103,12 @@
           @cur_formula.find('.formula').attr('title','')
           if ( @options.inline )
             @cur_formula.find('.formula').addClass('inline')
-          #range.insertNode(@cur_formula[0])
-          selection_marker = @options.editable.element.find(@options.editable.selection_marker)
-          if ( selection_marker.length )
-            @cur_formula.insertBefore(selection_marker)
-            range.selectNode(selection_marker[0])
-          window.getSelection().removeAllRanges()
-          window.getSelection().addRange(range)
+
+          @options.editable.getSelectionStartNode (selection) =>
+            if ( selection.length )
+              @cur_formula.insertBefore(selection)
+              range.selectNode(@cur_formula[0])
+              rangy.getSelection().setSingleRange(range)
 
           $('#' + contentId + 'latex').val(@options.default)
           $('#' + contentId + 'inline').attr('checked',@options.inline)

@@ -62,8 +62,8 @@
         clone = @options.editable.element.clone()
         offset = @options.editable.element.offset()
         check_node = clone
-        if ( window.getSelection().rangeCount )
-          range = window.getSelection().getRangeAt()
+        if ( rangy.getSelection().rangeCount )
+          range = rangy.getSelection().getRangeAt(0)
           range.collapse()
           find_node = (node) =>
             ret_node = null;

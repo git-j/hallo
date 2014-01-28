@@ -28,8 +28,8 @@
       setup= (select_target,target_id) =>
         contentId = target_id
         @tmpid='mod_' + (new Date()).getTime()
-        return false if !window.getSelection().rangeCount
-        range = window.getSelection().getRangeAt()
+        return false if !rangy.getSelection().rangeCount
+        range = rangy.getSelection().getRangeAt(0)
 
         table = $(range.startContainer).closest('table')
         table = $(range.endContainer).closest('table') if !table.length
@@ -65,7 +65,18 @@
         else
           #create
           table_placeholder = '<table id="' + @tmpid + '" border="1" class="table-border"></table>'
-          @options.editable.execute('insertHTML',table_placeholder)
+          table_placeholder_node = jQuery(table_placeholder)
+          selection_html = @options.editable.getSelectionHtml()
+          if ( selection_html == '' )
+            @options.editable.getSelectionNode (selection) =>
+              table_placeholder_node.insertAfter(selection)
+          else
+            selection = rangy.getSelection()
+            range = selection.getRangeAt(0)
+            if ( range )
+              range.deleteContents()
+            range.insertNode(table_placeholder_node[0])
+
         recalc = =>
           @recalcHTML(target.attr('id'))
         window.setTimeout recalc, 300
@@ -170,17 +181,17 @@
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
         table = $('#' + @tmpid)
-        @options.editable.element.find(@options.editable.selection_marker).remove()
-        if ( !table.find(@options.editable.selection_marker).length )
-          sel_cell = table.find('th:first')
-          if ( !sel_cell.length )
-            sel_cell = table.find('td:first')
-          sel_cell.contents().wrap('<' + @options.editable.selection_marker + '/>' )
+        sel_cell = table.find('th:first')
+        if ( !sel_cell.length )
+          sel_cell = table.find('td:first')
+        @options.editable.setContentPosition(sel_cell)
         table.removeAttr('id')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
-        @options.editable.element.find(@options.editable.selection_marker).remove()
-        $('#' + @tmpid).replaceWith('<' + @options.editable.selection_marker + '></' + @options.editable.selection_marker + '>')
+        
+        @options.editable.setContentPosition($('#' + @tmpid))
+        $('#' + @tmpid).remove()
+        @options.editable.restoreContentPosition()
         @dropdownform.hallodropdownform('hideForm')
       #requires DOM-modification
       #contentAreaUL.append addButton "insertRow", =>

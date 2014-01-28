@@ -24,7 +24,7 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= =>
-        # return if !window.getSelection().rangeCount
+        # return if !rangy.getSelection().rangeCount
         @options.editable.undoWaypointCommit(true)
         @options.editable.undoWaypointStart('characterselect')
         jQuery(target).find('select').each (index,item) =>
@@ -33,8 +33,8 @@
           jQuery(target).find('select').each (index,item) =>
             jQuery(item).selectBox('destroy')
         @tmpid='mod_' + (new Date()).getTime()
-        sel = window.getSelection()
-        range = sel.getRangeAt()
+        sel = rangy.getSelection()
+        range = sel.getRangeAt(0)
         selected_character = '&#64';
         @cur_character = jQuery('<span id="' + @tmpid + '">' + selected_character + '</span>');
         #TODO: make sure this formatting is not stored
