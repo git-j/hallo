@@ -219,8 +219,8 @@ http://hallojs.org
         window._live['.editableclick'] = true
         if(jQuery('[contenteditable=false]').length>0)
           jQuery('[contenteditable=false]').live "click", (event) =>
-            target = event.target
-            if ( jQuery(target).closest('[contenteditable=true]').length == 0 )
+            target = jQuery(event.target)
+            if ( target.closest('[contenteditable=true]').length == 0 )
               return
             @setContentPosition(target)
 
@@ -266,29 +266,34 @@ http://hallojs.org
       
     getSelectionHtml: ->
       selection = rangy.getSelection()
-      range = selection.getRangeAt(0)
-      jq_node = $('<div></div>').append(range.cloneContents())
-      html = jq_node.html()
-      text = jq_node.text()
-      html = '' if ( text.trim() == '' )
-      html = '' if ( html.trim() == '&nbsp;' )
-      console.log 'selection_html:[' + html + ']'
+      html = ''
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+        jq_node = $('<div></div>').append(range.cloneContents())
+        html = jq_node.html()
+        text = jq_node.text()
+        html = '' if ( text.trim() == '' )
+        html = '' if ( html.trim() == '&nbsp;' )
+        console.log 'selection_html:[' + html + ']' if @debug
       return html
 
     getSelectionNode: (node_processing_fn) ->
       saved_selection = rangy.saveSelection()
       start_node = @element.find('.rangySelectionBoundary').eq(0)
       end_node = @element.find('.rangySelectionBoundary').eq(1)
-      
-      range = rangy.getSelection().getRangeAt(0)
-      common_node = range.commonAncestorContainer
-      node = start_node
-      while ( node.length )
-        break if ( node[0] == common_node )
-        node = node.parent()
+      selection = rangy.getSelection()
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+        common_node = range.commonAncestorContainer
+        node = start_node
+        while ( node.length )
+          break if ( node[0] == common_node )
+          node = node.parent()
 
-      node = start_node if ( !node.length )
-      node_processing_fn(node)
+        node = start_node if ( !node.length )
+        node_processing_fn(node)
+      else
+        node_processing_fn(@element)
       rangy.removeMarkers(saved_selection)
 
     restoreSelection: (range) ->
@@ -412,6 +417,7 @@ http://hallojs.org
                 selection.removeAttr('style')
               else
                 selection.attr('style',style_attr)
+            selection = selection.parent()
       range = rangy.getSelection().getRangeAt(0)
       if ( range.collapsed && command.indexOf('paste') != 0 )
         sel_all_range = rangy.createRange()

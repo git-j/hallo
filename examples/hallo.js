@@ -484,7 +484,7 @@
         }
         this.element.append(this.button);
         queryState = function(event) {
-          var attribute, e, node, parent, range, state, style, _i, _len, _ref;
+          var attribute, e, node, parent, range, selection, state, style, _i, _len, _ref;
           if (!_this.options.command) {
             return;
           }
@@ -495,43 +495,48 @@
             return;
           }
           try {
+            state = false;
             if (_this.options.command === 'subscript' || _this.options.command === 'superscript') {
-              range = rangy.getSelection().getRangeAt(0);
-              parent = range.startContainer.parentNode;
-              state = false;
-              if (parent.nodeName === 'SUB' && _this.options.command === 'subscript') {
-                state = true;
-              }
-              if (parent.nodeName === 'SUP' && _this.options.command === 'superscript') {
-                state = true;
+              selection = rangy.getSelection();
+              if (selection.rangeCount > 0) {
+                range = selection.getRangeAt(0);
+                parent = range.startContainer.parentNode;
+                if (parent.nodeName === 'SUB' && _this.options.command === 'subscript') {
+                  state = true;
+                }
+                if (parent.nodeName === 'SUP' && _this.options.command === 'superscript') {
+                  state = true;
+                }
               }
               return _this.checked(state);
             } else if (_this.options.command.indexOf('justify') === 0) {
-              range = rangy.getSelection().getRangeAt(0);
-              node = range.startContainer;
-              state = false;
-              while (node) {
-                if (node.contentEditable === 'true') {
-                  break;
-                }
-                if (typeof node.attributes === 'object' && node.attributes !== null) {
-                  _ref = node.attributes;
-                  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                    attribute = _ref[_i];
-                    if (attribute.nodeName === 'style' && attribute.nodeValue.indexOf('text-align') >= 0) {
-                      style = attribute.nodeValue;
-                      style = style.replace(/.*text-align:([^;]*).*/, '$1').trim();
-                      if (_this.options.command.toLowerCase() === 'justify' + style) {
-                        state = true;
+              selection = rangy.getSelection();
+              if (selection.rangeCount > 0) {
+                range = selection.getRangeAt(0);
+                node = range.startContainer;
+                while (node) {
+                  if (node.contentEditable === 'true') {
+                    break;
+                  }
+                  if (typeof node.attributes === 'object' && node.attributes !== null) {
+                    _ref = node.attributes;
+                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                      attribute = _ref[_i];
+                      if (attribute.nodeName === 'style' && attribute.nodeValue.indexOf('text-align') >= 0) {
+                        style = attribute.nodeValue;
+                        style = style.replace(/.*text-align:([^;]*).*/, '$1').trim();
+                        if (_this.options.command.toLowerCase() === 'justify' + style) {
+                          state = true;
+                        }
+                        break;
                       }
+                    }
+                    if (state) {
                       break;
                     }
                   }
-                  if (state) {
-                    break;
-                  }
+                  node = node.parentNode;
                 }
-                node = node.parentNode;
               }
               return _this.checked(state);
             } else {
@@ -794,8 +799,8 @@
           if (jQuery('[contenteditable=false]').length > 0) {
             jQuery('[contenteditable=false]').live("click", function(event) {
               var target;
-              target = event.target;
-              if (jQuery(target).closest('[contenteditable=true]').length === 0) {
+              target = jQuery(event.target);
+              if (target.closest('[contenteditable=true]').length === 0) {
                 return;
               }
               return _this.setContentPosition(target);
@@ -848,37 +853,47 @@
       getSelectionHtml: function() {
         var html, jq_node, range, selection, text;
         selection = rangy.getSelection();
-        range = selection.getRangeAt(0);
-        jq_node = $('<div></div>').append(range.cloneContents());
-        html = jq_node.html();
-        text = jq_node.text();
-        if (text.trim() === '') {
-          html = '';
+        html = '';
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          jq_node = $('<div></div>').append(range.cloneContents());
+          html = jq_node.html();
+          text = jq_node.text();
+          if (text.trim() === '') {
+            html = '';
+          }
+          if (html.trim() === '&nbsp;') {
+            html = '';
+          }
+          if (this.debug) {
+            console.log('selection_html:[' + html + ']');
+          }
         }
-        if (html.trim() === '&nbsp;') {
-          html = '';
-        }
-        console.log('selection_html:[' + html + ']');
         return html;
       },
       getSelectionNode: function(node_processing_fn) {
-        var common_node, end_node, node, range, saved_selection, start_node;
+        var common_node, end_node, node, range, saved_selection, selection, start_node;
         saved_selection = rangy.saveSelection();
         start_node = this.element.find('.rangySelectionBoundary').eq(0);
         end_node = this.element.find('.rangySelectionBoundary').eq(1);
-        range = rangy.getSelection().getRangeAt(0);
-        common_node = range.commonAncestorContainer;
-        node = start_node;
-        while (node.length) {
-          if (node[0] === common_node) {
-            break;
-          }
-          node = node.parent();
-        }
-        if (!node.length) {
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          common_node = range.commonAncestorContainer;
           node = start_node;
+          while (node.length) {
+            if (node[0] === common_node) {
+              break;
+            }
+            node = node.parent();
+          }
+          if (!node.length) {
+            node = start_node;
+          }
+          node_processing_fn(node);
+        } else {
+          node_processing_fn(this.element);
         }
-        node_processing_fn(node);
         return rangy.removeMarkers(saved_selection);
       },
       restoreSelection: function(range) {
@@ -999,13 +1014,12 @@
                 style_attr = style_attr.replace(/text-align:[^;]*/, '');
                 style_attr = style_attr.trim();
                 if (style_attr === '' || style_attr === ';') {
-                  _results.push(selection.removeAttr('style'));
+                  selection.removeAttr('style');
                 } else {
-                  _results.push(selection.attr('style', style_attr));
+                  selection.attr('style', style_attr);
                 }
-              } else {
-                _results.push(void 0);
               }
+              _results.push(selection = selection.parent());
             }
             return _results;
           });
@@ -1888,7 +1902,7 @@
                 return _this.options.editable.getSelectionNode(function(selection_common) {
                   var has_block_contents, range, replacement, replacement_node, selection_html;
                   selection_html = _this.options.editable.getSelectionHtml();
-                  has_block_contents = dom.hasBlockElement(jQuery(selection_html));
+                  has_block_contents = dom.hasBlockElement(jQuery('<span>' + selection_html + '</span>'));
                   if (selection_html !== '' && !has_block_contents) {
                     replacement = "<span class=\"citation\">" + selection_html + "</span>";
                   } else {
@@ -1901,9 +1915,13 @@
                     selection_common.append(replacement_node.contents());
                   } else {
                     selection = rangy.getSelection();
-                    range = selection.getRangeAt(0);
-                    range.deleteContents();
-                    range.insertNode(replacement_node[0]);
+                    if (selection.rangeCount > 0) {
+                      range = selection.getRangeAt(0);
+                      range.deleteContents();
+                      range.insertNode(replacement_node[0]);
+                    } else {
+                      selection_common.append(replacement_node.contents());
+                    }
                   }
                   return rangy.removeMarkers(saved_selection);
                 });

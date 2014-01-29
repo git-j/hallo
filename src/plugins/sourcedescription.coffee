@@ -103,7 +103,7 @@
               saved_selection = rangy.saveSelection()
               @options.editable.getSelectionNode (selection_common) =>
                 selection_html = @options.editable.getSelectionHtml()
-                has_block_contents = dom.hasBlockElement(jQuery(selection_html))
+                has_block_contents = dom.hasBlockElement(jQuery('<span>' + selection_html + '</span>'))
 
                 if ( selection_html != '' && ! has_block_contents )
                   replacement = "<span class=\"citation\">" + selection_html + "</span>"
@@ -116,9 +116,12 @@
                   selection_common.append(replacement_node.contents())
                 else
                   selection = rangy.getSelection()
-                  range = selection.getRangeAt(0)
-                  range.deleteContents()
-                  range.insertNode(replacement_node[0])
+                  if ( selection.rangeCount > 0 )
+                    range = selection.getRangeAt(0)
+                    range.deleteContents()
+                    range.insertNode(replacement_node[0])
+                  else
+                    selection_common.append(replacement_node.contents())
                 rangy.removeMarkers(saved_selection)
             else
               utils.info(utils.tr('no selection'))

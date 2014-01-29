@@ -49,32 +49,35 @@
           return;
         try
           # HACK for qt-webkit
+          state = false
           if ( @options.command == 'subscript' || @options.command == 'superscript' )
             # broken command state for sub/sup
-            range = rangy.getSelection().getRangeAt(0)
-            parent = range.startContainer.parentNode
-            state = false
-            if parent.nodeName == 'SUB' && @options.command == 'subscript'
-              state = true
-            if parent.nodeName == 'SUP' && @options.command == 'superscript'
-              state = true
+            selection = rangy.getSelection()
+            if ( selection.rangeCount > 0 )
+              range = selection.getRangeAt(0)
+              parent = range.startContainer.parentNode
+              if parent.nodeName == 'SUB' && @options.command == 'subscript'
+                state = true
+              if parent.nodeName == 'SUP' && @options.command == 'superscript'
+                state = true
             @checked state
           else if ( @options.command.indexOf('justify') == 0 )
             # broken justify
-            range = rangy.getSelection().getRangeAt(0)
-            node = range.startContainer
-            state = false
-            while ( node )
-              break if ( node.contentEditable == 'true' )
-              if ( typeof node.attributes == 'object' && node.attributes != null)
-                for attribute in node.attributes
-                  if attribute.nodeName == 'style' && attribute.nodeValue.indexOf('text-align') >= 0
-                    style = attribute.nodeValue
-                    style = style.replace(/.*text-align:([^;]*).*/,'$1').trim()
-                    state = true if ( @options.command.toLowerCase() == 'justify' + style )
-                    break
-                break if state
-              node = node.parentNode
+            selection = rangy.getSelection()
+            if ( selection.rangeCount > 0 )
+              range = selection.getRangeAt(0)
+              node = range.startContainer
+              while ( node )
+                break if ( node.contentEditable == 'true' )
+                if ( typeof node.attributes == 'object' && node.attributes != null)
+                  for attribute in node.attributes
+                    if attribute.nodeName == 'style' && attribute.nodeValue.indexOf('text-align') >= 0
+                      style = attribute.nodeValue
+                      style = style.replace(/.*text-align:([^;]*).*/,'$1').trim()
+                      state = true if ( @options.command.toLowerCase() == 'justify' + style )
+                      break
+                  break if state
+                node = node.parentNode
             @checked state
           else
             @checked document.queryCommandState @options.command
