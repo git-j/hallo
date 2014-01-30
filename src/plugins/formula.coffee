@@ -56,7 +56,7 @@
       target = @_prepareDropdown contentId
       toolbar.append target
       setup= (select_target,target_id) =>
-        return if !rangy.getSelection().rangeCount
+        return if rangy.getSelection().rangeCount == 0
         @options.editable.restoreContentPosition()
         @options.editable.undoWaypointStart('formula')
         @options.editable._current_undo_command.postdo = () =>
@@ -68,9 +68,14 @@
         # and in the keyup/click handlers in _prepareDropdown
 
         @tmpid = 'mod_' + (new Date()).getTime()
-        sel = rangy.getSelection()
+        selection = rangy.getSelection()
         # sel may not be correct
-        range = sel.getRangeAt(0)
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+        else
+          range = rangy.createRange()
+          range.selectNode(@options.editable.element[0])
+          range.collapse()
         @cur_formula = null
         @action = 'insert'
         if ( typeof select_target == 'object' )

@@ -918,15 +918,21 @@
         return this._setSelectionRange(input, pos, pos);
       },
       replaceSelection: function(cb) {
-        var newTextNode, r, range, sel, t;
+        var newTextNode, r, range, selection, t;
         console.warn('Deprecated, do not use');
         if (navigator.appName === 'Microsoft Internet Explorer') {
           t = document.selection.createRange().text;
           r = document.selection.createRange();
           return r.pasteHTML(cb(t));
         } else {
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
+          selection = rangy.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+          } else {
+            range = rangy.createRange();
+            range.selectNode(this.element[0]);
+            range.collapse(false);
+          }
           newTextNode = document.createTextNode(cb(range.extractContents()));
           range.insertNode(newTextNode);
           range.setStartAfter(newTextNode);
@@ -934,15 +940,21 @@
         }
       },
       replaceSelectionHTML: function(cb) {
-        var r, range, range_content, range_content_jq, range_parent, range_parent_jq, replacement, sel, t;
+        var r, range, range_content, range_content_jq, range_parent, range_parent_jq, replacement, selection, t;
         console.warn('Deprecated, do not use');
         if (navigator.appName === 'Microsoft Internet Explorer') {
           t = document.selection.createRange().text;
           r = document.selection.createRange();
           return r.pasteHTML(cb(t));
         } else {
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
+          selection = rangy.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+          } else {
+            range = rangy.createRange();
+            range.selectNode(this.element[0]);
+            range.collapse(false);
+          }
           range_parent = range.commonAncestorContainer;
           if (range_parent.nodeType !== 1) {
             range_parent = range_parent.parentNode;
@@ -997,7 +1009,7 @@
         return this.element.html(this.originalContent);
       },
       execute: function(command, value) {
-        var range, sel_all_range,
+        var range, sel_all_range, selection,
           _this = this;
         this.undoWaypointStart();
         if (command.indexOf('justify') === 0) {
@@ -1024,7 +1036,14 @@
             return _results;
           });
         }
-        range = rangy.getSelection().getRangeAt(0);
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+        } else {
+          range = rangy.createRange();
+          range.selectNode(this.element[0]);
+          range.collapse(false);
+        }
         if (range.collapsed && command.indexOf('paste') !== 0) {
           sel_all_range = rangy.createRange();
           sel_all_range.selectNode(range.startContainer);
@@ -1139,7 +1158,7 @@
         }
       },
       _copy: function(event) {
-        var dom, range, rdata;
+        var dom, range, rdata, selection;
         if (this.debug) {
           console.log('copy', event);
         }
@@ -1149,26 +1168,32 @@
         if (typeof event === 'object' && typeof event.preventDefault === 'function') {
           event.preventDefault();
         }
-        range = rangy.getSelection().getRangeAt(0);
-        rdata = jQuery('<div/>').append(range.cloneContents());
-        dom = new IDOM();
-        dom.cleanExport(rdata);
-        rdata.find(this.selection_marker).unwrap();
-        if (this.debug) {
-          console.log(range, rdata, rdata.html());
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          rdata = jQuery('<div/>').append(range.cloneContents());
+          dom = new IDOM();
+          dom.cleanExport(rdata);
+          rdata.find(this.selection_marker).unwrap();
+          if (this.debug) {
+            console.log(range, rdata, rdata.html());
+          }
+          return utils.storeToClipboard(rdata);
         }
-        return utils.storeToClipboard(rdata);
       },
       _cut: function(event) {
-        var range;
+        var range, selection;
         event.data.undoWaypointStart('cut');
         event.data._copy(event);
-        range = rangy.getSelection().getRangeAt(0);
-        range.deleteContents();
-        return event.data.undoWaypointCommit(false);
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          range.deleteContents();
+          return event.data.undoWaypointCommit(false);
+        }
       },
       _paste: function(event) {
-        var dom, html, jq_temp, pdata, range, sel,
+        var dom, html, jq_temp, pdata, range, selection,
           _this = this;
         pdata = '';
         if (jQuery.isArray(event.originalEvent.clipboardData.types)) {
@@ -1195,9 +1220,15 @@
         dom = new IDOM();
         dom.clean(jq_temp);
         html = jq_temp.html();
-        sel = rangy.getSelection();
-        range = sel.getRangeAt(0);
-        range.deleteContents();
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          range.deleteContents();
+        } else {
+          range = rangy.createRange();
+          range.selectNode(this.element[0]);
+          range.collapse(false);
+        }
         if (jq_temp.contents().length > 1) {
           range.insertNode(jq_temp[0]);
         } else {
@@ -1207,7 +1238,7 @@
         }
         range.selectNode(jq_temp[0]);
         range.collapse(false);
-        rangy.getSelection().setSingleRange(range);
+        selection.setSingleRange(range);
         return event.data.undoWaypointCommit(false);
       },
       _ignoreKeys: function(code) {
@@ -1294,7 +1325,7 @@
         return sel.setSingleRange(range);
       },
       _syskeys: function(event) {
-        var li, range, table, td, tds, use_next, use_prev, widget,
+        var li, range, selection, table, td, tds, use_next, use_prev, widget,
           _this = this;
         widget = event.data;
         if (widget._ignoreKeys(event.keyCode)) {
@@ -1304,7 +1335,11 @@
           return;
         }
         if (event.keyCode === 9 && !event.shiftKey) {
-          range = rangy.getSelection().getRangeAt(0);
+          selection = rangy.getSelection();
+          if (selection.rangeCount === 0) {
+            return;
+          }
+          range = selection.getRangeAt(0);
           li = $(range.startContainer).closest('li');
           if (!li.length) {
             li = $(range.endContainer).closest('li');
@@ -1341,6 +1376,10 @@
           }
         }
         if (event.keyCode === 9 && event.shiftKey) {
+          selection = rangy.getSelection();
+          if (selection.rangeCount === 0) {
+            return;
+          }
           range = rangy.getSelection().getRangeAt(0);
           li = $(range.startContainer).closest('li');
           if (!li.length) {
@@ -1706,8 +1745,11 @@
         tmp_id = 'range' + Date.now();
         try {
           selection = rangy.getSelection();
-          range = selection.getRangeAt();
-          serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
+          serialized_selection = '';
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+            serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
+          }
           this.element.find(this.selection_marker).remove();
           selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
           selection_identifier.attr('rel', serialized_selection);
@@ -1824,7 +1866,7 @@
         return contentArea;
       },
       _keep_selection_replace_callback: function(parent, old) {
-        var dom, has_block_contents, nr, range, replacement;
+        var dom, has_block_contents, nr, range, replacement, selection;
         console.error('unsuppored function');
         replacement = false;
         dom = new IDOM();
@@ -1835,13 +1877,26 @@
           replacement = "<span class=\"selection\">&nbsp;</span>";
         }
         nr = jQuery('<span>' + replacement + '</span>');
+        selection = rangy.getSelection();
         if (has_block_contents) {
-          range = rangy.getSelection().getRangeAt(0);
-          range.setStartAfter(range.endContainer);
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+            range.setStartAfter(range.endContainer);
+          } else {
+            range = rangy.createRange();
+            range.selectNode(this.options.editable.element[0]);
+            range.collapse(false);
+          }
           range.insertNode(nr[0]);
         } else {
-          range = rangy.getSelection().getRangeAt(0);
-          range.deleteContents();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+            range.deleteContents();
+          } else {
+            range = rangy.createRange();
+            range.selectNode(this.options.editable.element[0]);
+            range.collapse(false);
+          }
           range.insertNode(nr[0]);
         }
         replacement = false;
@@ -2030,7 +2085,7 @@
           var range, recalc, selection, selection_html, table, table_placeholder, table_placeholder_node, td, tr;
           contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          if (!rangy.getSelection().rangeCount) {
+          if (rangy.getSelection().rangeCount === 0) {
             return false;
           }
           range = rangy.getSelection().getRangeAt(0);
@@ -2102,9 +2157,13 @@
               });
             } else {
               selection = rangy.getSelection();
-              range = selection.getRangeAt(0);
-              if (range) {
+              if (selection.rangeCount > 0) {
+                range = selection.getRangeAt(0);
                 range.deleteContents();
+              } else {
+                range = rangy.createRange();
+                range.selectNode(_this.options.editable.element[0]);
+                range.collapse(false);
               }
               range.insertNode(table_placeholder_node[0]);
             }
@@ -2308,8 +2367,8 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var latex_formula, range, recalc, sel, selected_formula, title;
-          if (!rangy.getSelection().rangeCount) {
+          var latex_formula, range, recalc, selected_formula, selection, title;
+          if (rangy.getSelection().rangeCount === 0) {
             return;
           }
           _this.options.editable.restoreContentPosition();
@@ -2319,8 +2378,14 @@
           };
           contentId = target_id;
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
+          selection = rangy.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+          } else {
+            range = rangy.createRange();
+            range.selectNode(_this.options.editable.element[0]);
+            range.collapse();
+          }
           _this.cur_formula = null;
           _this.action = 'insert';
           if (typeof select_target === 'object') {
@@ -2963,7 +3028,7 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function() {
-          var range, recalc, sel, selected_character;
+          var range, recalc, selected_character, selection;
           _this.options.editable.undoWaypointCommit(true);
           _this.options.editable.undoWaypointStart('characterselect');
           jQuery(target).find('select').each(function(index, item) {
@@ -2975,11 +3040,15 @@
             });
           });
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
           selected_character = '&#64';
           _this.cur_character = jQuery('<span id="' + _this.tmpid + '">' + selected_character + '</span>');
-          range.insertNode(_this.cur_character[0]);
+          selection = rangy.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+            range.insertNode(_this.cur_character[0]);
+          } else {
+            _this.options.editable.append(_this.cur_character);
+          }
           recalc = function() {
             var selectbox;
             _this.recalcHTML();
@@ -4174,14 +4243,14 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function() {
-          var cur_selection, notes, range, recalc, sel, title, url;
-          if (!rangy.getSelection().rangeCount) {
+          var cur_selection, notes, range, recalc, selection, title, url;
+          if (rangy.getSelection().rangeCount === 0) {
             return;
           }
+          selection = rangy.getSelection();
+          range = selection.getRangeAt(0);
           _this.options.editable.undoWaypointStart('hyperlink');
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
           _this.cur_hyperlink = null;
           _this.action = 'insert';
           _this.options.editable.element.find('a').each(function(index, item) {
@@ -5062,8 +5131,14 @@
             replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
             replacement_node = jQuery('<span></span>').append(replacement);
             selection = rangy.getSelection();
-            range = selection.getRangeAt(0);
-            range.deleteContents();
+            if (selection.rangeCount > 0) {
+              range = selection.getRangeAt(0);
+              range.deleteContents();
+            } else {
+              range = rangy.createRange();
+              range.selectNode(_this.options.editable.element[0]);
+              range.collapse(false);
+            }
             if (selection_html === '') {
               if (selection_common.attr('contenteditable') !== '') {
                 return selection_common.append(replacement_node.contents());
@@ -5270,18 +5345,24 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var align, alt, border, height, range, recalc, sel, title, url, width;
+          var align, alt, border, height, range, recalc, selection, title, url, width;
           contentId = target_id;
           if (_this.debug) {
             console.log('setup image form', select_target, target_id);
           }
-          if (!rangy.getSelection().rangeCount && typeof select_target === 'undefined') {
+          if (rangy.getSelection().rangeCount === 0 && typeof select_target === 'undefined') {
             return;
           }
           _this.options.editable.undoWaypointStart('image');
           _this.tmpid = 'mod_' + (new Date()).getTime();
-          sel = rangy.getSelection();
-          range = sel.getRangeAt(0);
+          selection = rangy.getSelection();
+          if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+          } else {
+            range = rangy.createRange();
+            range.selectNode(_this.options.editable.element[0]);
+            range.collapse();
+          }
           if (typeof select_target !== 'undefined') {
             return;
             _this.cur_image = $(select_target).find('img').eq(0);
@@ -5543,7 +5624,7 @@
           var has_selection, is_citation, is_direct_citation, is_indirect_citation, range, range_ca, range_jq, selection;
           target.find('.element-selector').remove();
           selection = rangy.getSelection();
-          if (!selection.rangeCount) {
+          if (selection.rangeCount === 0) {
             return false;
           }
           range = selection.getRangeAt(0);
@@ -5645,7 +5726,7 @@
         return el.bind("click", function(ev) {
           var nugget, range, range_jq, selection;
           selection = rangy.getSelection();
-          if (!selection.rangeCount) {
+          if (selection.rangeCount === 0) {
             return;
           }
           range = selection.getRangeAt(0);

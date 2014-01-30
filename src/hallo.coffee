@@ -323,8 +323,13 @@ http://hallojs.org
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
       else
-        sel = rangy.getSelection();
-        range = sel.getRangeAt(0);
+        selection = rangy.getSelection();
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0);
+        else
+          range = rangy.createRange()
+          range.selectNode(@element[0])
+          range.collapse(false)
         newTextNode = document.createTextNode(cb(range.extractContents()));
         range.insertNode(newTextNode);
         range.setStartAfter(newTextNode);
@@ -337,8 +342,14 @@ http://hallojs.org
         r = document.selection.createRange()
         r.pasteHTML(cb(t))
       else
-        sel = rangy.getSelection()
-        range = sel.getRangeAt(0)
+        selection = rangy.getSelection()
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+        else
+          range = rangy.createRange()
+          range.selectNode(@element[0])
+          range.collapse(false)
+
         # console.log(range)
         range_parent = range.commonAncestorContainer
         range_parent = range_parent.parentNode if range_parent.nodeType != 1
@@ -418,7 +429,13 @@ http://hallojs.org
               else
                 selection.attr('style',style_attr)
             selection = selection.parent()
-      range = rangy.getSelection().getRangeAt(0)
+      selection = rangy.getSelection()
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+      else
+        range = rangy.createRange()
+        range.selectNode(@element[0])
+        range.collapse(false)
       if ( range.collapsed && command.indexOf('paste') != 0 )
         sel_all_range = rangy.createRange()
         sel_all_range.selectNode(range.startContainer)
@@ -510,21 +527,25 @@ http://hallojs.org
       console.log('copy',event) if @debug
       return if ( !window.wke )
       event.preventDefault() if ( typeof event == 'object' && typeof event.preventDefault == 'function' )
-      range = rangy.getSelection().getRangeAt(0)
-      rdata = jQuery('<div/>').append(range.cloneContents())
-      dom = new IDOM()
-      dom.cleanExport(rdata);
-      rdata.find(@selection_marker).unwrap()
+      selection = rangy.getSelection()
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+        rdata = jQuery('<div/>').append(range.cloneContents())
+        dom = new IDOM()
+        dom.cleanExport(rdata);
+        rdata.find(@selection_marker).unwrap()
 
-      console.log(range,rdata,rdata.html()) if @debug
-      utils.storeToClipboard(rdata)
+        console.log(range,rdata,rdata.html()) if @debug
+        utils.storeToClipboard(rdata)
 
     _cut: (event) ->
       event.data.undoWaypointStart('cut')
       event.data._copy(event)
-      range = rangy.getSelection().getRangeAt(0)
-      range.deleteContents()
-      event.data.undoWaypointCommit(false)
+      selection = rangy.getSelection();
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+        range.deleteContents()
+        event.data.undoWaypointCommit(false)
 
 
     _paste: (event) ->
@@ -549,9 +570,14 @@ http://hallojs.org
       dom = new IDOM()
       dom.clean(jq_temp);
       html = jq_temp.html();
-      sel = rangy.getSelection()
-      range = sel.getRangeAt(0)
-      range.deleteContents()
+      selection = rangy.getSelection()
+      if ( selection.rangeCount > 0 )
+        range = selection.getRangeAt(0)
+        range.deleteContents()
+      else
+        range = rangy.createRange()
+        range.selectNode(@element[0])
+        range.collapse(false)
       if ( jq_temp.contents().length > 1 )
         # wrapped in element
         # console.log('wrapped',jq_temp)
@@ -563,7 +589,7 @@ http://hallojs.org
         range.insertNode(jq_temp[0])
       range.selectNode(jq_temp[0])
       range.collapse(false) # collapse to end
-      rangy.getSelection().setSingleRange(range)
+      selection.setSingleRange(range)
       event.data.undoWaypointCommit(false)
 
       
@@ -744,7 +770,9 @@ http://hallojs.org
       return if widget._ignoreKeys(event.keyCode)
       return if widget.checkRegisteredKeys(event)
       if event.keyCode == 9 && !event.shiftKey  #tab
-        range = rangy.getSelection().getRangeAt(0)
+        selection = rangy.getSelection()
+        return if selection.rangeCount == 0
+        range = selection.getRangeAt(0)
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
         if ( li.length )
@@ -770,6 +798,8 @@ http://hallojs.org
             widget._select_cell_fn(tds[0])
           event.preventDefault()
       if event.keyCode == 9 && event.shiftKey  #shift+tab
+        selection = rangy.getSelection()
+        return if ( selection.rangeCount == 0 )
         range = rangy.getSelection().getRangeAt(0)
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
@@ -1042,8 +1072,10 @@ http://hallojs.org
       tmp_id = 'range' + Date.now()
       try
         selection = rangy.getSelection()
-        range = selection.getRangeAt()
-        serialized_selection = rangy.serializeSelection(selection,true,@element[0])
+        serialized_selection = ''
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+          serialized_selection = rangy.serializeSelection(selection,true,@element[0])
         @element.find(@selection_marker).remove();
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
         selection_identifier.attr('rel',serialized_selection)

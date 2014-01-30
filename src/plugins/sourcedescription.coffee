@@ -50,13 +50,25 @@
       else
         replacement = "<span class=\"selection\">&nbsp;</span>"
       nr = jQuery('<span>' + replacement + '</span>');
+      selection = rangy.getSelection();
       if has_block_contents
-        range = rangy.getSelection().getRangeAt(0)
-        range.setStartAfter(range.endContainer)
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+          range.setStartAfter(range.endContainer)
+        else
+          range = rangy.createRange()
+          range.selectNode(@options.editable.element[0])
+          range.collapse(false)
         range.insertNode(nr[0])
       else
-        range = rangy.getSelection().getRangeAt(0)
-        range.deleteContents()
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+          range.deleteContents()
+        else
+          range = rangy.createRange()
+          range.selectNode(@options.editable.element[0])
+          range.collapse(false)
+
         range.insertNode(nr[0])
       replacement = false
       replacement

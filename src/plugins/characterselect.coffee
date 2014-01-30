@@ -33,16 +33,19 @@
           jQuery(target).find('select').each (index,item) =>
             jQuery(item).selectBox('destroy')
         @tmpid='mod_' + (new Date()).getTime()
-        sel = rangy.getSelection()
-        range = sel.getRangeAt(0)
         selected_character = '&#64';
         @cur_character = jQuery('<span id="' + @tmpid + '">' + selected_character + '</span>');
-        #TODO: make sure this formatting is not stored
-        #@cur_character.css
-        #  'background-color':'blue'
-        #  'color':'white'
-        #  'font-size':'150%'
-        range.insertNode(@cur_character[0]);
+        selection = rangy.getSelection()
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+          #TODO: make sure this formatting is not stored
+          #@cur_character.css
+          #  'background-color':'blue'
+          #  'color':'white'
+          #  'font-size':'150%'
+          range.insertNode(@cur_character[0]);
+        else
+          @options.editable.append(@cur_character)
 
         recalc = =>
           @recalcHTML()

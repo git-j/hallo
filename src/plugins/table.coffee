@@ -28,7 +28,7 @@
       setup= (select_target,target_id) =>
         contentId = target_id
         @tmpid='mod_' + (new Date()).getTime()
-        return false if !rangy.getSelection().rangeCount
+        return false if rangy.getSelection().rangeCount == 0
         range = rangy.getSelection().getRangeAt(0)
 
         table = $(range.startContainer).closest('table')
@@ -72,9 +72,13 @@
               table_placeholder_node.insertAfter(selection)
           else
             selection = rangy.getSelection()
-            range = selection.getRangeAt(0)
-            if ( range )
+            if ( selection.rangeCount > 0 )
+              range = selection.getRangeAt(0)
               range.deleteContents()
+            else
+              range = rangy.createRange()
+              range.selectNode(@options.editable.element[0])
+              range.collapse(false)
             range.insertNode(table_placeholder_node[0])
 
         recalc = =>

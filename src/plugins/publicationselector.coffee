@@ -87,8 +87,13 @@
           replacement+= "<span class=\"cite sourcedescription-#{data}\" contenteditable=\"false\" id=\"#{tmp_id}\">#{element}</span>"
           replacement_node = jQuery('<span></span>').append(replacement)
           selection = rangy.getSelection()
-          range = selection.getRangeAt(0)
-          range.deleteContents()
+          if ( selection.rangeCount > 0 )
+            range = selection.getRangeAt(0)
+            range.deleteContents()
+          else
+            range = rangy.createRange()
+            range.selectNode(@options.editable.element[0])
+            range.collapse(false) # toEnd
           if ( selection_html == '' )
             if ( selection_common.attr('contenteditable') != '' )
               selection_common.append(replacement_node.contents())

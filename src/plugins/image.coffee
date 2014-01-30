@@ -29,11 +29,16 @@
       setup= (select_target,target_id) =>
         contentId = target_id
         console.log('setup image form',select_target,target_id) if @debug
-        return if !rangy.getSelection().rangeCount && typeof select_target == 'undefined'
+        return if rangy.getSelection().rangeCount == 0 && typeof select_target == 'undefined'
         @options.editable.undoWaypointStart('image')
         @tmpid='mod_' + (new Date()).getTime()
-        sel = rangy.getSelection()
-        range = sel.getRangeAt(0)
+        selection = rangy.getSelection()
+        if ( selection.rangeCount > 0 )
+          range = selection.getRangeAt(0)
+        else
+          range = rangy.createRange()
+          range.selectNode(@options.editable.element[0])
+          range.collapse()
         if ( typeof select_target != 'undefined' )
           #console.log('selected target',$(select_target).html())
           # disabled for now!

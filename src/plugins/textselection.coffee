@@ -25,7 +25,7 @@
         # populate with available actions
         target.find('.element-selector').remove()
         selection = rangy.getSelection()
-        return false if !selection.rangeCount
+        return false if selection.rangeCount == 0
         range = selection.getRangeAt(0)
         range_jq = $(range.cloneContents())
         range_ca = null
@@ -91,7 +91,7 @@
       this_editable = @options.editable
       el.bind "click", (ev) =>
         selection = rangy.getSelection()
-        return if !selection.rangeCount
+        return if selection.rangeCount == 0
         range = selection.getRangeAt(0)
         range_jq = $(range.cloneContents())
         nugget = new DOMNugget();
