@@ -3466,6 +3466,28 @@
       return domnugget.getSourceDescriptionData(element);
     };
 
+    _Citehandler.prototype._sync_editable = function(element, change_focus) {
+      var tip_nugget;
+      this.editable = window.hallo_current_instance.editable;
+      tip_nugget = element.closest('.nugget');
+      if (this.editable && this.editable.closest('.nugget')[0] !== tip_nugget) {
+        this.editable = null;
+      }
+      if (typeof this.editable === 'undefined' || !this.editable) {
+        this.editable = {};
+        this.editable.element = element.closest('[contenteditable="true"]');
+        if (!this.editable.element.length) {
+          this.editable.element = element.closest('.nugget').find('>.content').eq(0);
+        }
+        this.editable.is_auto_editable = true;
+        if (change_focus) {
+          this.editable.element.hallo('enable');
+          this.editable.element.focus();
+        }
+        return this.editable.nugget_only = true;
+      }
+    };
+
     _Citehandler.prototype._makeTip = function(target, element) {
       var ov_data,
         _this = this;
@@ -3488,18 +3510,7 @@
         ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
         ov_data += '<li>';
         if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only) || _this.editable.is_auto_editable) {
-          _this.editable = window.hallo_current_instance.editable;
-          if (typeof _this.editable === 'undefined' || !_this.editable) {
-            _this.editable = {};
-            _this.editable.element = element.closest('[contenteditable="true"]');
-            if (!_this.editable.element.length) {
-              _this.editable.element = element.closest('.nugget').find('>.content').eq(0);
-            }
-            _this.editable.is_auto_editable = true;
-            _this.editable.element.hallo('enable');
-            _this.editable.element.focus();
-          }
-          _this.editable.nugget_only = true;
+          _this._sync_editable(element, false);
         }
         if (_this.editable.element) {
           if (element.closest('.cite').hasClass('auto-cite')) {
@@ -3512,6 +3523,7 @@
         target.append(ov_data);
         sourcedescriptioneditor = function() {
           var dom_nugget, undo_stack, wpid;
+          _this._sync_editable(element, true);
           dom_nugget = element.closest('.nugget');
           if (typeof UndoManager !== 'undefined' && typeof _this.editable.undoWaypointIdentifier === 'function') {
             wpid = _this.editable.undoWaypointIdentifier(dom_nugget);
@@ -3529,12 +3541,18 @@
         };
         target.find('.edit').bind('click', sourcedescriptioneditor);
         target.find('.goto').bind('click', function(ev) {
-          console.log(_this.citation_data);
           return occ.GotoObject(_this.citation_data.publication_loid);
+        });
+        target.find('.open_url').bind('click', function(ev) {
+          return wke.openUrlInBrowser(_this.citation_data.URL);
+        });
+        target.find('.open_file_path').bind('click', function(ev) {
+          return wke.openUrlInBrowser(_this.citation_data.location_in_filesystem);
         });
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
           var citation, citation_html, cite, dom_nugget, is_auto_cite, loid, nugget, publication_loid, sd_loid, undo_stack, wpid;
+          _this._sync_editable(element, true);
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
           is_auto_cite = element.closest('.cite').hasClass('auto-cite');

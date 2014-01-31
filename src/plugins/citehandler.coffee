@@ -47,8 +47,26 @@ class _Citehandler
     @citation_data = {}
     @sourcedescription_loid = 0
     domnugget = new DOMNugget();
+    #TODO update publication_type from sourcedescription
     return domnugget.getSourceDescriptionData(element)
-  
+
+  _sync_editable: (element, change_focus) ->
+    @editable = window.hallo_current_instance.editable
+    tip_nugget = element.closest('.nugget');
+    if ( @editable && @editable.closest('.nugget')[0] != tip_nugget)
+      @editable = null
+
+    if ( typeof @editable == 'undefined' || ! @editable )
+      @editable = {}
+      @editable.element = element.closest('[contenteditable="true"]')
+      if ( !@editable.element.length )
+        @editable.element = element.closest('.nugget').find('>.content').eq(0)
+      @editable.is_auto_editable = true
+      if ( change_focus )
+        @editable.element.hallo('enable')
+        @editable.element.focus()
+      @editable.nugget_only = true
+
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings()
     ov_data = ''
@@ -68,25 +86,21 @@ class _Citehandler
       ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
       ov_data+= '<li>'
       if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) || @editable.is_auto_editable )
-        @editable = window.hallo_current_instance.editable
-        if ( typeof @editable == 'undefined' || ! @editable )
-          @editable = {}
-          @editable.element = element.closest('[contenteditable="true"]')
-          if ( !@editable.element.length )
-            @editable.element = element.closest('.nugget').find('>.content').eq(0)
-          @editable.is_auto_editable = true
-          @editable.element.hallo('enable')
-          @editable.element.focus()
-        @editable.nugget_only = true #     console.log('TODO: find reset point for switching nuggets, otherwise wrong nugget');
+        @_sync_editable(element,false)
       if ( @editable.element )
         if ( element.closest('.cite').hasClass('auto-cite') )
           ov_data+=     '<button class="remove action_button">' + utils.tr('remove from nugget') + '</button></li>'
         else
           ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
+      #if ( @citation_data.URL )
+      #  ov_data+='<button class="open_url action_button">' + utils.tr_action_title('FileOpenUrl') + '</button></li>'
+      #if ( @citation_data.location_in_filesystem )
+      #  ov_data+='<button class="open_file_path action_button">' + utils.tr_action_title('FileOpen') + '</button></li>'
       ov_data+= '</ul>'
 
       target.append(ov_data)
       sourcedescriptioneditor= =>
+        @_sync_editable(element,true)
         dom_nugget = element.closest('.nugget')
         if ( typeof UndoManager != 'undefined' && typeof @editable.undoWaypointIdentifier == 'function' )
           wpid = @editable.undoWaypointIdentifier(dom_nugget)
@@ -99,15 +113,20 @@ class _Citehandler
           'tip_element':target
           'back':true
           'nugget_loid':@editable.element.closest('.Text').attr('id')
+      # console.log(@citation_data)
       target.find('.edit').bind 'click', sourcedescriptioneditor
       target.find('.goto').bind 'click', (ev) =>
-        console.log(@citation_data)
         occ.GotoObject(@citation_data.publication_loid)
+      target.find('.open_url').bind 'click', (ev) =>
+        wke.openUrlInBrowser(@citation_data.URL)
+      target.find('.open_file_path').bind 'click', (ev) =>
+        wke.openUrlInBrowser(@citation_data.location_in_filesystem)
       element.bind 'click', sourcedescriptioneditor
       target.find('.remove').bind 'click', (ev) =>
         #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
+        @_sync_editable(element,true)
         loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
         #console.log(loid);
 
