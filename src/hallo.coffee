@@ -1076,7 +1076,9 @@ http://hallojs.org
         if ( selection.rangeCount > 0 )
           range = selection.getRangeAt(0)
           serialized_selection = rangy.serializeSelection(selection,true,@element[0])
-        @element.find(@selection_marker).remove();
+        @element.find(@selection_marker).each (index,item) =>
+          node = jQuery(item)
+          node.contents().unwrap()
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
         selection_identifier.attr('rel',serialized_selection)
         @element.append(selection_identifier);

@@ -1740,7 +1740,8 @@
         }
       },
       storeContentPosition: function(avoid_change_selection) {
-        var e, range, selection, selection_identifier, serialized_selection, tmp_id;
+        var e, range, selection, selection_identifier, serialized_selection, tmp_id,
+          _this = this;
         this._ignoreEvents = true;
         tmp_id = 'range' + Date.now();
         try {
@@ -1750,7 +1751,11 @@
             range = selection.getRangeAt(0);
             serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
           }
-          this.element.find(this.selection_marker).remove();
+          this.element.find(this.selection_marker).each(function(index, item) {
+            var node;
+            node = jQuery(item);
+            return node.contents().unwrap();
+          });
           selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
           selection_identifier.attr('rel', serialized_selection);
           this.element.append(selection_identifier);
