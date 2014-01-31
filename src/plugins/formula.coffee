@@ -86,7 +86,7 @@
             @action = 'update'
         if ( @action == 'insert' )
           @options.editable.element.find('.formula').each (index,item) =>
-            if ( sel.containsNode(item,true) )
+            if ( selection.containsNode(item,true) )
               @cur_formula = jQuery(item)
               @action = 'update'
               return false # break
