@@ -2158,7 +2158,11 @@
             selection_html = _this.options.editable.getSelectionHtml();
             if (selection_html === '') {
               _this.options.editable.getSelectionNode(function(selection) {
-                return table_placeholder_node.insertAfter(selection);
+                if (selection[0] === _this.options.editable.element[0]) {
+                  return _this.options.editable.element[0].append(table_placeholder_node);
+                } else {
+                  return table_placeholder_node.insertAfter(selection);
+                }
               });
             } else {
               selection = rangy.getSelection();
