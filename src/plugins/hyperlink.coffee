@@ -32,7 +32,7 @@
         @cur_hyperlink = null
         @action = 'insert'
         @options.editable.element.find('a').each (index,item) =>
-          if ( sel.containsNode(item,true) )
+          if ( selection.containsNode(item,true) )
             @cur_hyperlink = jQuery(item)
             @cur_hyperlink.attr('id',@tmpid)
             @action = 'modify'

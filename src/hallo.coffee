@@ -246,10 +246,10 @@ http://hallojs.org
       api_cb(@)
     # Only supports one range for now (i.e. no multiselection)
     getSelection: ->
-      sel = rangy.getSelection()
+      selection = rangy.getSelection()
       range = null
-      if sel.rangeCount > 0
-        range = sel.getRangeAt(0)
+      if selection.rangeCount > 0
+        range = selection.getRangeAt(0)
       else
         range = rangy.createRange()
       return range
@@ -297,8 +297,8 @@ http://hallojs.org
       rangy.removeMarkers(saved_selection)
 
     restoreSelection: (range) ->
-      sel = rangy.getSelection()
-      sel.setSingleRange(range)
+      selection = rangy.getSelection()
+      selection.setSingleRange(range)
 
     setSelectionRange: (input, selection_start, selection_end) ->
       # set the selection range in a textarea/editable
@@ -333,7 +333,7 @@ http://hallojs.org
         newTextNode = document.createTextNode(cb(range.extractContents()));
         range.insertNode(newTextNode);
         range.setStartAfter(newTextNode);
-        sel.setSingleRange(range);
+        selection.setSingleRange(range);
 
     replaceSelectionHTML: (cb) ->
       console.warn('Deprecated, do not use')
@@ -360,7 +360,7 @@ http://hallojs.org
         replacement = cb(range_parent_jq, range_content_jq)
         range.deleteContents()
         range.insertNode($('<span>' + replacement + '</span>')[0]) if replacement
-        sel.setSingleRange(range);
+        selection.setSingleRange(range);
         @storeContentPosition()
 
     removeAllSelections: () ->
@@ -750,7 +750,7 @@ http://hallojs.org
       if ( !event.ctrlKey && !event.shiftKey && event.keyCode != 17 && event.keycode != 16 )
         # helps but gets _slow_ widget.element[0].blur()
         # widget.element[0].focus()
-        # sel.addRange(new_range)
+        # selection.addRange(new_range)
         if ( widget.autostore_timer )
           window.clearTimeout(widget.autostore_timer)
         widget.autostore_timer = window.setTimeout =>
@@ -760,10 +760,10 @@ http://hallojs.org
         , widget.auto_store_timeout
 
     _select_cell_fn: (cell) ->
-      sel = rangy.getSelection()
+      selection = rangy.getSelection()
       range = rangy.createRange()
       range.selectNode(cell)
-      sel.setSingleRange(range)
+      selection.setSingleRange(range)
 
     _syskeys: (event) ->
       widget = event.data
@@ -844,7 +844,7 @@ http://hallojs.org
       # The mouseup event triggers before the text selection is updated.
       # I did not find a better solution than setTimeout in 0 ms
       setTimeout ->
-        sel = widget.getSelection()
+        selection = widget.getSelection()
         if widget._isEmptySelection(sel) or widget._isEmptyRange(sel)
           if widget.selection
             widget.selection = null
@@ -854,7 +854,7 @@ http://hallojs.org
           return
 
         if !widget.selection or not widget._rangesEqual sel, widget.selection
-          widget.selection = sel.cloneRange()
+          widget.selection = selection.cloneRange()
           widget._trigger "selected", null,
             editable: widget
             selection: widget.selection
@@ -1088,10 +1088,10 @@ http://hallojs.org
       @_ignoreEvents = false
 
     setContentPosition: (jq_node) ->
-      sel = rangy.getSelection()
+      selection = rangy.getSelection()
       range = rangy.createRange()
       range.selectNodeContents(jq_node[0])
-      sel.setSingleRange(range)
+      selection.setSingleRange(range)
       @storeContentPosition()
 
 

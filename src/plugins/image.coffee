@@ -53,7 +53,7 @@
           @cur_image = null
           @action = 'insert'
           @options.editable.element.find('img').each (index,item) =>
-            if ( sel.containsNode(item,true) )
+            if ( selection.containsNode(item,true) )
               @cur_image = jQuery(item)
               @cur_image.attr('id',@tmpid)
               @action = 'update'

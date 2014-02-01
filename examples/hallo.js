@@ -826,11 +826,11 @@
         return api_cb(this);
       },
       getSelection: function() {
-        var range, sel;
-        sel = rangy.getSelection();
+        var range, selection;
+        selection = rangy.getSelection();
         range = null;
-        if (sel.rangeCount > 0) {
-          range = sel.getRangeAt(0);
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
         } else {
           range = rangy.createRange();
         }
@@ -897,9 +897,9 @@
         return rangy.removeMarkers(saved_selection);
       },
       restoreSelection: function(range) {
-        var sel;
-        sel = rangy.getSelection();
-        return sel.setSingleRange(range);
+        var selection;
+        selection = rangy.getSelection();
+        return selection.setSingleRange(range);
       },
       setSelectionRange: function(input, selection_start, selection_end) {
         var range;
@@ -936,7 +936,7 @@
           newTextNode = document.createTextNode(cb(range.extractContents()));
           range.insertNode(newTextNode);
           range.setStartAfter(newTextNode);
-          return sel.setSingleRange(range);
+          return selection.setSingleRange(range);
         }
       },
       replaceSelectionHTML: function(cb) {
@@ -968,7 +968,7 @@
           if (replacement) {
             range.insertNode($('<span>' + replacement + '</span>')[0]);
           }
-          sel.setSingleRange(range);
+          selection.setSingleRange(range);
           return this.storeContentPosition();
         }
       },
@@ -1318,11 +1318,11 @@
         }
       },
       _select_cell_fn: function(cell) {
-        var range, sel;
-        sel = rangy.getSelection();
+        var range, selection;
+        selection = rangy.getSelection();
         range = rangy.createRange();
         range.selectNode(cell);
-        return sel.setSingleRange(range);
+        return selection.setSingleRange(range);
       },
       _syskeys: function(event) {
         var li, range, selection, table, td, tds, use_next, use_prev, widget,
@@ -1436,8 +1436,8 @@
         }
         widget = event.data;
         return setTimeout(function() {
-          var sel;
-          sel = widget.getSelection();
+          var selection;
+          selection = widget.getSelection();
           if (widget._isEmptySelection(sel) || widget._isEmptyRange(sel)) {
             if (widget.selection) {
               widget.selection = null;
@@ -1449,7 +1449,7 @@
             return;
           }
           if (!widget.selection || !widget._rangesEqual(sel, widget.selection)) {
-            widget.selection = sel.cloneRange();
+            widget.selection = selection.cloneRange();
             return widget._trigger("selected", null, {
               editable: widget,
               selection: widget.selection,
@@ -1767,11 +1767,11 @@
         return this._ignoreEvents = false;
       },
       setContentPosition: function(jq_node) {
-        var range, sel;
-        sel = rangy.getSelection();
+        var range, selection;
+        selection = rangy.getSelection();
         range = rangy.createRange();
         range.selectNodeContents(jq_node[0]);
-        sel.setSingleRange(range);
+        selection.setSingleRange(range);
         return this.storeContentPosition();
       }
     });
@@ -2403,7 +2403,7 @@
           }
           if (_this.action === 'insert') {
             _this.options.editable.element.find('.formula').each(function(index, item) {
-              if (sel.containsNode(item, true)) {
+              if (selection.containsNode(item, true)) {
                 _this.cur_formula = jQuery(item);
                 _this.action = 'update';
                 return false;
@@ -4277,7 +4277,7 @@
           _this.cur_hyperlink = null;
           _this.action = 'insert';
           _this.options.editable.element.find('a').each(function(index, item) {
-            if (sel.containsNode(item, true)) {
+            if (selection.containsNode(item, true)) {
               _this.cur_hyperlink = jQuery(item);
               _this.cur_hyperlink.attr('id', _this.tmpid);
               _this.action = 'modify';
@@ -5399,7 +5399,7 @@
             _this.cur_image = null;
             _this.action = 'insert';
             _this.options.editable.element.find('img').each(function(index, item) {
-              if (sel.containsNode(item, true)) {
+              if (selection.containsNode(item, true)) {
                 _this.cur_image = jQuery(item);
                 _this.cur_image.attr('id', _this.tmpid);
                 _this.action = 'update';
