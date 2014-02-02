@@ -845,7 +845,7 @@ http://hallojs.org
       # I did not find a better solution than setTimeout in 0 ms
       setTimeout ->
         selection = widget.getSelection()
-        if widget._isEmptySelection(sel) or widget._isEmptyRange(sel)
+        if widget._isEmptySelection(selection) or widget._isEmptyRange(selection)
           if widget.selection
             widget.selection = null
             widget._trigger "unselected", null,
@@ -853,7 +853,7 @@ http://hallojs.org
               originalEvent: event
           return
 
-        if !widget.selection or not widget._rangesEqual sel, widget.selection
+        if !widget.selection or not widget._rangesEqual selection, widget.selection
           widget.selection = selection.cloneRange()
           widget._trigger "selected", null,
             editable: widget
