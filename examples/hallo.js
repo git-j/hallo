@@ -1438,7 +1438,7 @@
         return setTimeout(function() {
           var selection;
           selection = widget.getSelection();
-          if (widget._isEmptySelection(sel) || widget._isEmptyRange(sel)) {
+          if (widget._isEmptySelection(selection) || widget._isEmptyRange(selection)) {
             if (widget.selection) {
               widget.selection = null;
               widget._trigger("unselected", null, {
@@ -1448,7 +1448,7 @@
             }
             return;
           }
-          if (!widget.selection || !widget._rangesEqual(sel, widget.selection)) {
+          if (!widget.selection || !widget._rangesEqual(selection, widget.selection)) {
             widget.selection = selection.cloneRange();
             return widget._trigger("selected", null, {
               editable: widget,
