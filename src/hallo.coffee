@@ -1056,7 +1056,7 @@ http://hallojs.org
 
     restoreContentPosition: ->
       console.log('restoreContentPosition') if @debug
-      stored_selection = @element.find(@selection_marker)
+      stored_selection = @element.find(@selection_marker).eq(0)
       if ( stored_selection.length )
         console.log('selection to restore:',stored_selection) if @debug
         @_ignoreEvents = true # avoid deactivating because of addRange
@@ -1064,6 +1064,8 @@ http://hallojs.org
           rangy.deserializeSelection(stored_selection.attr('rel'),@element[0])
         catch e
           # ignore
+        @element.find(@selection_marker).contents().unwrap()
+        @element.find(@selection_marker).remove()
         @_ignoreEvents = false # avoid deactivating because of addRange
 
 
@@ -1076,9 +1078,8 @@ http://hallojs.org
         if ( selection.rangeCount > 0 )
           range = selection.getRangeAt(0)
           serialized_selection = rangy.serializeSelection(selection,true,@element[0])
-        @element.find(@selection_marker).each (index,item) =>
-          node = jQuery(item)
-          node.contents().unwrap()
+        @element.find(@selection_marker).contents().unwrap()
+        @element.find(@selection_marker).remove()
         selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
         selection_identifier.attr('rel',serialized_selection)
         @element.append(selection_identifier);
