@@ -1725,7 +1725,7 @@
         if (this.debug) {
           console.log('restoreContentPosition');
         }
-        stored_selection = this.element.find(this.selection_marker);
+        stored_selection = this.element.find(this.selection_marker).eq(0);
         if (stored_selection.length) {
           if (this.debug) {
             console.log('selection to restore:', stored_selection);
@@ -1736,12 +1736,13 @@
           } catch (_error) {
             e = _error;
           }
+          this.element.find(this.selection_marker).contents().unwrap();
+          this.element.find(this.selection_marker).remove();
           return this._ignoreEvents = false;
         }
       },
       storeContentPosition: function(avoid_change_selection) {
-        var e, range, selection, selection_identifier, serialized_selection, tmp_id,
-          _this = this;
+        var e, range, selection, selection_identifier, serialized_selection, tmp_id;
         this._ignoreEvents = true;
         tmp_id = 'range' + Date.now();
         try {
@@ -1751,11 +1752,8 @@
             range = selection.getRangeAt(0);
             serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
           }
-          this.element.find(this.selection_marker).each(function(index, item) {
-            var node;
-            node = jQuery(item);
-            return node.contents().unwrap();
-          });
+          this.element.find(this.selection_marker).contents().unwrap();
+          this.element.find(this.selection_marker).remove();
           selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
           selection_identifier.attr('rel', serialized_selection);
           this.element.append(selection_identifier);
