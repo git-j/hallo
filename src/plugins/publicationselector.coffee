@@ -95,7 +95,7 @@
             range.selectNode(@options.editable.element[0])
             range.collapse(false) # toEnd
           if ( selection_html == '' )
-            if ( selection_common.attr('contenteditable') != '' )
+            if ( selection_common.attr('contenteditable') == 'true' && !selection_common.hasClass('rangySelectionBoundary'))
               selection_common.append(replacement_node.contents())
             else
               replacement_node.insertAfter(selection_common) # avoid inserting _in_ hyperlinks
@@ -110,18 +110,18 @@
         new_sd_node.removeAttr('id')
         #console.log(new_sd_node)
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element)
-          #console.log(new_sd_node)
-          new_sd_class = new_sd_node.attr('class')
-          if new_sd_class
-            sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
-            nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
-              jQuery('body').hallosourcedescriptioneditor
-                'loid':sd_loid
-                'data':citation_data
-                'element':new_sd_node
-                'back':false
-                'nugget_loid':target_loid
+          nugget.resetCitations(@options.editable.element).done =>
+            #console.log(new_sd_node)
+            new_sd_class = new_sd_node.attr('class')
+            if new_sd_class
+              sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
+              nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
+                jQuery('body').hallosourcedescriptioneditor
+                  'loid':sd_loid
+                  'data':citation_data
+                  'element':new_sd_node
+                  'back':false
+                  'nugget_loid':target_loid
         @back()
 
 

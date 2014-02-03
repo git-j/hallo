@@ -127,6 +127,7 @@ class _Citehandler
         #debug.log(element)
         #debug.log(element.closest('.cite'))
         #debug.log(element.closest('.cite').prev('.citation'))
+        nugget = new DOMNugget();
         @_sync_editable(element,true)
         loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
         #console.log(loid);
@@ -145,6 +146,9 @@ class _Citehandler
           #not that simple: citation.selectText()
           citation.contents().unwrap();
           #console.log(citation.html())
+        if ( is_auto_cite )
+          sd_loid = @citation_data.loid
+          nugget.removeSourceDescription(@editable.element,sd_loid)
         if ( element.closest('.cite').length )
           cite =  element.closest('.cite')
           #not that simple: element.closest('.cite').selectText()
@@ -158,14 +162,10 @@ class _Citehandler
           @editable.element.hallo('setModified')
           @editable.element.blur()
         jQuery('#' + @overlay_id).remove()
-        nugget = new DOMNugget();
         #console.log(@editable.element.html());
         if ( is_auto_cite )
-          element = @editable.element
-          sd_loid = @citation_data.loid
           publication_loid = @citation_data.ploid
-          dom_nugget = element.closest('.nugget')
-          nugget.removeSourceDescription(@editable.element,sd_loid)
+          dom_nugget = @editable.element.closest('.nugget')
           if ( typeof UndoManager != 'undefined' && typeof @editable.undoWaypointIdentifier == 'function' )
             wpid = @editable.undoWaypointIdentifier(dom_nugget)
             undo_stack = (new UndoManager()).getStack(wpid)
@@ -185,7 +185,7 @@ class _Citehandler
           nugget.updateSourceDescriptionData(@editable.element).done =>
             nugget.resetCitations(@editable.element).done =>
               #@editable.element.hallo('disable')
-              console.warn('@editable.undoWaypoint()')
+              #console.warn('@editable.undoWaypoint()')
               if ( typeof MathJax != 'undefined' )
                 MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 

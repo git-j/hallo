@@ -1064,8 +1064,9 @@ http://hallojs.org
           rangy.deserializeSelection(stored_selection.attr('rel'),@element[0])
         catch e
           # ignore
-        @element.find(@selection_marker).contents().unwrap()
-        @element.find(@selection_marker).remove()
+        #@element.find(@selection_marker).contents().unwrap()
+        #@element.find(@selection_marker).remove()
+        @element.find('.rangySelectionBoundary').remove()
         @_ignoreEvents = false # avoid deactivating because of addRange
 
 
@@ -1078,14 +1079,14 @@ http://hallojs.org
         if ( selection.rangeCount > 0 )
           range = selection.getRangeAt(0)
           serialized_selection = rangy.serializeSelection(selection,true,@element[0])
-        @element.find(@selection_marker).contents().unwrap()
-        @element.find(@selection_marker).remove()
-        selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '"></' + @selection_marker + '>')
-        selection_identifier.attr('rel',serialized_selection)
-        @element.append(selection_identifier);
+        if ( serialized_selection != '' )
+          @element.find(@selection_marker).contents().unwrap()
+          @element.find(@selection_marker).remove()
+          selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '" contenteditable="false"></' + @selection_marker + '>')
+          selection_identifier.attr('rel',serialized_selection)
+          @element.append(selection_identifier);
       catch e
         console.warn('exception during store selection')
-      @element.find('.rangySelectionBoundary').remove()
       @_ignoreEvents = false
 
     setContentPosition: (jq_node) ->

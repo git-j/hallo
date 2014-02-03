@@ -1736,8 +1736,7 @@
           } catch (_error) {
             e = _error;
           }
-          this.element.find(this.selection_marker).contents().unwrap();
-          this.element.find(this.selection_marker).remove();
+          this.element.find('.rangySelectionBoundary').remove();
           return this._ignoreEvents = false;
         }
       },
@@ -1752,16 +1751,17 @@
             range = selection.getRangeAt(0);
             serialized_selection = rangy.serializeSelection(selection, true, this.element[0]);
           }
-          this.element.find(this.selection_marker).contents().unwrap();
-          this.element.find(this.selection_marker).remove();
-          selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '"></' + this.selection_marker + '>');
-          selection_identifier.attr('rel', serialized_selection);
-          this.element.append(selection_identifier);
+          if (serialized_selection !== '') {
+            this.element.find(this.selection_marker).contents().unwrap();
+            this.element.find(this.selection_marker).remove();
+            selection_identifier = jQuery('<' + this.selection_marker + ' id="' + tmp_id + '" contenteditable="false"></' + this.selection_marker + '>');
+            selection_identifier.attr('rel', serialized_selection);
+            this.element.append(selection_identifier);
+          }
         } catch (_error) {
           e = _error;
           console.warn('exception during store selection');
         }
-        this.element.find('.rangySelectionBoundary').remove();
         return this._ignoreEvents = false;
       },
       setContentPosition: function(jq_node) {
@@ -3560,6 +3560,7 @@
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
           var citation, citation_html, cite, dom_nugget, is_auto_cite, loid, nugget, publication_loid, sd_loid, undo_stack, wpid;
+          nugget = new DOMNugget();
           _this._sync_editable(element, true);
           loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
           citation = element.closest('.cite').prev('.citation');
@@ -3568,6 +3569,10 @@
           if (citation.length) {
             citation_html = citation.html();
             citation.contents().unwrap();
+          }
+          if (is_auto_cite) {
+            sd_loid = _this.citation_data.loid;
+            nugget.removeSourceDescription(_this.editable.element, sd_loid);
           }
           if ((element.closest('.cite').length)) {
             cite = element.closest('.cite');
@@ -3581,13 +3586,9 @@
             _this.editable.element.blur();
           }
           jQuery('#' + _this.overlay_id).remove();
-          nugget = new DOMNugget();
           if (is_auto_cite) {
-            element = _this.editable.element;
-            sd_loid = _this.citation_data.loid;
             publication_loid = _this.citation_data.ploid;
-            dom_nugget = element.closest('.nugget');
-            nugget.removeSourceDescription(_this.editable.element, sd_loid);
+            dom_nugget = _this.editable.element.closest('.nugget');
             if (typeof UndoManager !== 'undefined' && typeof _this.editable.undoWaypointIdentifier === 'function') {
               wpid = _this.editable.undoWaypointIdentifier(dom_nugget);
               undo_stack = (new UndoManager()).getStack(wpid);
@@ -3599,7 +3600,6 @@
             nugget.prepareTextForEdit(_this.editable.element);
             return nugget.updateSourceDescriptionData(_this.editable.element).done(function() {
               return nugget.resetCitations(_this.editable.element).done(function() {
-                console.warn('@editable.undoWaypoint()');
                 if (typeof MathJax !== 'undefined') {
                   return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
                 }
@@ -5193,7 +5193,7 @@
               range.collapse(false);
             }
             if (selection_html === '') {
-              if (selection_common.attr('contenteditable') !== '') {
+              if (selection_common.attr('contenteditable') === 'true' && !selection_common.hasClass('rangySelectionBoundary')) {
                 return selection_common.append(replacement_node.contents());
               } else {
                 return replacement_node.insertAfter(selection_common);
@@ -5210,21 +5210,22 @@
           new_sd_node = jQuery('#' + tmp_id);
           new_sd_node.removeAttr('id');
           nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
-            var new_sd_class, sd_loid;
-            nugget.resetCitations(_this.options.editable.element);
-            new_sd_class = new_sd_node.attr('class');
-            if (new_sd_class) {
-              sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/, "$1");
-              return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
-                return jQuery('body').hallosourcedescriptioneditor({
-                  'loid': sd_loid,
-                  'data': citation_data,
-                  'element': new_sd_node,
-                  'back': false,
-                  'nugget_loid': target_loid
+            return nugget.resetCitations(_this.options.editable.element).done(function() {
+              var new_sd_class, sd_loid;
+              new_sd_class = new_sd_node.attr('class');
+              if (new_sd_class) {
+                sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/, "$1");
+                return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
+                  return jQuery('body').hallosourcedescriptioneditor({
+                    'loid': sd_loid,
+                    'data': citation_data,
+                    'element': new_sd_node,
+                    'back': false,
+                    'nugget_loid': target_loid
+                  });
                 });
-              });
-            }
+              }
+            });
           });
           return _this.back();
         });
