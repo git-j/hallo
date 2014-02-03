@@ -3496,11 +3496,12 @@
     };
 
     _Citehandler.prototype._makeTip = function(target, element) {
-      var ov_data,
+      var ov_data, update_dfd,
         _this = this;
       this._updateSettings();
       ov_data = '';
-      return this._updateCitationDisplay(element).done(function(current_citation_data) {
+      update_dfd = this._updateCitationDisplay(element);
+      update_dfd.done(function(current_citation_data) {
         var sourcedescriptioneditor;
         _this.citation_data = current_citation_data;
         ov_data += '<ul>';
@@ -3610,6 +3611,33 @@
           target.find('.edit').remove();
           return target.find('.remove').closest('ul').prev('ul').remove();
         }
+      });
+      return update_dfd.fail(function() {
+        ov_data += '<ul class="actions">';
+        ov_data += '<li>';
+        if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only) || _this.editable.is_auto_editable) {
+          _this._sync_editable(element, false);
+        }
+        if (_this.editable.element) {
+          ov_data += '<button class="remove action_button">' + utils.tr('remove') + '</button></li>';
+        }
+        ov_data += '</ul>';
+        target.append(ov_data);
+        return target.find('.remove').bind('click', function(ev) {
+          var citation, citation_html, cite, loid;
+          _this._sync_editable(element, true);
+          loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
+          citation = element.closest('.cite').prev('.citation');
+          if (citation.length) {
+            citation_html = citation.html();
+            citation.contents().unwrap();
+          }
+          if ((element.closest('.cite').length)) {
+            cite = element.closest('.cite');
+            cite.remove();
+          }
+          return jQuery('#' + _this.overlay_id).remove();
+        });
       });
     };
 

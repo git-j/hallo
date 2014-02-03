@@ -70,7 +70,8 @@ class _Citehandler
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings()
     ov_data = ''
-    @_updateCitationDisplay(element).done (current_citation_data) =>
+    update_dfd = @_updateCitationDisplay(element)
+    update_dfd.done (current_citation_data) =>
       @citation_data = current_citation_data
       #TODO: nicer HTML for better styling
       ov_data+= '<ul>'
@@ -191,3 +192,27 @@ class _Citehandler
       if !@citation_data.processed
         target.find('.edit').remove()
         target.find('.remove').closest('ul').prev('ul').remove();
+    update_dfd.fail () =>
+      ov_data+= '<ul class="actions">'
+      ov_data+= '<li>'
+      if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) || @editable.is_auto_editable )
+        @_sync_editable(element,false)
+      if ( @editable.element )
+        ov_data+=     '<button class="remove action_button">' + utils.tr('remove') + '</button></li>'
+      ov_data+= '</ul>'
+
+      target.append(ov_data)
+      target.find('.remove').bind 'click', (ev) =>
+        @_sync_editable(element,true)
+        loid = element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
+        citation = element.closest('.cite').prev('.citation')
+        if ( citation.length )
+          citation_html = citation.html()
+          #not that simple: citation.selectText()
+          citation.contents().unwrap();
+          #console.log(citation.html())
+        if ( element.closest('.cite').length )
+          cite =  element.closest('.cite')
+          #not that simple: element.closest('.cite').selectText()
+          cite.remove()
+        jQuery('#' + @overlay_id).remove()
