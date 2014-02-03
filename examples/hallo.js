@@ -2157,7 +2157,7 @@
             if (selection_html === '') {
               _this.options.editable.getSelectionNode(function(selection) {
                 if (selection[0] === _this.options.editable.element[0]) {
-                  return _this.options.editable.element[0].append(table_placeholder_node);
+                  return _this.options.editable.element.append(table_placeholder_node);
                 } else {
                   return table_placeholder_node.insertAfter(selection);
                 }

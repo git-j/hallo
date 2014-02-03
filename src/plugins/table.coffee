@@ -70,7 +70,7 @@
           if ( selection_html == '' )
             @options.editable.getSelectionNode (selection) =>
               if selection[0] == @options.editable.element[0]
-                @options.editable.element[0].append(table_placeholder_node)
+                @options.editable.element.append(table_placeholder_node)
               else
                 table_placeholder_node.insertAfter(selection)
           else
