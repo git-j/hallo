@@ -3703,8 +3703,7 @@
           this.widget.css('height', jQuery(window).height());
         }
         this.list = new List();
-        this.list.init($('#nugget_list'), omc.NuggetExtendList);
-        this.list.setupItemActions($('#nugget_list'), {
+        this.list.setupItemActions({
           'node_dblclick': function(node) {
             _this.select(node);
             return _this.apply();
@@ -3713,6 +3712,7 @@
             return _this.select(node);
           }
         });
+        this.list.init($('#nugget_list'), omc.NuggetExtendList);
         this.widget.fadeIn();
         return jQuery(window).resize();
       },
@@ -4215,8 +4215,7 @@
         var list,
           _this = this;
         list = new List();
-        list.init(jQuery('#publication_list'), omc.PublicationList);
-        list.setupItemActions(jQuery('#publication_list'), {
+        list.setupItemActions({
           'node_dblclick': function(node) {
             _this.selectPublication(node);
             return _this.next();
@@ -4225,6 +4224,7 @@
             return _this.selectPublication(node);
           }
         });
+        list.init(jQuery('#publication_list'), omc.PublicationList);
         return jQuery('#publication_list').show();
       },
       loadPublicationNuggets: function(loid) {
@@ -4234,8 +4234,7 @@
         data_fn = function() {
           return omc.SourceDescriptionNuggetList(loid);
         };
-        list.init(jQuery('#nugget_list'), data_fn);
-        list.setupItemActions(jQuery('#nugget_list'), {
+        list.setupItemActions({
           'node_dblclick': function(node) {
             _this.selectNugget(node);
             return _this.next();
@@ -4246,6 +4245,7 @@
             return jQuery(node).find('.context').show();
           }
         });
+        list.init(jQuery('#nugget_list'), data_fn);
         return jQuery('#nugget_list').show();
       },
       _createInput: function(identifier, label, value) {
@@ -5132,8 +5132,7 @@
           this.widget.css('height', jQuery(window).height());
         }
         this.list = new List();
-        this.list.init($('#publication_list'), omc.PublicationList);
-        this.list.setupItemActions($('#publication_list'), {
+        this.list.setupItemActions({
           'node_dblclick': function(node) {
             _this.select(node);
             return _this.apply();
@@ -5142,6 +5141,7 @@
             return _this.select(node);
           }
         });
+        this.list.init($('#publication_list'), omc.PublicationList);
         this.options.toolbar_actions['Filter'] = function() {
           return _this._filter();
         };

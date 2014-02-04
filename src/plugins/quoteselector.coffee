@@ -149,14 +149,14 @@
 
     loadPublications: (loid) ->
       list = new List();
-      list.init(jQuery('#publication_list'),omc.PublicationList);
-      list.setupItemActions(jQuery('#publication_list'),{
+      list.setupItemActions({
         'node_dblclick': (node) =>
           @selectPublication(node)
           @next()
         'node_select': (node) =>
           @selectPublication(node)
       })
+      list.init(jQuery('#publication_list'),omc.PublicationList);
       jQuery('#publication_list').show();
 
 
@@ -164,8 +164,7 @@
       list = new List();
       data_fn = ->
         return omc.SourceDescriptionNuggetList(loid)
-      list.init(jQuery('#nugget_list'),data_fn);
-      list.setupItemActions(jQuery('#nugget_list'),{
+      list.setupItemActions({
         'node_dblclick': (node) =>
           @selectNugget(node)
           @next()
@@ -181,6 +180,7 @@
           jQuery('.context:visible').hide()
           jQuery(node).find('.context').show()
       })
+      list.init(jQuery('#nugget_list'),data_fn);
       jQuery('#nugget_list').show()
 
 

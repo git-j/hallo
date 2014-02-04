@@ -45,14 +45,14 @@
       @wigtet.css('width', jQuery('body').width()) if !@options.default_css.width
       @widget.css('height', jQuery(window).height()) if !@options.default_css.height
       @list = new List();
-      @list.init($('#publication_list'),omc.PublicationList);
-      @list.setupItemActions($('#publication_list'),{
+      @list.setupItemActions({
         'node_dblclick': (node) =>
           @select(node)
           @apply()
         'node_select': (node) =>
           @select(node)
       })
+      @list.init($('#publication_list'),omc.PublicationList);
       @options.toolbar_actions['Filter'] = () =>
         @_filter()
       @list_toolbar = new ToolBarBase();
