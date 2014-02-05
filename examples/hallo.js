@@ -3510,6 +3510,9 @@
         if (_this.citation_data.creates_footnote) {
           ov_data += '<li class="footnote">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
         }
+        if (_this.citation_data.notes !== '') {
+          ov_data += '<li class="footnote">' + utils.tr('notes') + ': ' + _this.citation_data.notes + '</li>';
+        }
         if (_this.citation_data.creates_bibliography) {
           ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
         }

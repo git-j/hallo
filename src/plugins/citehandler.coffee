@@ -79,6 +79,8 @@ class _Citehandler
       ov_data+= '<li class="citation">' + @citation_data.cite + '</li>'
       if ( @citation_data.creates_footnote )
         ov_data+= '<li class="footnote">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
+      if ( @citation_data.notes != '' )
+        ov_data+= '<li class="footnote">' + utils.tr('notes') + ': ' + @citation_data.notes + '</li>'
       if ( @citation_data.creates_bibliography )
         ov_data+= '<li class="bibliography">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul class="actions">'
