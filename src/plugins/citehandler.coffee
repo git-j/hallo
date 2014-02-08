@@ -123,7 +123,7 @@ class _Citehandler
       target.find('.open_url').bind 'click', (ev) =>
         wke.openUrlInBrowser(@citation_data.URL)
       target.find('.open_file_path').bind 'click', (ev) =>
-        wke.openUrlInBrowser(@citation_data.location_in_filesystem)
+        utils.correctAndOpenFilePath(@citation_data.location_in_filesystem)
       element.bind 'click', sourcedescriptioneditor
       target.find('.remove').bind 'click', (ev) =>
         #debug.log(element)
