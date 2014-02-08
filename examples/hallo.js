@@ -3510,8 +3510,11 @@
         if (_this.citation_data.creates_footnote) {
           ov_data += '<li class="footnote">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
         }
-        if (_this.citation_data.notes !== '') {
-          ov_data += '<li class="footnote">' + utils.tr('notes') + ': ' + _this.citation_data.notes + '</li>';
+        if (_this.citation_data.note !== '') {
+          ov_data += '<li class="footnote">' + utils.tr('notes') + ': ' + _this.citation_data.note + '</li>';
+        }
+        if (_this.citation_data.annote !== '') {
+          ov_data += '<li class="footnote">' + utils.tr('author notes') + ': ' + _this.citation_data.annote + '</li>';
         }
         if (_this.citation_data.creates_bibliography) {
           ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
@@ -3558,7 +3561,7 @@
           return wke.openUrlInBrowser(_this.citation_data.URL);
         });
         target.find('.open_file_path').bind('click', function(ev) {
-          return wke.openUrlInBrowser(_this.citation_data.location_in_filesystem);
+          return utils.correctAndOpenFilePath(_this.citation_data.location_in_filesystem);
         });
         element.bind('click', sourcedescriptioneditor);
         target.find('.remove').bind('click', function(ev) {
@@ -3993,9 +3996,19 @@
         return jQuery(window).resize();
       },
       _createInput: function(identifier, label, value) {
-        var dp, fn_dp_show, fn_update_select, input,
+        var dp, fn_dp_show, fn_update_select, input, input_multiline, input_singleline, row,
           _this = this;
-        input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/></div>');
+        label = jQuery('<label for="' + identifier + '">' + label + '</label>');
+        input_singleline = jQuery('<input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/>');
+        input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width">' + value + '</textarea>');
+        row = jQuery('<div></div>');
+        row.append(label);
+        if (identifier === 'abstract' || identifier === 'extra' || identifier === 'notes') {
+          input = input_multiline;
+        } else {
+          input = input_singleline;
+        }
+        row.append(input);
         if (jQuery.datepicker && (identifier === 'date' || 'identifier' === 'accessed')) {
           fn_dp_show = function() {
             $('.ui-datepicker-month').selectBox();
@@ -4004,7 +4017,7 @@
           fn_update_select = function() {
             return window.setTimeout(fn_dp_show, 100);
           };
-          dp = input.find('input').datepicker({
+          dp = input.datepicker({
             showOn: "button",
             onChangeMonthYear: fn_update_select,
             beforeShow: fn_update_select,
@@ -4016,11 +4029,11 @@
             constrainInput: false
           });
         }
-        input.find('input').bind('blur', function(event) {
+        input.bind('blur', function(event) {
           return _this._formChanged(event, _this.options);
         });
         this.options.orig_values[identifier] = value;
-        return input;
+        return row;
       },
       _formChanged: function(event, options) {
         var data, error, path, target, user_number;
