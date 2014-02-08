@@ -171,7 +171,16 @@
 
     _createInput: (identifier, label, value) ->
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
-      input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/></div>')
+      label = jQuery('<label for="' + identifier + '">' + label + '</label>')
+      input_singleline = jQuery('<input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/>')
+      input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width">' + value + '</textarea>')
+      row = jQuery('<div></div>')
+      row.append(label)
+      if ( identifier == 'abstract' || identifier == 'extra' || identifier == 'notes' )
+        input = input_multiline
+      else
+        input = input_singleline
+      row.append(input)
       # if ( tooltip )
       #  input.attr('title',tooltip)
       if ( jQuery.datepicker && (identifier == 'date' || 'identifier' == 'accessed') )
@@ -181,11 +190,11 @@
           $('.ui-datepicker-year').selectBox()
         fn_update_select = () =>
           window.setTimeout fn_dp_show, 100
-        dp = input.find('input').datepicker({showOn: "button", onChangeMonthYear: fn_update_select, beforeShow: fn_update_select, buttonImage: "../icons/actions/datepicker-p.png", buttonImageOnly: true, dateFormat: "yy-mm-dd", changeMonth: false, changeYear: false, constrainInput: false})
-      input.find('input').bind 'blur', (event) =>
+        dp = input.datepicker({showOn: "button", onChangeMonthYear: fn_update_select, beforeShow: fn_update_select, buttonImage: "../icons/actions/datepicker-p.png", buttonImageOnly: true, dateFormat: "yy-mm-dd", changeMonth: false, changeYear: false, constrainInput: false})
+      input.bind 'blur', (event) =>
         @_formChanged(event,@options)
       @options.orig_values[identifier] = value
-      input
+      return row
     _formChanged: (event, options) ->
       target = jQuery(event.target)
       #debug.log('form changed' + target.html())
