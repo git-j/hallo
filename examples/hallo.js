@@ -755,7 +755,8 @@
         return this._trigger("disabled", null);
       },
       enable: function() {
-        var _this = this;
+        var update_size_fn,
+          _this = this;
         this.element.parents('a[href]').andSelf().each(function(idx, elem) {
           var element;
           element = jQuery(elem);
@@ -770,10 +771,29 @@
         if (!this.element.html().trim()) {
           this.element.html(this.options.placeholder);
           if (!(this.element.is('h1,h2,h3,h4,h5,h6'))) {
-            this.element.css({
-              'min-width': this.element.innerWidth(),
-              'min-height': this.element.innerHeight()
-            });
+            update_size_fn = function() {
+              var new_height, new_width;
+              _this.element.css({
+                'min-width': '',
+                'min-height': ''
+              });
+              new_width = _this.element.innerWidth();
+              new_width -= parseInt(_this.element.css("padding-right"), 10);
+              new_width -= parseInt(_this.element.css("padding-left"), 10);
+              new_height = _this.element.innerHeight();
+              new_height -= parseInt(_this.element.css("padding-top"), 10);
+              new_height -= parseInt(_this.element.css("padding-bottom"), 10);
+              return _this.element.css({
+                'min-width': new_width,
+                'min-height': new_height
+              });
+            };
+            if (typeof window.current_hallo_resize_handler === 'function') {
+              jQuery(window).unbind('resize', window.current_hallo_resize_handler);
+            }
+            window.current_hallo_resize_handler = update_size_fn;
+            jQuery(window).bind('resize', window.current_hallo_resize_handler);
+            window.current_hallo_resize_handler();
           }
         }
         if (!this.bound) {
