@@ -927,7 +927,9 @@ http://hallojs.org
         window.clearTimeout(@autostore_timer)
       if @options.store_callback
         contents = @getContents()
-        if contents == '' or contents == ' ' or contents == '<br>' or contents == @options.placeholder
+        contents_text = $('<div>' + contents + '</div>').text()
+        contents_text = contents_text.replace(/\n/g,' ');
+        if contents_text.trim() == '' || contents_text == @options.placeholder
           @setContents ''
         @options.store_callback(@getContents())
     _activated: (event) ->
@@ -951,7 +953,9 @@ http://hallojs.org
       event.data.storeContentPosition(true)
       if event.data.options.store_callback
         contents = event.data.getContents()
-        if contents == '' or contents == ' ' or contents == '<br>' or contents == event.data.options.placeholder
+        contents_text = $('<div>' + contents + '</div>').text()
+        contents_text = contents_text.replace(/\n/g,' ');
+        if contents_text.trim() == '' || contents_text == event.data.options.placeholder
           event.data.setContents ''
         event.data.options.store_callback(event.data.getContents())
 
