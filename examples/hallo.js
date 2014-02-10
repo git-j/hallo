@@ -4032,6 +4032,9 @@
         } else {
           input = input_singleline;
         }
+        if (identifier === 'number_of_pages' || identifier === 'notes' || identifier === 'running_time' || identifier === 'code_volume' || identifier === 'code_pages' || identifier === 'code_sections') {
+          label.addClass('persistent_sourcedescription_attribute');
+        }
         row.append(input);
         if (jQuery.datepicker && (identifier === 'date' || 'identifier' === 'accessed')) {
           fn_dp_show = function() {

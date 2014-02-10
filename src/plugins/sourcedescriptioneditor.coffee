@@ -180,6 +180,8 @@
         input = input_multiline
       else
         input = input_singleline
+      if ( identifier == 'number_of_pages' || identifier == 'notes' || identifier == 'running_time' || identifier == 'code_volume' || identifier == 'code_pages' || identifier == 'code_sections' )
+        label.addClass('persistent_sourcedescription_attribute')
       row.append(input)
       # if ( tooltip )
       #  input.attr('title',tooltip)
