@@ -76,15 +76,17 @@ class _Citehandler
       #TODO: nicer HTML for better styling
       ov_data+= '<ul>'
       ov_data+= '<li class="style">' + utils.tr('citation in') + ' ' + @citation_data.style_name+ '</li>'
-      ov_data+= '<li class="citation">' + @citation_data.cite + '</li>'
+      ov_data+= '<li class="citation selectable">' + @citation_data.cite + '</li>'
       if ( @citation_data.creates_footnote )
-        ov_data+= '<li class="footnote">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
-      if ( @citation_data.note != '' )
-        ov_data+= '<li class="footnote">' + utils.tr('notes') + ': ' + @citation_data.note + '</li>'
-      if ( @citation_data.annote != '' )
-        ov_data+= '<li class="footnote">' + utils.tr('author notes') + ': ' + @citation_data.annote + '</li>'
+        ov_data+= '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
+      if ( typeof @citation_data.note == 'string' && @citation_data.note != '' )
+        @citation_data.note = @citation_data.note.replace(/\n/g,'<br/>');
+        ov_data+= '<li class="notes selectable">' + utils.tr('notes') + ': ' + @citation_data.note + '</li>'
+      if ( typeof @citation_data.annote == 'string' && @citation_data.annote != '' )
+        @citation_data.annote = @citation_data.annote.replace(/\n/g,'<br/>');
+        ov_data+= '<li class="extra selectable">' + utils.tr('author notes') + ': ' + @citation_data.annote + '</li>'
       if ( @citation_data.creates_bibliography )
-        ov_data+= '<li class="bibliography">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
+        ov_data+= '<li class="bibliography selectable">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul class="actions">'
       # TODO: rewrite to use actions
       ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'

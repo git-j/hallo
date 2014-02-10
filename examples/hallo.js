@@ -3530,18 +3530,20 @@
         _this.citation_data = current_citation_data;
         ov_data += '<ul>';
         ov_data += '<li class="style">' + utils.tr('citation in') + ' ' + _this.citation_data.style_name + '</li>';
-        ov_data += '<li class="citation">' + _this.citation_data.cite + '</li>';
+        ov_data += '<li class="citation selectable">' + _this.citation_data.cite + '</li>';
         if (_this.citation_data.creates_footnote) {
-          ov_data += '<li class="footnote">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
+          ov_data += '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
         }
-        if (_this.citation_data.note !== '') {
-          ov_data += '<li class="footnote">' + utils.tr('notes') + ': ' + _this.citation_data.note + '</li>';
+        if (typeof _this.citation_data.note === 'string' && _this.citation_data.note !== '') {
+          _this.citation_data.note = _this.citation_data.note.replace(/\n/g, '<br/>');
+          ov_data += '<li class="notes selectable">' + utils.tr('notes') + ': ' + _this.citation_data.note + '</li>';
         }
-        if (_this.citation_data.annote !== '') {
-          ov_data += '<li class="footnote">' + utils.tr('author notes') + ': ' + _this.citation_data.annote + '</li>';
+        if (typeof _this.citation_data.annote === 'string' && _this.citation_data.annote !== '') {
+          _this.citation_data.annote = _this.citation_data.annote.replace(/\n/g, '<br/>');
+          ov_data += '<li class="extra selectable">' + utils.tr('author notes') + ': ' + _this.citation_data.annote + '</li>';
         }
         if (_this.citation_data.creates_bibliography) {
-          ov_data += '<li class="bibliography">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
+          ov_data += '<li class="bibliography selectable">' + utils.tr('bibliography') + ': ' + _this.citation_data.bibliography + '</li>';
         }
         ov_data += '</ul><ul class="actions">';
         ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
