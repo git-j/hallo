@@ -39,6 +39,7 @@
         td    = $(range.endContainer).closest('td') if !td.length
         td    = $(range.startContainer).closest('th') if !td.length
         td    = $(range.endContainer).closest('th') if !td.length
+        table_selected = false
         if ( table.length )
           #modify
           @options.editable.element.find('table').each (index,item) =>
@@ -62,7 +63,8 @@
               $('#' + contentId + 'rows').val(rows + 1)
               $('#' + contentId + 'border').attr('checked',border)
               $('#' + contentId + 'heading').attr('checked',heading)
-        else
+              table_selected = true
+        if !table_selected
           #create
           table_placeholder = '<table id="' + @tmpid + '" border="1" class="table-border"></table>'
           table_placeholder_node = jQuery(table_placeholder)
@@ -82,6 +84,7 @@
               range = rangy.createRange()
               range.selectNode(@options.editable.element[0])
               range.collapse(false)
+            jQuery('body').append(table_placeholder_node)
             range.insertNode(table_placeholder_node[0])
 
         recalc = =>
