@@ -58,9 +58,8 @@
       setup= (select_target,target_id) =>
         return if rangy.getSelection().rangeCount == 0
         @options.editable.restoreContentPosition()
-        @options.editable.undoWaypointStart('formula')
-        @options.editable._current_undo_command.postdo = () =>
-          @recalcMath()
+        @_setupUndoWaypoint()
+
         contentId = target_id
         # target_id != parent-function:contentId
         # as the setup function is called by live()
@@ -172,6 +171,10 @@
 
     recalcMath: () ->
       if ( @has_mathjax )
+        @options.editable.element.find('.formula').each (index,formula_item) =>
+          formula_node = jQuery(formula_item)
+          formula_node.html(@options.mathjax_inline_delim_left + decodeURIComponent(formula_node.attr('rel')) + @options.mathjax_inline_delim_right)
+
         MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
     recalcHTML: (contentId) ->
@@ -267,11 +270,11 @@
         else
           formulas = $('.formula').each (index,item) =>
             jQuery(item).removeAttr('id')
-        @options.editable.undoWaypointCommit()
+        @_setupUndoWaypoint()
         @dropdownform.hallodropdownform('hideForm')
       buttons.append addButton "remove", =>
         $('#' + @tmpid).remove()
-        @options.editable.undoWaypointCommit()
+        @_setupUndoWaypoint()
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append(buttons)
       contentArea
@@ -291,5 +294,19 @@
         setup: setup
         cssClass: @options.buttonCssClass
       buttonElement
+    _setupUndoWaypoint: () ->
+      @options.editable.undoWaypointStart('formula')
+      postdo_handler = () =>
+        # console.log('POSTDO FORMULA')
+        @recalcMath()
+      @options.editable._current_undo_command.postdo = postdo_handler
+      # make sure on undo and redo with non-formulas, the math is recalced too
+      current_undo_stack = @options.editable.undoWaypointLoad(@options.editable.element)
+      if ( current_undo_stack.canUndo() && current_undo_stack.index() > 0 )
+        current_undo_stack.command(current_undo_stack.index()).postdo = postdo_handler
+      if ( current_undo_stack.canRedo() && current_undo_stack.index() > 1 )
+        current_undo_stack.command(current_undo_stack.index() + 1).postdo = postdo_handler
+      @options.editable.undoWaypointCommit()
+
 
 )(jQuery)

@@ -172,6 +172,7 @@ http://hallojs.org
 
       jQuery(@element).removeClass 'isModified'
       jQuery(@element).removeClass 'inEditMode'
+      @element.undoWaypointCommit(true)
 
       @element.parents('a').andSelf().each (idx, elem) =>
         element = jQuery elem
@@ -192,6 +193,8 @@ http://hallojs.org
       @element.attr "contentEditable", true
       window.hallo_current_instance = @ # bad hack!
 
+      @undoWaypointStart('text')
+      @undoWaypointCommit(true)
       unless @element.html().trim()
         @element.html this.options.placeholder
         unless ( @element.is('h1,h2,h3,h4,h5,h6'))
@@ -753,9 +756,13 @@ http://hallojs.org
       #        content: widget.getContents()
       #        thrown: old
       #    widget.turnOff()
+      # console.log(event.keyCode)
       return if widget._ignoreKeys(event.keyCode)
       if ( event.keyCode == 32 || event.keyCode == 13 || event.keyCode == 8 || event.keyCode == 9 ) && !event.ctrlKey
-        widget.undoWaypointCommit(true)
+        widget.undoWaypointCommit(false)
+        widget.undoWaypointStart('text')
+      if ( event.keyCode == 65 || event.keyCode == 69 || event.keyCode == 73 || event.keyCode == 79 || event.keyCode == 85 || event.keyCode == 188 || event.keyCode == 190) && !event.ctrlKey
+        widget.undoWaypointCommit(false)
         widget.undoWaypointStart('text')
       if event.keyCode == 66 && event.ctrlKey #b
           widget.execute("bold")
@@ -798,7 +805,7 @@ http://hallojs.org
           return
         td = $(range.startContainer).closest('td,th')
         if ( td.length )
-          widget.undoWaypointCommit(true)
+          widget.undoWaypointCommit(false)
           widget.undoWaypointStart('text')
           table = td.closest('table')
           use_next = false
@@ -826,7 +833,7 @@ http://hallojs.org
           return
         td = $(range.startContainer).closest('td,th')
         if ( td.length )
-          widget.undoWaypointCommit(true)
+          widget.undoWaypointCommit(false)
           widget.undoWaypointStart('text')
           table = td.closest('table')
           use_prev = false
@@ -990,9 +997,10 @@ http://hallojs.org
     undoWaypointStart: (id) ->
       return if ( typeof UndoCommand == 'undefined' )
       @_current_undo_command = new UndoCommand()
+      @storeContentPosition()
       @_current_undo_command.before_data = @element.html()
       if ( typeof id != 'undefined' )
-        @_current_undo_command.id = id
+        @_current_undo_command.id = id + Date.now()
       @_current_undo_command
 
     undoWaypointCommit: (auto) ->
@@ -1002,30 +1010,58 @@ http://hallojs.org
       @_undo_stack = @undoWaypointLoad(@element)
       return if ( auto && @_undo_stack.canRedo() )
       undo_command = @_current_undo_command
+      @storeContentPosition()
       undo_command.after_data = @element.html()
-      return if undo_command.after_data == undo_command.before_data
+      if @_undo_stack.canRedo() && @_undo_stack.index() > 0
+        # ensure that no leftover data stays in buffer
+        previous_command = @_undo_stack.previous()
+        undo_command.before_data = previous_command.after_data
+        return if undo_command.before_data == previous_command.before_data && undo_command.after_data == previous_command.after_data
+
+      return if undo_command.before_data == undo_command.after_data
+      #if @_undo_stack.canRedo() && @_undo_stack.index() > 1
+      #  previous_command = @_undo_stack.previous()
+      #  before_previous_command = @_undo_stack.command(@_undo_stack.index()-2)
+      #  before_previous_command.after_data = previous_command.before_data
       undo_command.undo = () =>
         #console.log('undo command executing',undo_command.before_data,@_undo_stack.target.html())
+        if !@_undo_stack.canRedo() && @_undo_stack.canUndo()
+          # ensure correct data when redone again
+          undo_command.after_data = @_undo_stack.target.html()
         @_undo_stack.target.html(undo_command.before_data)
+        #console.log('undo before:',undo_command.before_data)
+        #console.log('undo after:',undo_command.after_data)
         @restoreContentPosition()
         undo_command.postdo()
         #utils.info('undone' + @_undo_stack.index() + '/' + @_undo_stack.length)
       undo_command.redo = () =>
         #console.log('redo command executing',undo_command.after_data)
+        undo_command.before_data = @_undo_stack.target.html()
         @_undo_stack.target.html(undo_command.after_data)
+        #console.log('redo before:',undo_command.before_data)
+        #console.log('redo after:',undo_command.after_data)
         @restoreContentPosition()
         undo_command.postdo()
         #utils.info('redone' + @_undo_stack.index() + '/' + @_undo_stack.length)
       if ( undo_command.id == 'text' )
-        previous_command = @_undo_stack.peek()
         if ( previous_command )
           previous_command.mergeWith = (current_command) =>
-            if ( previous_command.after_data == current_command.after_data || Math.abs(previous_command.after_data.length - current_command.after_data.length)< 5 )
-              # make sure the latest state is stored
+            merge = false # always make a single undo step
+            return merge
+            if ( Math.abs(previous_command.after_data.length - current_command.after_data.length) < 5 )
+              console.log('text delta too small',Math.abs(previous_command.after_data.length - current_command.after_data.length) )
+              merge = true
               previous_command.after_data = current_command.after_data
-              return true
-
-            return false
+            if ( previous_command.after_data == current_command.after_data )
+              console.log('same after data')
+              current_command.before_data = previous_command.before_data
+              merge = true
+            # if ( merge )
+              # state on redo
+              # state on undo: do not change before_data
+              # previous_command.before_data = current_command.before_data
+            console.log('merging:',merge)
+            return merge
       console.log('pushing undo:',undo_command.after_data,undo_command) if @debug
       @_undo_stack.push(undo_command)
       @_current_undo_command = null
@@ -1036,9 +1072,7 @@ http://hallojs.org
         @_undo_stack = @undoWaypointLoad(target)
       return if (!@_undo_stack)
 
-      if !@_undo_stack.canRedo() && @_undo_stack.canUndo()
-        undo_command = @_undo_stack.command(@_undo_stack.current_index)
-        undo_command.after_data = @_undo_stack.target.html() 
+      console.log('undo',command) if @debug
       @_undo_stack.undo()
     
     redo: (target) ->
@@ -1046,6 +1080,7 @@ http://hallojs.org
         # use event trigger element
         @_undo_stack = @undoWaypointLoad(target)
       return if (!@_undo_stack)
+      console.log('redo',command) if @debug
       @_undo_stack.redo()
 
     undoWaypointIdentifier: (target) ->
@@ -1102,7 +1137,7 @@ http://hallojs.org
         if ( serialized_selection != '' )
           @element.find(@selection_marker).contents().unwrap()
           @element.find(@selection_marker).remove()
-          selection_identifier = jQuery('<' + @selection_marker + ' id="' + tmp_id + '" contenteditable="false"></' + @selection_marker + '>')
+          selection_identifier = jQuery('<' + @selection_marker + ' contenteditable="false"></' + @selection_marker + '>')
           selection_identifier.attr('rel',serialized_selection)
           @element.append(selection_identifier);
       catch e
