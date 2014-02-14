@@ -86,7 +86,7 @@ class _Citehandler
         @citation_data.annote = @citation_data.annote.replace(/\n/g,'<br/>');
         ov_data+= '<li class="extra selectable">' + utils.tr('author notes') + ': ' + @citation_data.annote + '</li>'
       if ( @citation_data.creates_bibliography )
-        ov_data+= '<li class="bibliography selectable">' + utils.tr('bibliography') + ': ' +  @citation_data.bibliography + '</li>'
+        ov_data+= '<li class="bibliography selectable">' + utils.tr('endnotes') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul class="actions">'
       # TODO: rewrite to use actions
       ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
