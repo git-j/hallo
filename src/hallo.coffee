@@ -172,7 +172,7 @@ http://hallojs.org
 
       jQuery(@element).removeClass 'isModified'
       jQuery(@element).removeClass 'inEditMode'
-      @element.undoWaypointCommit(true)
+      @undoWaypointCommit(true)
 
       @element.parents('a').andSelf().each (idx, elem) =>
         element = jQuery elem
@@ -1085,9 +1085,12 @@ http://hallojs.org
 
     undoWaypointIdentifier: (target) ->
       classname = target.attr('class')
-      classname = classname.replace(/\s/g,'')
-      classname = classname.replace(/isModified/g,'')
-      classname = classname.replace(/inEditMode/g,'')
+      if ( typeof classname == 'string' )
+        classname = classname.replace(/\s/g,'')
+        classname = classname.replace(/isModified/g,'')
+        classname = classname.replace(/inEditMode/g,'')
+      else
+        classname = ''
       id = target.attr('id')
       pelement = target.parent()
       while ( typeof id == 'undefined' && pelement )
@@ -1095,6 +1098,8 @@ http://hallojs.org
         pelement = pelement.parent()
         if ( !pelement )
           id = 'unknown'
+      if ( typeof id == 'undefined' )
+        id = 'unknown'
       # console.log('wpid',classname,id)
       return classname + id
 

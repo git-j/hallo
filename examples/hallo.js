@@ -741,7 +741,7 @@
         this.bound = false;
         jQuery(this.element).removeClass('isModified');
         jQuery(this.element).removeClass('inEditMode');
-        this.element.undoWaypointCommit(true);
+        this.undoWaypointCommit(true);
         this.element.parents('a').andSelf().each(function(idx, elem) {
           var element;
           element = jQuery(elem);
@@ -1746,9 +1746,13 @@
       undoWaypointIdentifier: function(target) {
         var classname, id, pelement;
         classname = target.attr('class');
-        classname = classname.replace(/\s/g, '');
-        classname = classname.replace(/isModified/g, '');
-        classname = classname.replace(/inEditMode/g, '');
+        if (typeof classname === 'string') {
+          classname = classname.replace(/\s/g, '');
+          classname = classname.replace(/isModified/g, '');
+          classname = classname.replace(/inEditMode/g, '');
+        } else {
+          classname = '';
+        }
         id = target.attr('id');
         pelement = target.parent();
         while (typeof id === 'undefined' && pelement) {
@@ -1757,6 +1761,9 @@
           if (!pelement) {
             id = 'unknown';
           }
+        }
+        if (typeof id === 'undefined') {
+          id = 'unknown';
         }
         return classname + id;
       },
