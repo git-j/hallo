@@ -52,14 +52,23 @@
         'node_select': (node) =>
           @select(node)
       })
-      @list.init($('#publication_list'),omc.PublicationList);
-      @options.toolbar_actions['Filter'] = () =>
-        @_filter()
-      @list_toolbar = new ToolBarBase();
-      @list_toolbar.displayBase('body','publicationselector',@options.toolbar_actions)
-      jQuery('#basepublicationselectortoolbar').css({'z-index':@options.default_css['z-index'] + 1})
-      @list_toolbar.toggle()
-      #TODO: show filter/sort
+      @list.init($('#publication_list'),omc.PublicationList).done () =>
+        @list_toolbar = new ToolBarBase();
+        @options.toolbar_actions['Filter'] = @list_toolbar.default_actions.Filter;
+        @options.toolbar_actions['FilterUnreferenced'] = @list_toolbar.default_actions.FilterUnreferenced;
+        @options.toolbar_actions['FilterSystem'] = @list_toolbar.default_actions.FilterSystem;
+        @options.toolbar_actions['SortAlpha'] = @list_toolbar.default_actions.SortAlpha;
+        @options.toolbar_actions['SortTime'] = @list_toolbar.default_actions.SortTime;
+        @options.toolbar_actions['SortType'] = @list_toolbar.default_actions.SortType;
+        @options.toolbar_actions['_filter'] = @list_toolbar.default_actions._filter; # for sort
+        @list_toolbar.displayBase('body','publicationselector',@options.toolbar_actions,true,jQuery('#publication_list'))
+        @list_toolbar.toolbar.stop(true,true); # otherwise z-index is cleared when animation finishes
+        @list_toolbar.toolbar.css({'z-index':@options.default_css['z-index'] + 1})
+        @options.toolbar_actions['Filter'](null,null,null,@list_toolbar.action_context)
+        window.setTimeout () =>
+          @list_toolbar.action_context.find('#filter_input').focus() # deferred, otherwise editable grabs back
+          @list_toolbar.action_context.css({'padding-top':'2em'})
+        , 500
       jQuery(window).resize()
 
     apply:  ->
@@ -170,22 +179,5 @@
     _create: ->
       #debug.log('created');
       @
-    _filter: ->
-      if @widget.find('#filter_input').length
-        @widget.find('#filter_input').remove()
-        @widget.find('ul').css({'margin-top':'auto'})
-        return
-      @widget.append('<input type="text" id="filter_input"/>')
-      @widget.find('ul').css({'margin-top':'3em'})
-      filter_input = @widget.find('#filter_input')
-      filter_input.bind 'keyup', (event) =>
-        filter_input.val()
-        rx = new RegExp('.*' + filter_input.val() + '.*')
-        @widget.find('#publication_list li').each (index,item) =>
-          li = jQuery(item)
-          if ( li.text().match(rx) )
-            li.show()
-          else
-            li.hide()
 
 )(jQuery)

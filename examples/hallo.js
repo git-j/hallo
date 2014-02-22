@@ -5258,16 +5258,28 @@
             return _this.select(node);
           }
         });
-        this.list.init($('#publication_list'), omc.PublicationList);
-        this.options.toolbar_actions['Filter'] = function() {
-          return _this._filter();
-        };
-        this.list_toolbar = new ToolBarBase();
-        this.list_toolbar.displayBase('body', 'publicationselector', this.options.toolbar_actions);
-        jQuery('#basepublicationselectortoolbar').css({
-          'z-index': this.options.default_css['z-index'] + 1
+        this.list.init($('#publication_list'), omc.PublicationList).done(function() {
+          _this.list_toolbar = new ToolBarBase();
+          _this.options.toolbar_actions['Filter'] = _this.list_toolbar.default_actions.Filter;
+          _this.options.toolbar_actions['FilterUnreferenced'] = _this.list_toolbar.default_actions.FilterUnreferenced;
+          _this.options.toolbar_actions['FilterSystem'] = _this.list_toolbar.default_actions.FilterSystem;
+          _this.options.toolbar_actions['SortAlpha'] = _this.list_toolbar.default_actions.SortAlpha;
+          _this.options.toolbar_actions['SortTime'] = _this.list_toolbar.default_actions.SortTime;
+          _this.options.toolbar_actions['SortType'] = _this.list_toolbar.default_actions.SortType;
+          _this.options.toolbar_actions['_filter'] = _this.list_toolbar.default_actions._filter;
+          _this.list_toolbar.displayBase('body', 'publicationselector', _this.options.toolbar_actions, true, jQuery('#publication_list'));
+          _this.list_toolbar.toolbar.stop(true, true);
+          _this.list_toolbar.toolbar.css({
+            'z-index': _this.options.default_css['z-index'] + 1
+          });
+          _this.options.toolbar_actions['Filter'](null, null, null, _this.list_toolbar.action_context);
+          return window.setTimeout(function() {
+            _this.list_toolbar.action_context.find('#filter_input').focus();
+            return _this.list_toolbar.action_context.css({
+              'padding-top': '2em'
+            });
+          }, 500);
         });
-        this.list_toolbar.toggle();
         return jQuery(window).resize();
       },
       apply: function() {
@@ -5406,36 +5418,6 @@
       },
       _create: function() {
         return this;
-      },
-      _filter: function() {
-        var filter_input,
-          _this = this;
-        if (this.widget.find('#filter_input').length) {
-          this.widget.find('#filter_input').remove();
-          this.widget.find('ul').css({
-            'margin-top': 'auto'
-          });
-          return;
-        }
-        this.widget.append('<input type="text" id="filter_input"/>');
-        this.widget.find('ul').css({
-          'margin-top': '3em'
-        });
-        filter_input = this.widget.find('#filter_input');
-        return filter_input.bind('keyup', function(event) {
-          var rx;
-          filter_input.val();
-          rx = new RegExp('.*' + filter_input.val() + '.*');
-          return _this.widget.find('#publication_list li').each(function(index, item) {
-            var li;
-            li = jQuery(item);
-            if (li.text().match(rx)) {
-              return li.show();
-            } else {
-              return li.hide();
-            }
-          });
-        });
       }
     });
   })(jQuery);
