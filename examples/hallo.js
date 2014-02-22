@@ -4754,6 +4754,7 @@
           _this.overlay.remove();
           dom = new DOMNugget();
           dom.prepareTextForEdit(_this.editable_element);
+          dom.resetCitations(_this.editable_element);
           if (typeof MathJax === 'object') {
             MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
           }

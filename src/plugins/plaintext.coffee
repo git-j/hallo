@@ -100,6 +100,7 @@
         @overlay.remove()
         dom = new DOMNugget()
         dom.prepareTextForEdit(@editable_element)
+        dom.resetCitations(@editable_element)
         if ( typeof MathJax == 'object' )
           MathJax.Hub.Queue(['Typeset',MathJax.Hub])
         @options.editable.undoWaypointCommit()
