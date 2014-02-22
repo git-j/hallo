@@ -14,7 +14,7 @@
             buttonize = (label,cmd,cmd_fn) =>
                 button_label = label
                 if ( window.action_list && window.action_list['hallojs_' + cmd] != undefined )
-                  button_label =  window.action_list['hallojs_' + cmd].title
+                  button_label =  window.action_list['hallojs_' + cmd].title + ' ' + window.action_list['hallojs_' + cmd].tooltip
                 buttonElement = jQuery '<span></span>'
                 buttonElement.hallobutton
                   uuid: @options.uuid
@@ -34,6 +34,11 @@
                 event.preventDefault()
                 @_redo(jQuery(event.currentTarget))
 
+              if ( utils && utils.cur_language == 'de' )
+                # german redo
+                @options.editable.registerKey 'ctrl', 89, (event) =>
+                  event.preventDefault()
+                  @_redo(jQuery(event.currentTarget))
               buttonize "Undo", 'undo', () =>
                 @_undo(@options.editable.element)
               buttonize "Redo", 'redo', () =>

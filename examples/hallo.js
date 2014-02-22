@@ -1860,7 +1860,7 @@
           var buttonHolder, format_label;
           format_label = format;
           if (window.action_list && window.action_list['hallojs_' + format] !== void 0) {
-            format_label = window.action_list['hallojs_' + format].title;
+            format_label = window.action_list['hallojs_' + format].title + ' ' + window.action_list['hallojs_' + format].tooltip;
           }
           buttonHolder = jQuery('<span></span>');
           buttonHolder.hallobutton({
@@ -4936,7 +4936,7 @@
           var buttonElement, button_label;
           button_label = label;
           if (window.action_list && window.action_list['hallojs_' + cmd] !== void 0) {
-            button_label = window.action_list['hallojs_' + cmd].title;
+            button_label = window.action_list['hallojs_' + cmd].title + ' ' + window.action_list['hallojs_' + cmd].tooltip;
           }
           buttonElement = jQuery('<span></span>');
           buttonElement.hallobutton({
@@ -4960,6 +4960,12 @@
             event.preventDefault();
             return _this._redo(jQuery(event.currentTarget));
           });
+          if (utils && utils.cur_language === 'de') {
+            this.options.editable.registerKey('ctrl', 89, function(event) {
+              event.preventDefault();
+              return _this._redo(jQuery(event.currentTarget));
+            });
+          }
           buttonize("Undo", 'undo', function() {
             return _this._undo(_this.options.editable.element);
           });
