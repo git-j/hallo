@@ -934,10 +934,12 @@ http://hallojs.org
         window.clearTimeout(@autostore_timer)
       if @options.store_callback
         contents = @getContents()
-        contents_text = $('<div>' + contents + '</div>').text()
-        contents_text = contents_text.replace(/\n/g,' ');
-        if contents_text.trim() == '' || contents_text == @options.placeholder
-          @setContents ''
+        contents_dom = $('<div>' + contents + '</div>');
+        if ( !contents_dom.find('table, img').length )
+          contents_text = contents_dom.text()
+          contents_text = contents_text.replace(/\n/g,' ');
+          if contents_text.trim() == '' || contents_text == @options.placeholder
+            @setContents ''
         @options.store_callback(@getContents())
     _activated: (event) ->
       return if event.data._ignoreEvents
@@ -960,10 +962,12 @@ http://hallojs.org
       event.data.storeContentPosition(true)
       if event.data.options.store_callback
         contents = event.data.getContents()
-        contents_text = $('<div>' + contents + '</div>').text()
-        contents_text = contents_text.replace(/\n/g,' ');
-        if contents_text.trim() == '' || contents_text == event.data.options.placeholder
-          event.data.setContents ''
+        contents_dom = $('<div>' + contents + '</div>');
+        if ( !contents_dom.find('table, img').length )
+          contents_text = contents_dom.text()
+          contents_text = contents_text.replace(/\n/g,' ');
+          if contents_text.trim() == '' || contents_text == @options.placeholder
+            event.data.setContents ''
         event.data.options.store_callback(event.data.getContents())
 
       return if event.data._keepActivated # always store before unfocusing

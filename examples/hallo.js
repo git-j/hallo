@@ -1544,16 +1544,19 @@
         }
       },
       store: function() {
-        var contents, contents_text;
+        var contents, contents_dom, contents_text;
         if (this.autostore_timer) {
           window.clearTimeout(this.autostore_timer);
         }
         if (this.options.store_callback) {
           contents = this.getContents();
-          contents_text = $('<div>' + contents + '</div>').text();
-          contents_text = contents_text.replace(/\n/g, ' ');
-          if (contents_text.trim() === '' || contents_text === this.options.placeholder) {
-            this.setContents('');
+          contents_dom = $('<div>' + contents + '</div>');
+          if (!contents_dom.find('table, img').length) {
+            contents_text = contents_dom.text();
+            contents_text = contents_text.replace(/\n/g, ' ');
+            if (contents_text.trim() === '' || contents_text === this.options.placeholder) {
+              this.setContents('');
+            }
           }
           return this.options.store_callback(this.getContents());
         }
@@ -1577,7 +1580,7 @@
         return event.data.restoreContentPosition();
       },
       _deactivated: function(event) {
-        var contents, contents_text;
+        var contents, contents_dom, contents_text;
         if (this.debug) {
           console.log('hallo deactivated, set window.debug_hallotoolbar true to prevent');
         }
@@ -1594,10 +1597,13 @@
         event.data.storeContentPosition(true);
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
-          contents_text = $('<div>' + contents + '</div>').text();
-          contents_text = contents_text.replace(/\n/g, ' ');
-          if (contents_text.trim() === '' || contents_text === event.data.options.placeholder) {
-            event.data.setContents('');
+          contents_dom = $('<div>' + contents + '</div>');
+          if (!contents_dom.find('table, img').length) {
+            contents_text = contents_dom.text();
+            contents_text = contents_text.replace(/\n/g, ' ');
+            if (contents_text.trim() === '' || contents_text === this.options.placeholder) {
+              event.data.setContents('');
+            }
           }
           event.data.options.store_callback(event.data.getContents());
         }
