@@ -1601,7 +1601,7 @@
           if (!contents_dom.find('table, img').length) {
             contents_text = contents_dom.text();
             contents_text = contents_text.replace(/\n/g, ' ');
-            if (contents_text.trim() === '' || contents_text === this.options.placeholder) {
+            if (contents_text.trim() === '' || contents_text === event.data.options.placeholder) {
               event.data.setContents('');
             }
           }

@@ -966,7 +966,7 @@ http://hallojs.org
         if ( !contents_dom.find('table, img').length )
           contents_text = contents_dom.text()
           contents_text = contents_text.replace(/\n/g,' ');
-          if contents_text.trim() == '' || contents_text == @options.placeholder
+          if contents_text.trim() == '' || contents_text == event.data.options.placeholder
             event.data.setContents ''
         event.data.options.store_callback(event.data.getContents())
 
