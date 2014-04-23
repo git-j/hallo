@@ -185,7 +185,8 @@
 
 
     _createInput: (identifier, label, value) ->
-      input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
+      input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="<!--value-->"/></div>')
+      input.find('input').val(value);
       input.find('input').bind 'blur', (event) =>
         @_formChanged(event,@options)
       input

@@ -163,9 +163,10 @@
             jQuery(node).find('.citation_data_processed').html(endnotes).slideDown()
 
     _createInput: (identifier, label, value) ->
-      input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>')
+      input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="<!--user-data-->"/></div>')
       input.find('input').bind 'blur', (event) =>
         @_formChanged(event,@options)
+      input.find('input').val(value)
       input
     _formChanged: (event, options) ->
       target = jQuery(event.target)

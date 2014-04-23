@@ -148,12 +148,12 @@
       formula.html('')
       if ( @has_mathjax )
         if ( inline )
-          string = '<span id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right + '</span>'
+          string = '<span id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + @options.mathjax_inline_delim_right + '</span>'
           formula.replaceWith(string)
           formula = $('#' + @tmpid)
           formula.addClass('inline')
         else
-          string = '<div id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right + '</div>'
+          string = '<div id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + @options.mathjax_inline_delim_right + '</div>'
           formula.replaceWith(string);
           formula = $('#' + @tmpid);
         if @debug
@@ -173,7 +173,7 @@
       if ( @has_mathjax )
         @options.editable.element.find('.formula').each (index,formula_item) =>
           formula_node = jQuery(formula_item)
-          formula_node.html(@options.mathjax_inline_delim_left + decodeURIComponent(formula_node.attr('rel')) + @options.mathjax_inline_delim_right)
+          formula_node.html(@options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + @options.mathjax_inline_delim_right)
 
         MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
@@ -188,9 +188,9 @@
       latex_formula = $('#' + contentId + 'latex').val();
       inline = $('#' + contentId + 'inline').is(':checked');
       if ( inline )
-        preview.html(@options.mathjax_inline_delim_left + latex_formula + @options.mathjax_inline_delim_right)
+        preview.html(@options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + @options.mathjax_inline_delim_right)
       else
-        preview.html(@options.mathjax_delim_left + latex_formula + @options.mathjax_delim_right)
+        preview.html(@options.mathjax_delim_left + utils.sanitize(latex_formula) + @options.mathjax_delim_right)
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"

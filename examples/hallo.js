@@ -1991,7 +1991,8 @@
         if (element_text.length > 48) {
           element_text = element_text.substring(0, 48) + '...';
         }
-        el = jQuery("<button class=\"publication-selector\">" + element_text + "</button>");
+        el = jQuery("<button class=\"publication-selector\"></button>");
+        el.text(element_text);
         if (publication_type) {
           el.addClass(publication_type);
         }
@@ -2551,12 +2552,12 @@
         formula.html('');
         if (this.has_mathjax) {
           if (inline) {
-            string = '<span id="' + this.tmpid + '">' + this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right + '</span>';
+            string = '<span id="' + this.tmpid + '">' + this.options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_inline_delim_right + '</span>';
             formula.replaceWith(string);
             formula = $('#' + this.tmpid);
             formula.addClass('inline');
           } else {
-            string = '<div id="' + this.tmpid + '">' + this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right + '</div>';
+            string = '<div id="' + this.tmpid + '">' + this.options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_inline_delim_right + '</div>';
             formula.replaceWith(string);
             formula = $('#' + this.tmpid);
           }
@@ -2580,7 +2581,7 @@
           this.options.editable.element.find('.formula').each(function(index, formula_item) {
             var formula_node;
             formula_node = jQuery(formula_item);
-            return formula_node.html(_this.options.mathjax_inline_delim_left + decodeURIComponent(formula_node.attr('rel')) + _this.options.mathjax_inline_delim_right);
+            return formula_node.html(_this.options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + _this.options.mathjax_inline_delim_right);
           });
           return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
         }
@@ -2598,9 +2599,9 @@
         latex_formula = $('#' + contentId + 'latex').val();
         inline = $('#' + contentId + 'inline').is(':checked');
         if (inline) {
-          return preview.html(this.options.mathjax_inline_delim_left + latex_formula + this.options.mathjax_inline_delim_right);
+          return preview.html(this.options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_inline_delim_right);
         } else {
-          return preview.html(this.options.mathjax_delim_left + latex_formula + this.options.mathjax_delim_right);
+          return preview.html(this.options.mathjax_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_delim_right);
         }
       },
       _prepareDropdown: function(contentId) {
@@ -3599,14 +3600,14 @@
         ov_data += '<li class="style">' + utils.tr('citation in') + ' ' + _this.citation_data.style_name + '</li>';
         ov_data += '<li class="citation selectable">' + _this.citation_data.cite + '</li>';
         if (_this.citation_data.creates_footnote) {
-          ov_data += '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
+          ov_data += '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + utils.sanitize(_this.citation_data.footnote) + '</li>';
         }
         if (typeof _this.citation_data.note === 'string' && _this.citation_data.note !== '') {
-          _this.citation_data.note = _this.citation_data.note.replace(/\n/g, '<br/>');
+          _this.citation_data.note = utils.sanitize(_this.citation_data.note).replace(/\n/g, '<br/>');
           ov_data += '<li class="notes selectable">' + utils.tr('notes') + ': ' + _this.citation_data.note + '</li>';
         }
         if (typeof _this.citation_data.annote === 'string' && _this.citation_data.annote !== '') {
-          _this.citation_data.annote = _this.citation_data.annote.replace(/\n/g, '<br/>');
+          _this.citation_data.annote = utils.sanitize(_this.citation_data.annote).replace(/\n/g, '<br/>');
           ov_data += '<li class="extra selectable">' + utils.tr('author notes') + ': ' + _this.citation_data.annote + '</li>';
         }
         if (_this.citation_data.creates_bibliography) {
@@ -4092,14 +4093,16 @@
         var dp, fn_dp_show, fn_update_select, input, input_multiline, input_singleline, row,
           _this = this;
         label = jQuery('<label for="' + identifier + '">' + label + '</label>');
-        input_singleline = jQuery('<input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/>');
-        input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width">' + value + '</textarea>');
+        input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>');
+        input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width"><!--user-data--></textarea>');
         row = jQuery('<div></div>');
         row.append(label);
         if (identifier === 'abstract' || identifier === 'extra' || identifier === 'notes') {
           input = input_multiline;
+          input.text(value);
         } else {
           input = input_singleline;
+          input.val(value);
         }
         if (identifier === 'number_of_pages' || identifier === 'notes' || identifier === 'running_time' || identifier === 'code_volume' || identifier === 'code_pages' || identifier === 'code_sections') {
           label.addClass('persistent_sourcedescription_attribute');
@@ -4374,7 +4377,8 @@
       _createInput: function(identifier, label, value) {
         var input,
           _this = this;
-        input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>');
+        input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="<!--value-->"/></div>');
+        input.find('input').val(value);
         input.find('input').bind('blur', function(event) {
           return _this._formChanged(event, _this.options);
         });
@@ -5414,10 +5418,11 @@
       _createInput: function(identifier, label, value) {
         var input,
           _this = this;
-        input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="' + value + '"/></div>');
+        input = jQuery('<div><label for="' + identifier + '">' + label + '</label><input id="' + identifier + '" type="text" value="<!--user-data-->"/></div>');
         input.find('input').bind('blur', function(event) {
           return _this._formChanged(event, _this.options);
         });
+        input.find('input').val(value);
         return input;
       },
       _formChanged: function(event, options) {
@@ -6051,7 +6056,8 @@
         if (element_text.length > 40) {
           element_text = element_text.substr(0, 20) + '...' + element_text.substr(element_text.length - 20, 20);
         }
-        el = jQuery("<button class=\"version-selector\">" + element_text + "</button>");
+        el = jQuery("<button class=\"version-selector\"></button>");
+        el.text(element_text);
         if (version && this.options.current_version === version.variant_loid) {
           el.addClass("selected");
         }

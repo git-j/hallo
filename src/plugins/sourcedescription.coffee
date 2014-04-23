@@ -87,7 +87,8 @@
         element_text = element
       if ( element_text.length > 48 )
         element_text = element_text.substring(0,48) + '...'
-      el = jQuery "<button class=\"publication-selector\">#{element_text}</button>"
+      el = jQuery "<button class=\"publication-selector\"></button>"
+      el.text(element_text)
       el.addClass publication_type if publication_type
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data

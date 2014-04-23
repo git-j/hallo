@@ -78,12 +78,12 @@ class _Citehandler
       ov_data+= '<li class="style">' + utils.tr('citation in') + ' ' + @citation_data.style_name+ '</li>'
       ov_data+= '<li class="citation selectable">' + @citation_data.cite + '</li>'
       if ( @citation_data.creates_footnote )
-        ov_data+= '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + @citation_data.footnote + '</li>'
+        ov_data+= '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + utils.sanitize(@citation_data.footnote) + '</li>'
       if ( typeof @citation_data.note == 'string' && @citation_data.note != '' )
-        @citation_data.note = @citation_data.note.replace(/\n/g,'<br/>');
+        @citation_data.note = utils.sanitize(@citation_data.note).replace(/\n/g,'<br/>');
         ov_data+= '<li class="notes selectable">' + utils.tr('notes') + ': ' + @citation_data.note + '</li>'
       if ( typeof @citation_data.annote == 'string' && @citation_data.annote != '' )
-        @citation_data.annote = @citation_data.annote.replace(/\n/g,'<br/>');
+        @citation_data.annote = utils.sanitize(@citation_data.annote).replace(/\n/g,'<br/>');
         ov_data+= '<li class="extra selectable">' + utils.tr('author notes') + ': ' + @citation_data.annote + '</li>'
       if ( @citation_data.creates_bibliography )
         ov_data+= '<li class="bibliography selectable">' + utils.tr('endnotes') + ': ' +  @citation_data.bibliography + '</li>'

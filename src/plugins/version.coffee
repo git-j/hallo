@@ -76,7 +76,8 @@
           element_text =  window.action_list['hallojs_version_update_from_manage'].title
       if ( element_text.length > 40 )
         element_text = element_text.substr(0,20) + '...' + element_text.substr(element_text.length-20,20)
-      el = jQuery "<button class=\"version-selector\">#{element_text}</button>"
+      el = jQuery "<button class=\"version-selector\"></button>"
+      el.text(element_text)
       el.addClass "selected" if version && @options.current_version == version.variant_loid
       el.addClass "version" if version
       this_editable = @options.editable

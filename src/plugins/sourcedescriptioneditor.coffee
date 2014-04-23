@@ -172,14 +172,16 @@
     _createInput: (identifier, label, value) ->
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
       label = jQuery('<label for="' + identifier + '">' + label + '</label>')
-      input_singleline = jQuery('<input id="' + identifier + '" type="text" value="' + value + '" class="max_width"/>')
-      input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width">' + value + '</textarea>')
+      input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>')
+      input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width"><!--user-data--></textarea>')
       row = jQuery('<div></div>')
       row.append(label)
       if ( identifier == 'abstract' || identifier == 'extra' || identifier == 'notes' )
         input = input_multiline
+        input.text(value)
       else
         input = input_singleline
+        input.val(value)
       if ( identifier == 'number_of_pages' || identifier == 'notes' || identifier == 'running_time' || identifier == 'code_volume' || identifier == 'code_pages' || identifier == 'code_sections' )
         label.addClass('persistent_sourcedescription_attribute')
       row.append(input)
