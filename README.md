@@ -152,3 +152,97 @@ A simplistic plugin would look like the following:
 
 )(jQuery)
 ```
+
+### About this fork
+
+This repository is used for a product widget. It is stuck on jQuery-1.6 (see https://github.com/git-j/hallo/commit/7fafd5f50b537c58497f7eb658c977d91667dea7) and introduces concepts that did not exist in the original (eg dropdownforms). The goal is to have a customizable editor for a Qt-Webkit based contenteditable with no consideration on how this would work in chrome/firefox or ie and any other environment than the specific widget.
+You may review the plugins and fork them for your use. When you like to build 'your own' product, it is more save to fork.
+
+The changes regarding the original code are
+- consistent indentation
+- introduction of dropdownforms (for images, tables and formula)
+- introduction of image-buttons (instead of fontawesome)
+- in-script undo management for undoing/redoing changes like $('img').addClass('highlight') that are not covered by the contenteditable commands and for undoing different contenteditables separately*
+- keyboard handling for some common strokes (ctrl+b) and the possibility to change and add more
+- magic for saving and restoring the current selection between multiple instances and during focus-stealing activities (eg like upload a image somehow)
+- citation display (requires propetary library) or to make it simpler non-editable popups on the editable. something similar existed with the IKS.annotation plugins*
+- character selection from unicode table with the smallest common character-base in win32/linux/macos
+- spellchecking using bjspell (discontinued)*
+- cleanup html plugin
+- sup/sub handling that is buggy in webkit (not accessible with queryCommandState)
+- plaintext editor that uses textarea or codewarrior
+- table plugin
+- version selection and creating plugin*
+
+* requires additional infrastructure not part of this project
+
+The additional infrastructure includes:
+
+### utils
+
+```
+window.utils = {
+  functions that wrap code like
+  sanitize: function(string){return string.replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+}
+```
+
+### translations
+
+translated actions and uiStrings that are loaded outside the hallo-context
+
+```
+window.action_list = {
+  'hallojs_undo': {title:'Undo',tooltip:'undoes something'}
+}
+```
+
+### class DOMNugget
+
+concept for encapsulating the access to nuggets (atomic information) that are structured like this:
+
+```
+<div class="nugget">
+  <div class="name"></div>
+  <div class="content"></div>
+  <div class="versions"></div>
+  <div class="sourcedescriptions"></div>
+</div>
+```
+DOMNugget cannot be publicly aquried and is NOT subject to MIT license yet
+
+### class ObjectModelConnector (window.omc)
+
+infrastructure to store data into a persistent storage system. Similar but not as powerful as Backbone models. Only useful in a [db - qt - hallojs] environment, needs reimplementation for client-server
+
+ObjectModelConnector cannot be publicly aquried and is NOT subject to MIT license yet
+
+### class ObjectContextConnector (window.occ)
+
+infrastructure to signal widget parents to switch or do stuff that is not widget related. Similar but not as powerful as Backbone router
+
+ObjectContextConnector cannot be publicly aquried and is NOT subject to MIT license yet
+
+### class SettingsModelConnector (window.omc_settings)
+
+infrastructure aquire application-wide settings
+
+SettingsModelConnector cannot be publicly aquried and is NOT subject to MIT license yet
+
+### class List
+
+ul-li based list implementation that can display data and provide actions for the list (eg sort/filter) and for each item (eg remove)
+
+List cannot be publicly aquried and is NOT subject to MIT license yet
+
+### project UndoManager
+
+qt-inspired undo handling in javascript.
+
+UndoManager can be aquired via https://github.com/git-j/undomanager
+
+### project Citeproc
+
+code that uses citeproc.js to process bibliographic information into html. handles aquirement and processing of bibliographic data as well as loading of CSL and locales
+
+List cannot be publicly aquried and is NOT subject to MIT license yet
