@@ -3,12 +3,20 @@
 #     this plugin may be freely distributed under the MIT license
 #     Plugin to minimalistic add a unicode character to the current editable
 #     requires: dropdownform
-#               selectBox
+#               selectBox (optional)
+#               undoable (optional)
+#               styling (see end of code for example)
+#               utils.tr (group)
+#               utils.tr_action_title, utils.tr_action_tooltip (Apply, Insert, Close)
+#     uses window._character_select_recent to store recently used characters
+#     uses window._character_select_range to store the selected character-range
 ((jQuery) ->
   jQuery.widget 'IKS.hallocharacterselect',
     dropdownform: null
     tmpid: 0
+    _content_id: 0
     html: null
+    toolbar_target: null
     options:
       editable: null
       toolbar: null
@@ -16,58 +24,70 @@
       buttonCssClass: null
       select: true
       use_form: false
+      # number of characters to remember from previous selection
       max_recent: 8
-
+      # character that will be inserted when the toolbarbutton is clicked
+      # this changes once another character is selected
+      default_character: '&#64'
+    # create toolbar button
     populateToolbar: (toolbar) ->
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
-      contentId = "#{@options.uuid}-#{@widgetName}-data"
-      target = @_prepareDropdown contentId
+      @_content_id = "#{@options.uuid}-#{@widgetName}-data"
+      @toolbar_target = @_prepareDropdown()
       toolbar.append target
-      setup= =>
-        # return if !rangy.getSelection().rangeCount
-        @options.editable.undoWaypointCommit(true)
-        @options.editable.undoWaypointStart('characterselect')
-        jQuery(target).find('select').each (index,item) =>
-          jQuery(item).selectBox()
-        target.bind 'hide', =>
-          jQuery(target).find('select').each (index,item) =>
-            jQuery(item).selectBox('destroy')
-        @tmpid='mod_' + (new Date()).getTime()
-        selected_character = '&#64';
-        @cur_character = jQuery('<span id="' + @tmpid + '">' + selected_character + '</span>');
-        selection = rangy.getSelection()
-        if ( selection.rangeCount > 0 )
-          range = selection.getRangeAt(0)
-          #TODO: make sure this formatting is not stored
-          #@cur_character.css
-          #  'background-color':'blue'
-          #  'color':'white'
-          #  'font-size':'150%'
-          range.insertNode(@cur_character[0]);
-        else
-          @options.editable.append(@cur_character)
 
-        recalc = =>
-          @recalcHTML()
-          selectbox = $('#' + contentId + 'group')
-          if ( selectbox.length )
-            if ( window._character_select_range )
-              if ( typeof selectbox.selectBox == 'function' )
-                selectbox.selectBox('value',window._character_select_range)
-              else
-                selectbox.val(window._character_select_range) #
-            if ( typeof selectbox.selectBox == 'function')
-              @recalcRange selectbox.selectBox('value')
-            else
-              @recalcRange selectbox.val() #selectBox('value'))
-          @updateCharacterSelectRecent()
-        window.setTimeout recalc, 300
-        return true
       @dropdownform = @_prepareButton setup, target
       buttonset.append @dropdownform
       toolbar.append buttonset
 
-    updateCharacterSelectRecent: (contentId) ->
+    # setup the dropdownform when the toolbarbutton is  selected
+    _setup: ->
+      # return if !rangy.getSelection().rangeCount
+      # make the addition of characters undoable
+      if ( @options.editable.undoWaypointCommit == 'function' )
+        @options.editable.undoWaypointCommit(true)
+        @options.editable.undoWaypointStart('characterselect')
+      # make sure the selectbox plugin is initialized and destroyed correctly
+      if ( typeof selectbox.selectBox == 'function' )
+        jQuery(@toolbar_target).find('select').each (index,item) =>
+          jQuery(item).selectBox()
+        @toolbar_target.bind 'hide', =>
+          jQuery(@toolbar_target).find('select').each (index,item) =>
+            jQuery(item).selectBox('destroy')
+      # setup temporary id in editable and fill it with the option-character
+      @tmpid='mod_' + (new Date()).getTime()
+      selected_character = @options.default_character;
+      @cur_character = jQuery('<span id="' + @tmpid + '">' + selected_character + '</span>');
+      selection = rangy.getSelection()
+      if ( selection.rangeCount > 0 )
+        # place the character before the current selection / replace the current selection
+        range = selection.getRangeAt(0)
+        range.insertNode(@cur_character[0]);
+      else
+        # when no selection is available add the character to the end of the text
+        @options.editable.append(@cur_character)
+      window.setTimeout @_setup_recalc, 300
+      return true
+
+    # deferred recalct after setup, makes sure the dialog selectbox is correct
+    # and the range is correct
+    _setup_recalc: ->
+      @recalcHTML()
+      selectbox = $('#' + @content_id + 'group')
+      if ( selectbox.length )
+        if ( window._character_select_range )
+          if ( typeof selectbox.selectBox == 'function' )
+            selectbox.selectBox('value',window._character_select_range)
+          else
+            selectbox.val(window._character_select_range) #
+        if ( typeof selectbox.selectBox == 'function')
+          @recalcRange selectbox.selectBox('value')
+        else
+          @recalcRange selectbox.val() #selectBox('value'))
+      @updateCharacterSelectRecent()
+
+    # updates the recent character list
+    updateCharacterSelectRecent: () ->
       form = $('#' + @_content_id);
       recent = form.find('.character_recent');
       recent.html('')
@@ -78,7 +98,8 @@
             recent.append('<span class="character" rel="' + pos + '">&#' + pos + ';</span>')
       @updateCharacterButtons()
 
-    updateCharacterSelect: (contentId) ->
+    # displays a choice of characters in the currently selected range
+    updateCharacterSelect: () ->
       form = $('#' + @_content_id);
       characters = form.find('.characters');
       characters.html('')
@@ -91,63 +112,45 @@
         column = column + 1
       @updateCharacterButtons()
 
-    updateCharacterButtons: (contentId) ->
+    # bind the current displayed characters to behave like buttons
+    updateCharacterButtons: () ->
       form = $('#' + @_content_id);
       characters = form.find('.characters');
       if ( typeof @selected_range_start == 'undefined' )
         @selected_range_start = 64;
       selected_character = '&#' + @selected_range_start + ';'
       all_chars = form.find('.character')
-      # in nugget_edit.less
-      #all_chars.css
-      #  'width':'32px'
-      #  'height':'32px'
-      #  'line-height': '32px'
-      #  'border':'1px solid black'
-      #  'display':'inline-block'
-      #  'text-align':'center'
-      #  'cursor':'pointer'
-      #  '-webkit-user-select': 'none'
-      #characters.css
-      #  'overflow-y':'auto'
-      #  'overflow-x':'hidden'
-      #  'padding-right': '20px'
-      #  'max-height':'192px' # 32x6rows
-      #  'margin-left':'-1px'
-      #  #margin-left is a HACK for opening the dropdownform the second time
+
       all_chars.unbind 'click'
       all_chars.unbind 'dblclick'
       all_chars.unbind 'mouseover'
       all_chars.unbind 'mouseout'
       all_chars.bind 'click', (event) =>
-        character = $('#' + @tmpid)
-        target = $(event.target).closest('span')
-        @selected_character_index = target.attr('rel')
-        character.html('&#' + @selected_character_index + ';') 
-        all_chars.removeClass('selected')
-        target.addClass('selected')
-        @html = character[0].outerHTML
-        @options.editable.store()
+        @_selectedAction()
       all_chars.bind 'dblclick', (event) =>
         @_insertAction()
       all_chars.bind 'mouseover', (event) =>
-        target = $(event.target).closest('span')
         $('#' + @_content_id).find('.character_preview').html(target.html())
       all_chars.bind 'mouseout', (event) =>
-        target = $(event.target).closest('span')
         $('#' + @_content_id).find('.character_preview').html('')
 
-    updateCharacterHTML: (contentId) ->
+    # update the editable content span with the currently selected character
+    _updateCharacterHTML: () ->
       character = $('#' + @tmpid)
       if ( typeof @selected_character_index == 'undefined' )
         @selected_character_index = 64;
       selected_character = '&#' + @selected_character_index + ';'
       character.html(selected_character)
-      return character[0].outerHTML #?
+      return character[0].outerHTML
 
+    # update the editable content span with the currently selected character
+    # and trigger store on the editable
     recalcHTML: () ->
-      @html = @updateCharacterHTML(@_content_id)
+      @html = @_updateCharacterHTML()
       @options.editable.store()
+
+    # recalc the current range of characters based on a int-int pattern that
+    # is aquried from the selectbox
     recalcRange: (char_range) ->
       char_range_elements = char_range.split(/-/)
       range_start = parseInt(char_range_elements[0],16)
@@ -160,70 +163,55 @@
       @updateCharacterSelect()
       @recalcHTML()
 
+    # recalc the range after selection
+    _recalc_select: () ->
+      if ( typeof selectbox.selectBox == 'function')
+        char_range = selectbox.selectBox('value')
+      else
+        char_range = selectbox.val() #selectBox('value')
+      window._character_select_range = char_range
+      @recalcRange(char_range)
 
+    # create a selectbox and return it
+    _addSelect: (element,elements) ->
+      elid='#' + @_content_id + element
+      el = jQuery '<li><label for"' + elid + '">' + utils.tr(element) + '</label><select id="' + elid + '"/></li>'
+      selectbox = el.find('#' + elid)
+      jQuery.each elements,(label,value) =>
+        selectbox.append('<option value="' + value + '">' + label + '</option>')
 
-    _prepareDropdown: (contentId) ->
-      contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
+      selectbox.bind('keyup change',_recalc_select)
+      # selectbox.selectBox()
+      el
+
+    # create a button and return it
+    _addButton: (element,event_handler) ->
+      el = jQuery '<li><button class="action_button" id="' + @tmpid + element + '" title="' + utils.tr_action_tooltip(element) + '">' + utils.tr_action_title(element) + '</button></li>'
+
+      #unless containingElement is 'div'
+      #  el.addClass 'disabled'
+
+      el.find('button').bind 'click', event_handler
+      el
+
+    # setup the dropdownform
+    _prepareDropdown: () ->
+      contentArea = jQuery '<div id="' + @_content_id + '"><ul></ul></div>'
       contentAreaUL = contentArea.find('ul')
-      @_content_id = contentId
-
-
-      addSelect = (element,elements) =>
-        elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><select id=\"#{elid}\"/></li>"
-        selectbox = el.find('#' + elid)
-        jQuery.each elements,(label,value) =>
-          selectbox.append('<option value="' + value + '">' + label + '</option>')
-        recalc= =>
-          if ( typeof selectbox.selectBox == 'function')
-            char_range = selectbox.selectBox('value')
-          else
-            char_range = selectbox.val() #selectBox('value')
-          window._character_select_range = char_range
-          @recalcRange(char_range)
-        selectbox.bind('keyup change',recalc)
-        # selectbox.selectBox()
-        el
-
-      addButton = (element,event_handler) =>
-        el = jQuery "<li><button class=\"action_button\" id=\"" + @tmpid+element + "\" title=\"" + utils.tr_action_tooltip(element) + "\">" + utils.tr_action_title(element) + "</button></li>"
-
-        #unless containingElement is 'div'
-        #  el.addClass 'disabled'
-
-        el.find('button').bind 'click', event_handler
-        el
-
       if ( @options.select )
-        @select = contentAreaUL.append addSelect("group", @_blockNames())
+        @select = contentAreaUL.append @_addSelect("group", @_blockNames())
       contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>')
-      # nuggetedit.less
-      #contentAreaUL.find('.character_preview').css
-      #  'width':'64px'
-      #  'height':'64px'
-      #  'line-height':'64px'
-      #  'font-size':'400%'
-      #  'vertical-align':'middle'
-      #  'text-align':'center'
-      #  #'border':'1px solid black'
-      #  'float':'left'
-      #contentAreaUL.find('.character_recent').css
-      #  'height':'32px'
-      #  'line-height':'32px'
-      #  'font-size':'200%'
-      #  'vertical-align':'middle'
-      #  'text-align':'center'
-      #  #'border':'1px solid black'
       
-      this_editable = @options.editable
-      contentAreaUL.append addButton "Apply", =>
+      contentAreaUL.append @_addButton "Apply", =>
         @_applyAction()
-      contentAreaUL.append addButton "Insert", =>
+      contentAreaUL.append @_addButton "Insert", =>
         @_insertAction()
-      contentAreaUL.append addButton "Close", =>
+      contentAreaUL.append @_addButton "Close", =>
         @_cancelAction()
-
       contentArea
+
+    # close-commit the dropdownform storing the current character in the history
+    # removes the wrapping around the current character
     _applyAction: () ->
       @recalcHTML()
       character = jQuery('#' + @tmpid)
@@ -233,6 +221,21 @@
       @options.editable.undoWaypointCommit()
       @dropdownform.hallodropdownform('hideForm')
 
+    # character selected action
+    # update the current editable html with the selected character and
+    # display a larger version of the character
+    _selectedAction: () ->
+      character = $('#' + @tmpid)
+      target = $(event.target).closest('span')
+      @selected_character_index = target.attr('rel')
+      character.html('&#' + @selected_character_index + ';')
+      all_chars.removeClass('selected')
+      target.addClass('selected')
+      @html = character[0].outerHTML
+      @options.editable.store()
+
+    # commit the current selected character and insert another
+    # character that may be committed or canceled
     _insertAction: () ->
       @recalcHTML()
       character = $('#' + @tmpid)
@@ -241,14 +244,16 @@
       character_content.insertBefore(character)
       @options.editable.undoWaypointCommit()
       @_addRecent(character.html())
-      character.html('&#64;')
+      character.html(@options.default_character)
 
+    # cancel the insertion of characters and remove the current preview from the editable
     _cancelAction: () ->
       $('#' + @tmpid).remove()
       if ( typeof @select.selectBox == 'function' )
         @select.selectBox('destroy')
       @dropdownform.hallodropdownform('hideForm')
 
+    # prepare the toolbar button
     _prepareButton: (setup, target) ->
       buttonElement = jQuery '<span></span>'
       button_label = 'characterselect'
@@ -264,6 +269,11 @@
         setup: setup
         cssClass: @options.buttonCssClass
       buttonElement
+
+    # add the given charcode to the character history
+    # do not add the character when it is already in the history
+    # when adding the charcode would exceed the max_recent count
+    # remove the oldest character from the recent-list
     _addRecent: (charcode) ->
       if ( ! $.isArray(window._character_select_recent) )
         window._character_select_recent = []
@@ -277,6 +287,9 @@
         window._character_select_recent.unshift(charcode)
       @updateCharacterSelectRecent()
 
+    # block-map for unicode range names
+    # certain range names were removed to display cross-platform characters
+    # in qt-webkit on linux/macos/win32
     _blockNames: () ->
       blocks =
         'Basic Latin': '0000-007F'
@@ -502,3 +515,59 @@
       blocks
 
 )(jQuery)
+
+# example less for styling
+# .dropdown-form-characterselect{
+#   .selectBox{
+#     width: 200px !important;
+#     selectBox-label{
+#       width: 160px !important;
+#     }
+#   }
+#   .characters{
+#     overflow-y: auto;
+#     overflow-x: hidden;
+#     padding-right: 20px;
+#     max-height: 192px;
+#     margin-left: -1px;
+#   }
+#   .character{
+#     .bordered;
+#     background-color: @editbackground;
+#     width : 32px;
+#     height : 32px;
+#     line-height : 32px;
+#     //border :  1px solid bordercolor;
+#     display : inline-block;
+#     text-align :  center;
+#     cursor :  pointer;
+#     -webkit-user-select : none;
+#     &:hover{
+#       .base_hover;
+#     }
+#     &.selected{
+#       .base_active;
+#     }
+#   }
+#   .character_preview{
+#     .bordered;
+#     width: 64px;
+#     height: 64px;
+#     line-height: 64px;
+#     font-size: 400%;
+#     vertical-align: middle;
+#     text-align: center;
+#     float: left;
+#     background-color: @editbackground;
+#     margin: 2px;
+#   }
+#   .character_recent{
+#     height: 32px;
+#     line-height: 32px;
+#     font-size: 200%;
+#     vertical-align: middle;
+#     text-align: center;
+#     padding-top: 4px;
+#     //background-color: @editbackground;
+#   }
+# }
