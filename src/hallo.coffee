@@ -1097,11 +1097,9 @@ http://hallojs.org
         classname = ''
       id = target.attr('id')
       pelement = target.parent()
-      while ( typeof id == 'undefined' && pelement )
+      while ( typeof id == 'undefined' && pelement && pelement.length )
         id = pelement.attr('id')
         pelement = pelement.parent()
-        if ( !pelement )
-          id = 'unknown'
       if ( typeof id == 'undefined' )
         id = 'unknown'
       # console.log('wpid',classname,id)
