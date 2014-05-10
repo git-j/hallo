@@ -574,6 +574,7 @@ http://hallojs.org
           #console.log(type,pdata)
           return if ( type.indexOf('text/') != 0 )
           return if ( type == 'text/plain' && pdata != '')
+          return if ( type != 'text/plain' && type != 'text/html')
           pdata = event.originalEvent.clipboardData.getData(type)
       #console.log(pdata)
       if (pdata == '' )
