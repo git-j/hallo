@@ -3,14 +3,28 @@
 #     Hallo may be freely distributed under the MIT license
 # citehandler
 # common functions for citation/publication/sourcedescription handling
+# this is a singleton class that needs to be initialized outside of hallo and does
+# heavy usage of non-hallo infrastructure
+# creates a tooltip when hovering a '.cite' span that displays more information about the cite
+# this functions require to work even if hallo is not enabled
+# uses citeproc-js to produce a full-bibliography and adds buttons for edit/remove
+#     requires: DOMNugget
+#               SettingsModelConnector (omc_settings)
+#               hallotipoverlay (tipoverlay.coffee)
+#               ObjectContextConnector (GotoObject)
+#               utils.correctAndOpenFilepath
+#               wke.openUrlInBrowser
+#     uses ??? to s????
 root = exports ? this
 
+# singleton interface
 class root.citehandler
   _instance = undefined # Must be declared here to force the closure on the class
   window.citehandler = @ # export for initialisation in edit*
   @get: (args) -> # Must be a static method
     _instance ?= new _Citehandler args
 
+# private class
 class _Citehandler
   tips: null
   editable: null
@@ -25,6 +39,7 @@ class _Citehandler
       'tip_id': @overlay_id
       'data_cb': jQuery.proxy(@_makeTip,@)
     )
+  # remove all editable sourcedescription and recreate them with the current data
   setupSourceDescriptions: (target, editable, add_element_cb) ->
     # debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
@@ -35,11 +50,14 @@ class _Citehandler
         # debug.log('setup sourcedescriptions...',index,item)
         target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
 
+  # update settings from the current application settings
+  # usualy the relevant change may be the citation-style
   _updateSettings: ->
     if ( omc_settings )
       omc_settings.getSettings().done (current_settings) =>
         @settings = current_settings
 
+  # update the data that is used for the given element (editable.closest('.nugget'))
   _updateCitationDisplay: (element) -> #element: jq-dom-node
     #debug.log('update citation')
     @footnote = ''
@@ -50,6 +68,10 @@ class _Citehandler
     #TODO update publication_type from sourcedescription
     return domnugget.getSourceDescriptionData(element)
 
+  # with multiple editables, the given element (usualy triggered by mouseover)
+  # must find its parent editable in order to perform correctly
+  # updates the @editable accordingly and falls back to finding the @editable
+  # when hallo was never initialized
   _sync_editable: (element, change_focus) ->
     @editable = window.hallo_current_instance.editable
     tip_nugget = element.closest('.nugget');
@@ -67,6 +89,8 @@ class _Citehandler
         @editable.element.focus()
       @editable.nugget_only = true
 
+  # create the HTML for the hallotip by evaluating the nugget sourcedescription, the citation data
+  # and creating bibliographies
   _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings()
     ov_data = ''
