@@ -793,6 +793,19 @@ http://hallojs.org
       widget = event.data
       return if widget._ignoreKeys(event.keyCode)
       return if widget.checkRegisteredKeys(event)
+      if event.keyCode == 13 && !event.shiftKey
+        selection = rangy.getSelection()
+        return if selection.rangeCount == 0
+        range = selection.getRangeAt(0)
+        if ( $(range.startContainer).parent().hasClass('inEditMode') )
+          # first elem hack - maybe specific to qt-webkit: ctrl+a clear,reload (placeholder) ctrl+a, abc, return
+          # do not wrap with p when name || title (singleline)
+          if ( widget.element.contents()[0] && widget.element.contents()[0].nodeType == 3 && !widget.element.hasClass('name') && !widget.element.hasClass('title') )
+            $(widget.element.contents()[0]).replaceWith('<p>' + $(widget.element.contents()[0]).text() + '</p>')
+            new_range = rangy.createRange()
+            new_range.selectNodeContents(widget.element.contents()[0])
+            new_range.collapse(false) # to end
+            selection.addRange(new_range)
       if event.keyCode == 9 && !event.shiftKey  #tab
         selection = rangy.getSelection()
         return if selection.rangeCount == 0
