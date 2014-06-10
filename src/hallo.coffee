@@ -949,7 +949,7 @@ http://hallojs.org
       if @options.store_callback
         contents = @getContents()
         contents_dom = $('<div>' + contents + '</div>');
-        if ( !contents_dom.find('table, img').length )
+        if ( !contents_dom.find('table, img, .formula').length )
           contents_text = contents_dom.text()
           contents_text = contents_text.replace(/\n/g,' ');
           if contents_text.trim() == '' || contents_text == @options.placeholder

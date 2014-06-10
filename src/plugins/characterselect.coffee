@@ -34,9 +34,9 @@
       buttonset = jQuery "<span class=\"#{@widgetName}\"></span>"
       @_content_id = "#{@options.uuid}-#{@widgetName}-data"
       @toolbar_target = @_prepareDropdown()
-      toolbar.append target
+      toolbar.append @toolbar_target
 
-      @dropdownform = @_prepareButton setup, target
+      @dropdownform = @_prepareButton @_setup, @toolbar_target
       buttonset.append @dropdownform
       toolbar.append buttonset
 
@@ -130,7 +130,7 @@
       all_chars.bind 'dblclick', (event) =>
         @_insertAction()
       all_chars.bind 'mouseover', (event) =>
-        $('#' + @_content_id).find('.character_preview').html(target.html())
+        $('#' + @_content_id).find('.character_preview').html(@toolbar_target.html())
       all_chars.bind 'mouseout', (event) =>
         $('#' + @_content_id).find('.character_preview').html('')
 
@@ -180,7 +180,7 @@
       jQuery.each elements,(label,value) =>
         selectbox.append('<option value="' + value + '">' + label + '</option>')
 
-      selectbox.bind('keyup change',_recalc_select)
+      selectbox.bind('keyup change',@_recalc_select)
       # selectbox.selectBox()
       el
 
