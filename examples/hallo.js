@@ -150,7 +150,6 @@
           this.button = this._prepareButton();
         }
         this.button.bind('click', function() {
-          jQuery('.misspelled').remove();
           if (target.hasClass('open')) {
             _this._hideTarget();
             return;
@@ -196,6 +195,7 @@
             return;
           }
           target = toolbar.find('.dropdown-form-' + _this.options.command);
+          window.live_target = event.target;
           return target.trigger('bindShowTrigger');
         });
       },
@@ -242,6 +242,7 @@
         if (target.hasClass('open')) {
           target.removeClass('open');
           jQuery("select", target).selectBox('destroy');
+          target.trigger('hide');
           target.hide();
           return this.options.editable.restoreContentPosition();
         }
@@ -823,7 +824,7 @@
             jQuery('[contenteditable=false]').live("click", function(event) {
               var target;
               target = jQuery(event.target);
-              if (target.closest('[contenteditable=true]').length === 0) {
+              if (target.closest('[contenteditable=true]').length === 0 || _this.element.find(target).length === 0) {
                 return;
               }
               return _this.setContentPosition(target);
@@ -1227,6 +1228,9 @@
             if (type === 'text/plain' && pdata !== '') {
               return;
             }
+            if (type !== 'text/plain' && type !== 'text/html') {
+              return;
+            }
             return pdata = event.originalEvent.clipboardData.getData(type);
           });
         }
@@ -1352,7 +1356,7 @@
         return selection.setSingleRange(range);
       },
       _syskeys: function(event) {
-        var li, range, selection, table, td, tds, use_next, use_prev, widget,
+        var li, new_range, range, selection, table, td, tds, use_next, use_prev, widget,
           _this = this;
         widget = event.data;
         if (widget._ignoreKeys(event.keyCode)) {
@@ -1360,6 +1364,22 @@
         }
         if (widget.checkRegisteredKeys(event)) {
           return;
+        }
+        if (event.keyCode === 13 && !event.shiftKey) {
+          selection = rangy.getSelection();
+          if (selection.rangeCount === 0) {
+            return;
+          }
+          range = selection.getRangeAt(0);
+          if ($(range.startContainer).parent().hasClass('inEditMode')) {
+            if (widget.element.contents()[0] && widget.element.contents()[0].nodeType === 3 && !widget.element.hasClass('name') && !widget.element.hasClass('title')) {
+              $(widget.element.contents()[0]).replaceWith('<p>' + $(widget.element.contents()[0]).text() + '</p>');
+              new_range = rangy.createRange();
+              new_range.selectNodeContents(widget.element.contents()[0]);
+              new_range.collapse(false);
+              selection.addRange(new_range);
+            }
+          }
         }
         if (event.keyCode === 9 && !event.shiftKey) {
           selection = rangy.getSelection();
@@ -1551,7 +1571,7 @@
         if (this.options.store_callback) {
           contents = this.getContents();
           contents_dom = $('<div>' + contents + '</div>');
-          if (!contents_dom.find('table, img').length) {
+          if (!contents_dom.find('table, img, .formula').length) {
             contents_text = contents_dom.text();
             contents_text = contents_text.replace(/\n/g, ' ');
             if (contents_text.trim() === '' || contents_text === this.options.placeholder) {
@@ -1598,7 +1618,7 @@
         if (event.data.options.store_callback) {
           contents = event.data.getContents();
           contents_dom = $('<div>' + contents + '</div>');
-          if (!contents_dom.find('table, img').length) {
+          if (!contents_dom.find('table, img, .formula').length) {
             contents_text = contents_dom.text();
             contents_text = contents_text.replace(/\n/g, ' ');
             if (contents_text.trim() === '' || contents_text === event.data.options.placeholder) {
@@ -1761,12 +1781,9 @@
         }
         id = target.attr('id');
         pelement = target.parent();
-        while (typeof id === 'undefined' && pelement) {
+        while (typeof id === 'undefined' && pelement && pelement.length) {
           id = pelement.attr('id');
           pelement = pelement.parent();
-          if (!pelement) {
-            id = 'unknown';
-          }
         }
         if (typeof id === 'undefined') {
           id = 'unknown';
@@ -3109,7 +3126,9 @@
     return jQuery.widget('IKS.hallocharacterselect', {
       dropdownform: null,
       tmpid: 0,
+      _content_id: 0,
       html: null,
+      toolbar_target: null,
       options: {
         editable: null,
         toolbar: null,
@@ -3117,65 +3136,70 @@
         buttonCssClass: null,
         select: true,
         use_form: false,
-        max_recent: 8
+        max_recent: 8,
+        default_character: '&#64'
       },
       populateToolbar: function(toolbar) {
-        var buttonset, contentId, setup, target,
-          _this = this;
+        var buttonset;
         buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
-        contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
-        target = this._prepareDropdown(contentId);
-        toolbar.append(target);
-        setup = function() {
-          var range, recalc, selected_character, selection;
-          _this.options.editable.undoWaypointCommit(true);
-          _this.options.editable.undoWaypointStart('characterselect');
-          jQuery(target).find('select').each(function(index, item) {
-            return jQuery(item).selectBox();
-          });
-          target.bind('hide', function() {
-            return jQuery(target).find('select').each(function(index, item) {
-              return jQuery(item).selectBox('destroy');
-            });
-          });
-          _this.tmpid = 'mod_' + (new Date()).getTime();
-          selected_character = '&#64';
-          _this.cur_character = jQuery('<span id="' + _this.tmpid + '">' + selected_character + '</span>');
-          selection = rangy.getSelection();
-          if (selection.rangeCount > 0) {
-            range = selection.getRangeAt(0);
-            range.insertNode(_this.cur_character[0]);
-          } else {
-            _this.options.editable.append(_this.cur_character);
-          }
-          recalc = function() {
-            var selectbox;
-            _this.recalcHTML();
-            selectbox = $('#' + contentId + 'group');
-            if (selectbox.length) {
-              if (window._character_select_range) {
-                if (typeof selectbox.selectBox === 'function') {
-                  selectbox.selectBox('value', window._character_select_range);
-                } else {
-                  selectbox.val(window._character_select_range);
-                }
-              }
-              if (typeof selectbox.selectBox === 'function') {
-                _this.recalcRange(selectbox.selectBox('value'));
-              } else {
-                _this.recalcRange(selectbox.val());
-              }
-            }
-            return _this.updateCharacterSelectRecent();
-          };
-          window.setTimeout(recalc, 300);
-          return true;
-        };
-        this.dropdownform = this._prepareButton(setup, target);
+        this._content_id = "" + this.options.uuid + "-" + this.widgetName + "-data";
+        this.toolbar_target = this._prepareDropdown();
+        toolbar.append(this.toolbar_target);
+        this.dropdownform = this._prepareButton(this._setup, this.toolbar_target);
         buttonset.append(this.dropdownform);
         return toolbar.append(buttonset);
       },
-      updateCharacterSelectRecent: function(contentId) {
+      _setup: function() {
+        var range, selected_character, selection,
+          _this = this;
+        if (this.options.editable.undoWaypointCommit === 'function') {
+          this.options.editable.undoWaypointCommit(true);
+          this.options.editable.undoWaypointStart('characterselect');
+        }
+        if (typeof selectbox.selectBox === 'function') {
+          jQuery(this.toolbar_target).find('select').each(function(index, item) {
+            return jQuery(item).selectBox();
+          });
+          this.toolbar_target.bind('hide', function() {
+            return jQuery(_this.toolbar_target).find('select').each(function(index, item) {
+              return jQuery(item).selectBox('destroy');
+            });
+          });
+        }
+        this.tmpid = 'mod_' + (new Date()).getTime();
+        selected_character = this.options.default_character;
+        this.cur_character = jQuery('<span id="' + this.tmpid + '">' + selected_character + '</span>');
+        selection = rangy.getSelection();
+        if (selection.rangeCount > 0) {
+          range = selection.getRangeAt(0);
+          range.insertNode(this.cur_character[0]);
+        } else {
+          this.options.editable.append(this.cur_character);
+        }
+        window.setTimeout(this._setup_recalc, 300);
+        return true;
+      },
+      _setup_recalc: function() {
+        var selectbox;
+        this.recalcHTML();
+        selectbox = $('#' + this.content_id + 'group');
+        if (selectbox.length) {
+          if (window._character_select_range) {
+            if (typeof selectbox.selectBox === 'function') {
+              selectbox.selectBox('value', window._character_select_range);
+            } else {
+              selectbox.val(window._character_select_range);
+            }
+          }
+          if (typeof selectbox.selectBox === 'function') {
+            this.recalcRange(selectbox.selectBox('value'));
+          } else {
+            this.recalcRange(selectbox.val());
+          }
+        }
+        return this.updateCharacterSelectRecent();
+      },
+      updateCharacterSelectRecent: function() {
         var form, recent,
           _this = this;
         form = $('#' + this._content_id);
@@ -3192,7 +3216,7 @@
         }
         return this.updateCharacterButtons();
       },
-      updateCharacterSelect: function(contentId) {
+      updateCharacterSelect: function() {
         var characters, column, form, pos, _i, _ref, _ref1;
         form = $('#' + this._content_id);
         characters = form.find('.characters');
@@ -3207,7 +3231,7 @@
         }
         return this.updateCharacterButtons();
       },
-      updateCharacterButtons: function(contentId) {
+      updateCharacterButtons: function() {
         var all_chars, characters, form, selected_character,
           _this = this;
         form = $('#' + this._content_id);
@@ -3222,31 +3246,19 @@
         all_chars.unbind('mouseover');
         all_chars.unbind('mouseout');
         all_chars.bind('click', function(event) {
-          var character, target;
-          character = $('#' + _this.tmpid);
-          target = $(event.target).closest('span');
-          _this.selected_character_index = target.attr('rel');
-          character.html('&#' + _this.selected_character_index + ';');
-          all_chars.removeClass('selected');
-          target.addClass('selected');
-          _this.html = character[0].outerHTML;
-          return _this.options.editable.store();
+          return _this._selectedAction();
         });
         all_chars.bind('dblclick', function(event) {
           return _this._insertAction();
         });
         all_chars.bind('mouseover', function(event) {
-          var target;
-          target = $(event.target).closest('span');
-          return $('#' + _this._content_id).find('.character_preview').html(target.html());
+          return $('#' + _this._content_id).find('.character_preview').html(_this.toolbar_target.html());
         });
         return all_chars.bind('mouseout', function(event) {
-          var target;
-          target = $(event.target).closest('span');
           return $('#' + _this._content_id).find('.character_preview').html('');
         });
       },
-      updateCharacterHTML: function(contentId) {
+      _updateCharacterHTML: function() {
         var character, selected_character;
         character = $('#' + this.tmpid);
         if (typeof this.selected_character_index === 'undefined') {
@@ -3257,7 +3269,7 @@
         return character[0].outerHTML;
       },
       recalcHTML: function() {
-        this.html = this.updateCharacterHTML(this._content_id);
+        this.html = this._updateCharacterHTML();
         return this.options.editable.store();
       },
       recalcRange: function(char_range) {
@@ -3274,51 +3286,50 @@
         this.updateCharacterSelect();
         return this.recalcHTML();
       },
-      _prepareDropdown: function(contentId) {
-        var addButton, addSelect, contentArea, contentAreaUL, this_editable,
+      _recalc_select: function() {
+        var char_range;
+        if (typeof selectbox.selectBox === 'function') {
+          char_range = selectbox.selectBox('value');
+        } else {
+          char_range = selectbox.val();
+        }
+        window._character_select_range = char_range;
+        return this.recalcRange(char_range);
+      },
+      _addSelect: function(element, elements) {
+        var el, elid, selectbox,
           _this = this;
-        contentArea = jQuery("<div id=\"" + contentId + "\"><ul></ul></div>");
+        elid = '#' + this._content_id + element;
+        el = jQuery('<li><label for"' + elid + '">' + utils.tr(element) + '</label><select id="' + elid + '"/></li>');
+        selectbox = el.find('#' + elid);
+        jQuery.each(elements, function(label, value) {
+          return selectbox.append('<option value="' + value + '">' + label + '</option>');
+        });
+        selectbox.bind('keyup change', this._recalc_select);
+        return el;
+      },
+      _addButton: function(element, event_handler) {
+        var el;
+        el = jQuery('<li><button class="action_button" id="' + this.tmpid + element + '" title="' + utils.tr_action_tooltip(element) + '">' + utils.tr_action_title(element) + '</button></li>');
+        el.find('button').bind('click', event_handler);
+        return el;
+      },
+      _prepareDropdown: function() {
+        var contentArea, contentAreaUL,
+          _this = this;
+        contentArea = jQuery('<div id="' + this._content_id + '"><ul></ul></div>');
         contentAreaUL = contentArea.find('ul');
-        this._content_id = contentId;
-        addSelect = function(element, elements) {
-          var el, elid, recalc, selectbox;
-          elid = "" + contentId + element;
-          el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><select id=\"" + elid + "\"/></li>"));
-          selectbox = el.find('#' + elid);
-          jQuery.each(elements, function(label, value) {
-            return selectbox.append('<option value="' + value + '">' + label + '</option>');
-          });
-          recalc = function() {
-            var char_range;
-            if (typeof selectbox.selectBox === 'function') {
-              char_range = selectbox.selectBox('value');
-            } else {
-              char_range = selectbox.val();
-            }
-            window._character_select_range = char_range;
-            return _this.recalcRange(char_range);
-          };
-          selectbox.bind('keyup change', recalc);
-          return el;
-        };
-        addButton = function(element, event_handler) {
-          var el;
-          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.tmpid + element + "\" title=\"" + utils.tr_action_tooltip(element) + "\">" + utils.tr_action_title(element) + "</button></li>");
-          el.find('button').bind('click', event_handler);
-          return el;
-        };
         if (this.options.select) {
-          this.select = contentAreaUL.append(addSelect("group", this._blockNames()));
+          this.select = contentAreaUL.append(this._addSelect("group", this._blockNames()));
         }
         contentAreaUL.append('<li><div class="character_preview"></div><div class="character_recent"></div><div class="characters"></div></li>');
-        this_editable = this.options.editable;
-        contentAreaUL.append(addButton("Apply", function() {
+        contentAreaUL.append(this._addButton("Apply", function() {
           return _this._applyAction();
         }));
-        contentAreaUL.append(addButton("Insert", function() {
+        contentAreaUL.append(this._addButton("Insert", function() {
           return _this._insertAction();
         }));
-        contentAreaUL.append(addButton("Close", function() {
+        contentAreaUL.append(this._addButton("Close", function() {
           return _this._cancelAction();
         }));
         return contentArea;
@@ -3332,6 +3343,17 @@
         this.options.editable.undoWaypointCommit();
         return this.dropdownform.hallodropdownform('hideForm');
       },
+      _selectedAction: function() {
+        var character, target;
+        character = $('#' + this.tmpid);
+        target = $(event.target).closest('span');
+        this.selected_character_index = target.attr('rel');
+        character.html('&#' + this.selected_character_index + ';');
+        all_chars.removeClass('selected');
+        target.addClass('selected');
+        this.html = character[0].outerHTML;
+        return this.options.editable.store();
+      },
       _insertAction: function() {
         var character, character_content;
         this.recalcHTML();
@@ -3341,7 +3363,7 @@
         character_content.insertBefore(character);
         this.options.editable.undoWaypointCommit();
         this._addRecent(character.html());
-        return character.html('&#64;');
+        return character.html(this.options.default_character);
       },
       _cancelAction: function() {
         $('#' + this.tmpid).remove();
@@ -5009,7 +5031,7 @@
       spellcheck_timeout: 300,
       spellcheck_proxy: null,
       initialized: false,
-      debug: false,
+      debug: true,
       options: {
         editable: null,
         toolbar: null,
@@ -5023,148 +5045,26 @@
         });
       },
       enable: function() {
-        return;
-        if (!this.spellcheck_proxy) {
-          this.spellcheck_proxy = jQuery.proxy(this.checkSpelling, this);
+        try {
+          wke.spellcheckWord('refeus');
+          this.initialized = true;
+        } catch (_error) {
+          this.initialized = false;
         }
-        this.options.editable.element.unbind('keydown click', this.spellcheck_proxy);
-        this.options.editable.element.bind('keydown click', this.spellcheck_proxy);
-        this.initialized = true;
         if (this.debug) {
           console.log(this.initialized);
         }
       },
-      checkSpelling: function(event) {
-        var interval_checker,
-          _this = this;
-        if (this.debug) {
-          console.log(this.options.editable.element[0].spellcheck, window.spellcheck, event.keyCode);
-        }
-        if ((event.keyCode >= 33 && event.keyCode <= 40) || event.keyCode === 17 || event.keyCode === 18) {
-          return;
-        }
-        if (event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 46) {
-          jQuery('.misspelled').remove();
-        }
-        if (!window.spellcheck) {
-          return;
-        }
-        if (!this.options.editable.element[0].spellcheck) {
-          return;
-        }
-        if (this.spellcheck_interval) {
-          if (this.debug) {
-            console.log('reset interval');
-          }
-          window.clearTimeout(this.spellcheck_interval);
-        }
-        interval_checker = function() {
-          var check_node, clone, current_block, find_node, offset, over_css, range, underlay_id;
-          if (_this.debug) {
-            console.log('interval_checker');
-          }
-          over_css = _this.options.editable.element.getStyleObject();
-          if (_this.options.editable.element.find('pre').length > 0) {
-            return;
-          }
-          clone = _this.options.editable.element.clone();
-          offset = _this.options.editable.element.offset();
-          check_node = clone;
-          if ((rangy.getSelection().rangeCount)) {
-            range = rangy.getSelection().getRangeAt(0);
-            range.collapse();
-            find_node = function(node) {
-              var ret_node;
-              ret_node = null;
-              if (range.commonAncestorContainer.parentNode === node[0]) {
-                return node;
-              }
-              if (node[0].nodeType === 1) {
-                node.children().each(function(index, child_node) {
-                  ret_node = find_node($(child_node));
-                  if (ret_node && ret_node.length) {
-                    return false;
-                  }
-                });
-              }
-              return ret_node;
-            };
-            current_block = find_node(_this.options.editable.element);
-            if (current_block) {
-              check_node = current_block;
-              check_node.addClass('current_block');
-              clone = _this.options.editable.element.clone();
-              check_node.removeClass('current_block');
-              check_node = clone.find('.current_block');
-              if (!check_node.length) {
-                check_node = clone;
-              } else {
-                while (check_node[0] !== clone[0] && check_node.parent()[0] !== clone[0]) {
-                  check_node = check_node.parent();
-                }
-              }
-            }
-          }
-          _this.options.editable.element.parent().find('.misspelled').remove();
-          window.spellcheck.replaceDOM(check_node[0], function(word) {
-            return '<span class="misspelled">' + word + '</span>';
-          });
-          underlay_id = 'spellcheck_underlay';
-          clone = $('<div id="' + underlay_id + '">' + clone.html() + '</div>');
-          over_css['position'] = 'absolute';
-          over_css['z-index'] = '1000';
-          over_css['top'] = offset.top + "px";
-          over_css['left'] = offset.left + "px";
-          over_css['bottom'] = 0 + "px";
-          over_css['right'] = 0 + "px";
-          over_css['margin'] = '0';
-          _this.options.editable.element.css({
-            'position': 'relative'
-          });
-          clone.css(over_css);
-          clone.addClass('content');
-          clone.insertBefore(_this.options.editable.element);
-          clone.find('.misspelled').each(function(index, item) {
-            var node, node_css;
-            node = $(item);
-            offset = node.offset();
-            node_css = {};
-            node_css['position'] = 'absolute';
-            node_css['top'] = (offset.top + node.height() - 2) + 'px';
-            node_css['height'] = '2px';
-            node_css['left'] = offset.left + 'px';
-            node_css['padding'] = '0';
-            node_css['margin'] = '0';
-            node_css['color'] = 'transparent';
-            node_css['font-size'] = node.css('font-size');
-            node_css['line-height'] = node.css('line-height');
-            node_css['pointer-events'] = 'none';
-            return node.clone(true).insertAfter(_this.options.editable.element).css(node_css);
-          });
-          return clone.remove();
-        };
-        this.spellcheck_interval = setTimeout(interval_checker, this.spellcheck_timeout);
-        if (this.debug) {
-          return console.log(this.spellcheck_interval);
-        }
-      },
       execute: function() {
+        if (!this.initialized) {
+          return;
+        }
         if (debug) {
           console.log('toggle spellcheck');
         }
         this.options.editable.element[0].spellcheck = !this.options.editable.element[0].spellcheck;
         this.options.editable.element.blur();
-        this.options.editable.element.focus();
-        if (this.options.editable.element[0].spellcheck) {
-          if (debug) {
-            console.log('check spelling');
-          }
-          return this.checkSpelling({
-            'keycode': 0
-          });
-        } else {
-          return jQuery('.misspelled').remove();
-        }
+        return this.options.editable.element.focus();
       },
       setup: function() {
         if (debug) {
@@ -5496,6 +5396,7 @@
   (function(jQuery) {
     return jQuery.widget('IKS.halloimage', {
       dropdownform: null,
+      dropdownsubform: null,
       debug: true,
       tmpid: 0,
       selected_row: null,
@@ -5516,7 +5417,7 @@
         target = this._prepareDropdown(contentId);
         toolbar.append(target);
         setup = function(select_target, target_id) {
-          var align, alt, border, height, range, recalc, selection, title, url, width;
+          var range, recalc, selection;
           contentId = target_id;
           if (_this.debug) {
             console.log('setup image form', select_target, target_id);
@@ -5534,89 +5435,45 @@
             range.selectNode(_this.options.editable.element[0]);
             range.collapse();
           }
-          if (typeof select_target !== 'undefined') {
-            return;
-            _this.cur_image = $(select_target).find('img').eq(0);
-            if (!_this.cur_image.length) {
-              _this.cur_image = null;
-              _this.action = 'insert';
-            } else {
+          _this.cur_image = null;
+          _this.action = 'insert';
+          _this.options.editable.element.find('img').each(function(index, item) {
+            if (selection.containsNode(item, true)) {
+              _this.cur_image = jQuery(item);
+              _this.cur_image.attr('id', _this.tmpid);
+              _this.action = 'update';
+              return false;
+            }
+          });
+          if (_this.action === 'insert') {
+            if (window.live_target && jQuery(window.live_target).is('img') && jQuery(jQuery(window.live_target), _this.options.editable).length) {
+              _this.cur_image = jQuery(window.live_target);
+              window.live_target = null;
               _this.action = 'update';
             }
-          } else {
-            _this.cur_image = null;
-            _this.action = 'insert';
-            _this.options.editable.element.find('img').each(function(index, item) {
-              if (selection.containsNode(item, true)) {
-                _this.cur_image = jQuery(item);
-                _this.cur_image.attr('id', _this.tmpid);
-                _this.action = 'update';
-                return false;
-              }
-            });
           }
           if (_this.cur_image && _this.cur_image.length) {
-            url = _this.cur_image.attr('src');
-            alt = _this.cur_image.attr('alt');
-            title = _this.cur_image.attr('title');
-            width = _this.cur_image.attr('width');
-            height = _this.cur_image.attr('height');
-            if (!width || width === '') {
-              width = 'auto';
-            }
-            if (!height || height === '') {
-              height = 'auto';
-            }
-            align = _this.cur_image.attr('style');
-            if (align) {
-              align = align.replace(/.*align:([^;]*).*/, '$1');
-            }
-            if (!align || align === '') {
-              align = "center";
-            }
-            border = _this.cur_image.attr('border');
-            if (border) {
-              if (border !== "1") {
-                border = false;
-              }
-              if (border === "1") {
-                border = true;
-              }
-            } else {
-              border = false;
-            }
-            url = url.replace(/^file:\/\//, '');
-            url = url.replace(/^\/(.):/, '$1:');
-            url = wkej.instance.updateRefeusPath(url);
-            $('#' + contentId + 'url').val(url);
-            $('#' + contentId + 'alt').val(alt);
-            $('#' + contentId + 'title').val(title);
-            $('#' + contentId + 'width').val(width);
-            $('#' + contentId + 'height').val(height);
-            $('#' + contentId + 'align').val(align);
-            $('#' + contentId + 'border').attr('checked', border);
             _this.cur_image.attr('id', _this.tmpid);
           } else {
             _this.cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + _this.tmpid + '"/>');
             _this.options.editable.getSelectionStartNode(function(insert_position) {
               if (insert_position.length) {
+                if ((insert_position.closest('.image_container').length)) {
+                  insert_position = insert_position.closest('.image_container');
+                }
                 return _this.cur_image.insertBefore(insert_position);
               } else {
                 return _this.options.editable.append(_this.cur_image);
               }
             });
-            $('#' + contentId + 'url').val("");
-            $('#' + contentId + 'alt').val("");
-            $('#' + contentId + 'title').val("");
-            $('#' + contentId + 'width').val("auto");
-            $('#' + contentId + 'height').val("auto");
-            $('#' + contentId + 'align').val("center");
-            $('#' + contentId + 'border').attr('checked', false);
             _this.updateImageHTML(contentId);
           }
+          _this._setupForm();
           recalc = function() {
             return _this.recalcHTML(target.attr('id'));
           };
+          jQuery('#' + contentId).unbind('hide', jQuery.proxy(_this._destroyForm, _this));
+          jQuery('#' + contentId).bind('hide', jQuery.proxy(_this._destroyForm, _this));
           return true;
           return window.setTimeout(recalc, 300);
         };
@@ -5626,52 +5483,8 @@
         return toolbar.append(buttonset);
       },
       updateImageHTML: function(contentId) {
-        var align, alt, border, height, image, title, url, width;
+        var image;
         image = $('#' + this.tmpid);
-        url = $('#' + contentId + 'url').val();
-        alt = $('#' + contentId + 'alt').val();
-        title = $('#' + contentId + 'title').val();
-        width = $('#' + contentId + 'width').val();
-        height = $('#' + contentId + 'height').val();
-        align = $('#' + contentId + 'align').val();
-        border = $('#' + contentId + 'border').is(':checked');
-        if (width === '') {
-          width = "auto";
-        }
-        if (height === '') {
-          height = "auto";
-        }
-        if (align === '') {
-          align = "center";
-        }
-        if (url === '') {
-          url = '../styles/default/icons/types/PubArtwork.png';
-        } else {
-          url = wkej.instance.updateLocalPath(url);
-          if (url.indexOf(':') === 1) {
-            url = '/' + url;
-          }
-          url = 'file://' + url;
-        }
-        image.attr('src', url);
-        image.attr('alt', alt);
-        image.attr('title', title);
-        if (width === 'auto') {
-          image.removeAttr('width');
-        } else {
-          image.attr('width', width);
-        }
-        if (height === 'auto') {
-          image.removeAttr('height');
-        } else {
-          image.attr('height', height);
-        }
-        image.attr('style', 'align:' + align);
-        if (border) {
-          image.attr('border', '1');
-        } else {
-          image.removeAttr('border');
-        }
         return image[0].outerHTML;
       },
       recalcHTML: function(contentId) {
@@ -5679,25 +5492,11 @@
         return this.options.editable.store();
       },
       _prepareDropdown: function(contentId) {
-        var addButton, addInput, contentArea, contentAreaUL,
+        var addButton, contentArea, contentAreaUL,
           _this = this;
-        contentArea = jQuery("<div id=\"" + contentId + "\"><ul></ul></div>");
+        contentArea = jQuery('<div id="' + contentId + '"><div class="subform"></div><ul></ul></div>');
         contentAreaUL = contentArea.find('ul');
-        addInput = function(type, element, default_value) {
-          var el, elid, recalc;
-          elid = "" + contentId + element;
-          el = jQuery(("<li><label for\"" + elid + "\">") + utils.tr(element) + ("</label><input type=\"" + type + "\" id=\"" + elid + "\"/></li>"));
-          if (el.find('input').is('input[type="checkbox"]') && default_value === "true") {
-            el.find('input').attr('checked', true);
-          } else if (default_value) {
-            el.find('input').val(default_value);
-          }
-          recalc = function() {
-            return _this.recalcHTML(contentId);
-          };
-          el.find('input').bind('keyup change', recalc);
-          return el;
-        };
+        this.dropdownsubform = contentArea.find('.subform');
         addButton = function(element, event_handler) {
           var el, elid;
           elid = "" + contentId + element;
@@ -5705,30 +5504,6 @@
           el.find('button').bind('click', event_handler);
           return el;
         };
-        contentAreaUL.append(addInput("text", "url", ""));
-        contentAreaUL.append(addInput("text", "alt", ""));
-        contentAreaUL.append(addInput("text", "title", ""));
-        contentAreaUL.append(addInput("text", "width", "auto"));
-        contentAreaUL.append(addInput("text", "height", "auto"));
-        contentAreaUL.append(addInput("text", "align", "center"));
-        contentAreaUL.append(addInput("checkbox", "border", false));
-        contentAreaUL.append(addButton("browse", function() {
-          var path;
-          wkej.instance.insert_image_dfd = new $.Deferred();
-          wkej.instance.insert_image_dfd.done(function(path) {
-            path = wkej.instance.updateRefeusPath(path);
-            $('#' + contentId + 'url').val(path);
-            delete wkej.instance.insert_image_dfd;
-            return _this.updateImageHTML(contentId);
-          });
-          path = $('#' + contentId + 'url').val();
-          if (typeof path === 'undefined' || path === '') {
-            path = wke.storageLocation('PicturesLocation');
-          }
-          path = wkej.instance.updateLocalPath(path);
-          occ.SelectImage(path);
-          return wkej.instance.insert_image_dfd.promise();
-        }));
         contentAreaUL.append(addButton("apply", function() {
           var image;
           _this.recalcHTML(contentId);
@@ -5736,13 +5511,16 @@
           _this.options.editable.setContentPosition(image);
           image.removeAttr('id');
           _this.options.editable.undoWaypointCommit();
+          _this.dropdownsubform.imageSettings('destroy');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(addButton("remove", function() {
           var image;
           image = $('#' + _this.tmpid);
+          image.closest('.image_container').remove();
           image.remove();
           _this.options.editable.undoWaypointCommit();
+          _this.dropdownsubform.imageSettings('destroy');
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         return contentArea;
@@ -5765,6 +5543,18 @@
           cssClass: this.options.buttonCssClass
         });
         return buttonElement;
+      },
+      _destroyForm: function() {
+        return this.dropdownsubform.imageSettings('destroy');
+      },
+      _setupForm: function() {
+        var plugin_options;
+        plugin_options = {
+          image: this.cur_image
+        };
+        this.dropdownsubform.imageSettings('destroy');
+        this.dropdownsubform.imageSettings(plugin_options);
+        return this.dropdownsubform.imageSettings('createMenu', [this.tmpid]);
       }
     });
   })(jQuery);
