@@ -5,6 +5,7 @@
 ((jQuery) ->
   jQuery.widget 'IKS.halloimage',
     dropdownform: null
+    dropdownsubform: null
     debug: true
     tmpid: 0
     selected_row: null
@@ -26,7 +27,7 @@
       contentId = "#{@options.uuid}-#{@widgetName}-data"
       target = @_prepareDropdown contentId
       toolbar.append target
-      setup= (select_target,target_id) =>
+      setup = (select_target,target_id) =>
         contentId = target_id
         console.log('setup image form',select_target,target_id) if @debug
         return if rangy.getSelection().rangeCount == 0 && typeof select_target == 'undefined'
@@ -39,74 +40,39 @@
           range = rangy.createRange()
           range.selectNode(@options.editable.element[0])
           range.collapse()
-        if ( typeof select_target != 'undefined' )
-          #console.log('selected target',$(select_target).html())
-          # disabled for now!
-          return
-          @cur_image = $(select_target).find('img').eq(0)
-          if ( !@cur_image.length )
-            @cur_image = null
-            @action = 'insert'
-          else
+        @cur_image = null
+        @action = 'insert'
+        @options.editable.element.find('img').each (index,item) =>
+          if ( selection.containsNode(item,true) )
+            @cur_image = jQuery(item)
+            @cur_image.attr('id',@tmpid)
             @action = 'update'
-        else
-          @cur_image = null
-          @action = 'insert'
-          @options.editable.element.find('img').each (index,item) =>
-            if ( selection.containsNode(item,true) )
-              @cur_image = jQuery(item)
-              @cur_image.attr('id',@tmpid)
-              @action = 'update'
-              return false # break
+            return false # break
+        if ( @action == 'insert' )
+          if ( window.live_target && jQuery(window.live_target).is('img') && jQuery(jQuery(window.live_target),@options.editable).length )
+            @cur_image = jQuery(window.live_target)
+            window.live_target = null
+            @action = 'update'
         if ( @cur_image && @cur_image.length )
           #modify
-          url = @cur_image.attr('src')
-          alt = @cur_image.attr('alt')
-          title = @cur_image.attr('title')
-          width = @cur_image.attr('width')
-          height = @cur_image.attr('height')
-          width = 'auto' if !width || width == ''
-          height = 'auto' if !height || height == ''
-          align = @cur_image.attr('style')
-          if align
-            align = align.replace(/.*align:([^;]*).*/,'$1')
-          align = "center" if ! align || align == ''
-          border = @cur_image.attr('border')
-          if border
-            border = false if border != "1"
-            border = true if border == "1"
-          else
-            border = false
-          url = url.replace(/^file:\/\//,'')
-          url = url.replace(/^\/(.):/,'$1:')
-          url = wkej.instance.updateRefeusPath(url)
-          $('#' + contentId + 'url').val(url)
-          $('#' + contentId + 'alt').val(alt)
-          $('#' + contentId + 'title').val(title)
-          $('#' + contentId + 'width').val(width)
-          $('#' + contentId + 'height').val(height)
-          $('#' + contentId + 'align').val(align)
-          $('#' + contentId + 'border').attr('checked',border)
           @cur_image.attr('id',@tmpid)
         else
           # TODO use wke env to get theme
           @cur_image = jQuery('<img src="../styles/default/icons/types/PubArtwork.png" id="' + @tmpid + '"/>');
           @options.editable.getSelectionStartNode (insert_position) =>
             if ( insert_position.length )
+              if ( insert_position.closest('.image_container').length )
+                insert_position = insert_position.closest('.image_container');
               @cur_image.insertBefore(insert_position)
             else
               @options.editable.append(@cur_image)
-          $('#' + contentId + 'url').val("")
-          $('#' + contentId + 'alt').val("")
-          $('#' + contentId + 'title').val("")
-          $('#' + contentId + 'width').val("auto")
-          $('#' + contentId + 'height').val("auto")
-          $('#' + contentId + 'align').val("center")
-          $('#' + contentId + 'border').attr('checked',false)
           #console.log(@cur_image)
           @updateImageHTML(contentId)
+        @_setupForm()
         recalc = =>
           @recalcHTML(target.attr('id'))
+        jQuery('#' + contentId).unbind 'hide', jQuery.proxy(@_destroyForm,@)
+        jQuery('#' + contentId).bind 'hide', jQuery.proxy(@_destroyForm,@)
         return true
         window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
@@ -116,44 +82,6 @@
 
     updateImageHTML: (contentId) ->
       image = $('#' + @tmpid)
-      url = $('#' + contentId + 'url').val();
-      alt = $('#' + contentId + 'alt').val();
-      title = $('#' + contentId + 'title').val();
-      width = $('#' + contentId + 'width').val();
-      height = $('#' + contentId + 'height').val();
-      align = $('#' + contentId + 'align').val();
-      border =  $('#' + contentId + 'border').is(':checked');
-      width = "auto" if ( width == '' )
-      height = "auto" if ( height == '' )
-      align = "center" if ( align == '' )
-      #console.log(url)
-      # TODO use wke env to get theme
-      if ( url == '' )
-        url = '../styles/default/icons/types/PubArtwork.png'
-      else
-        url = wkej.instance.updateLocalPath(url)
-        if ( url.indexOf(':') == 1 )
-          url = '/' + url
-
-        url = 'file://' + url
-
-
-      image.attr('src',url)
-      image.attr('alt',alt)
-      image.attr('title',title)
-      if width == 'auto'
-        image.removeAttr('width')
-      else
-        image.attr('width',width)
-      if height == 'auto'
-        image.removeAttr('height')
-      else
-        image.attr('height',height)
-      image.attr('style','align:' + align)
-      if ( border )
-        image.attr('border','1')
-      else
-        image.removeAttr('border')
       return image[0].outerHTML #?
 
     recalcHTML: (contentId) ->
@@ -161,22 +89,10 @@
       @options.editable.store()
 
     _prepareDropdown: (contentId) ->
-      contentArea = jQuery "<div id=\"#{contentId}\"><ul></ul></div>"
-      contentAreaUL = contentArea.find('ul')
+      contentArea = jQuery '<div id="' + contentId + '"><div class="subform"></div><ul></ul></div>'
+      contentAreaUL = contentArea.find('ul');
+      @dropdownsubform = contentArea.find('.subform');
 
-
-      addInput = (type,element,default_value) =>
-        elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
-        if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
-          el.find('input').attr('checked',true);
-        else if ( default_value )
-          el.find('input').val(default_value)
-        recalc= =>
-          @recalcHTML(contentId)
-        el.find('input').bind('keyup change',recalc)
-
-        el
       addButton = (element,event_handler) =>
         elid="#{contentId}#{element}"
         el = jQuery "<li><button class=\"action_button\" id=\"" + @elid + "\">" + utils.tr(element) + "</button></li>"
@@ -186,37 +102,21 @@
 
         el.find('button').bind 'click', event_handler
         el
-      contentAreaUL.append addInput("text", "url", "")
-      contentAreaUL.append addInput("text", "alt", "")
-      contentAreaUL.append addInput("text", "title", "")
-      contentAreaUL.append addInput("text", "width", "auto")
-      contentAreaUL.append addInput("text", "height", "auto")
-      contentAreaUL.append addInput("text", "align", "center")
-      contentAreaUL.append addInput("checkbox", "border", false)
 
-      contentAreaUL.append addButton "browse", =>
-        wkej.instance.insert_image_dfd = new $.Deferred();
-        wkej.instance.insert_image_dfd.done (path) =>
-          path = wkej.instance.updateRefeusPath(path);
-          $('#' + contentId + 'url').val(path)
-          delete wkej.instance.insert_image_dfd
-          @updateImageHTML(contentId)
-        path = $('#' + contentId + 'url').val()
-        path = wke.storageLocation('PicturesLocation') if ( typeof path == 'undefined' || path == '' )
-        path = wkej.instance.updateLocalPath(path)
-        occ.SelectImage(path);
-        wkej.instance.insert_image_dfd.promise()
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
         image = $('#' + @tmpid)
         @options.editable.setContentPosition(image)
         image.removeAttr('id')
         @options.editable.undoWaypointCommit()
+        @dropdownsubform.imageSettings('destroy')
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append addButton "remove", =>
         image = $('#' + @tmpid)
+        image.closest('.image_container').remove()
         image.remove()
         @options.editable.undoWaypointCommit()
+        @dropdownsubform.imageSettings('destroy')
         @dropdownform.hallodropdownform('hideForm')
       contentArea
 
@@ -235,5 +135,14 @@
         setup: setup
         cssClass: @options.buttonCssClass
       buttonElement
+    _destroyForm: () ->
+      @dropdownsubform.imageSettings('destroy')
+
+    _setupForm: () ->
+      plugin_options =
+        image: this.cur_image
+      @dropdownsubform.imageSettings('destroy')
+      @dropdownsubform.imageSettings(plugin_options)
+      @dropdownsubform.imageSettings('createMenu', [@tmpid]);
 
 )(jQuery)
