@@ -239,7 +239,7 @@ http://hallojs.org
         if(jQuery('[contenteditable=false]').length>0)
           jQuery('[contenteditable=false]').live "click", (event) =>
             target = jQuery(event.target)
-            if ( target.closest('[contenteditable=true]').length == 0 )
+            if ( target.closest('[contenteditable=true]').length == 0 || _this.element.find(target).length == 0 )
               return
             @setContentPosition(target)
 
