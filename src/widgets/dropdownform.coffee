@@ -29,7 +29,6 @@
       @button = @_prepareButton() unless @button
 
       @button.bind 'click', =>
-        jQuery('.misspelled').remove()
         if target.hasClass 'open'
           @_hideTarget()
           return
@@ -65,7 +64,7 @@
         toolbar = jQuery('.hallotoolbar').eq(0)
         return if ( !toolbar.length )
         target = toolbar.find('.dropdown-form-' + @options.command)
-      #   window.live_target = event.target # HACK
+        window.live_target = event.target # HACK will be consumed by first user
         target.trigger('bindShowTrigger')
 
     _showTarget: (select_target) ->
@@ -98,6 +97,7 @@
       if ( target.hasClass 'open' )
         target.removeClass 'open'
         jQuery("select",target).selectBox('destroy')
+        target.trigger('hide')
         target.hide()
         @options.editable.restoreContentPosition()
 
