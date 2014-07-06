@@ -3974,7 +3974,7 @@
             if (!value.label) {
               return;
             }
-            qvalue = sdi.instance[index].replace(/"/g, '&#34;');
+            qvalue = sdi.instance[index];
             if (qvalue === '') {
               if (needs_number_of_pages && index === 'number_of_pages') {
                 return inputs.append(_this._createInput(index, value.label, qvalue));
@@ -4160,7 +4160,7 @@
         var data, error, path, target, user_number;
         target = jQuery(event.target);
         path = target.attr('id');
-        data = target.val().replace(/&#34/g, '"');
+        data = target.val();
         if (omc && options.loid) {
           options.values[path] = data;
         }

@@ -59,7 +59,7 @@
           return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title' || index == 'related_persons'
           return if sdi.instance[index] == undefined
           return if !value.label
-          qvalue = sdi.instance[index].replace(/"/g,'&#34;'); #"
+          qvalue = sdi.instance[index]
           if ( qvalue == '' )
             if ( needs_number_of_pages && index == 'number_of_pages' )
               inputs.append(@_createInput(index,value.label,qvalue))
@@ -203,7 +203,7 @@
       target = jQuery(event.target)
       #debug.log('form changed' + target.html())
       path = target.attr('id')
-      data = target.val().replace(/&#34/g,'"');
+      data = target.val()
       if omc && options.loid
         options.values[path] = data;
         #omc.storePublicationDescriptionAttribute(options.loid,path,data)
