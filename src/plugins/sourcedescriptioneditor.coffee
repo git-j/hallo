@@ -162,7 +162,7 @@
           if ( @widget.find('#number_of_pages').length )
             pages = @widget.find('#number_of_pages')
 
-            pages.closest('div').find('label').append('(' + @options.publication.number_of_pages + ')')
+            pages.closest('div').find('label').append(' (' + @options.publication.number_of_pages + ')')
             if ( @widget.find('#number_of_pages').val() == @options.publication.number_of_pages )
               pages.val('')
               pages[0].focus();

@@ -78,11 +78,16 @@
       if ( element=='__quote' )
         element_text = utils.tr('quote')
         if ( window.action_list && window.action_list['QuoteNugget'] != undefined )
-          element_text =  window.action_list['QuoteNugget'].title
+          span = jQuery('<span>')
+          span.html(window.action_list['QuoteNugget'].title)
+          element_text = span.text()
       else if ( element=='__associate' )
         element_text = utils.tr('associate')
         if ( window.action_list && window.action_list['hallojs_sourcedescription'] != undefined )
           element_text =  window.action_list['hallojs_sourcedescription'].title
+        span = jQuery('<span>')
+        span.html(element_text)
+        element_text = span.text()
       else
         element_text = element
       if ( element_text.length > 48 )

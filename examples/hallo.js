@@ -1990,18 +1990,23 @@
         return replacement;
       },
       _addElement: function(element, containing_element, publication_type, data) {
-        var el, element_text, has_auto_citation, has_citation, this_editable,
+        var el, element_text, has_auto_citation, has_citation, span, this_editable,
           _this = this;
         if (element === '__quote') {
           element_text = utils.tr('quote');
           if (window.action_list && window.action_list['QuoteNugget'] !== void 0) {
-            element_text = window.action_list['QuoteNugget'].title;
+            span = jQuery('<span>');
+            span.html(window.action_list['QuoteNugget'].title);
+            element_text = span.text();
           }
         } else if (element === '__associate') {
           element_text = utils.tr('associate');
           if (window.action_list && window.action_list['hallojs_sourcedescription'] !== void 0) {
             element_text = window.action_list['hallojs_sourcedescription'].title;
           }
+          span = jQuery('<span>');
+          span.html(element_text);
+          element_text = span.text();
         } else {
           element_text = element;
         }
@@ -3622,7 +3627,7 @@
         ov_data += '<li class="style">' + utils.tr('citation in') + ' ' + _this.citation_data.style_name + '</li>';
         ov_data += '<li class="citation selectable">' + _this.citation_data.cite + '</li>';
         if (_this.citation_data.creates_footnote) {
-          ov_data += '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + utils.sanitize(_this.citation_data.footnote) + '</li>';
+          ov_data += '<li class="footnote selectable">' + utils.tr('footnote') + ': ' + _this.citation_data.footnote + '</li>';
         }
         if (typeof _this.citation_data.note === 'string' && _this.citation_data.note !== '') {
           _this.citation_data.note = utils.sanitize(_this.citation_data.note).replace(/\n/g, '<br/>');
@@ -4101,7 +4106,7 @@
             jQuery(window).resize();
             if ((_this.widget.find('#number_of_pages').length)) {
               pages = _this.widget.find('#number_of_pages');
-              pages.closest('div').find('label').append('(' + _this.options.publication.number_of_pages + ')');
+              pages.closest('div').find('label').append(' (' + _this.options.publication.number_of_pages + ')');
               if (_this.widget.find('#number_of_pages').val() === _this.options.publication.number_of_pages) {
                 pages.val('');
                 return pages[0].focus();
@@ -5031,7 +5036,7 @@
       spellcheck_timeout: 300,
       spellcheck_proxy: null,
       initialized: false,
-      debug: true,
+      debug: false,
       options: {
         editable: null,
         toolbar: null,
