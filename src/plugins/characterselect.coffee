@@ -17,6 +17,7 @@
     _content_id: 0
     html: null
     toolbar_target: null
+    seletbox: null
     options:
       editable: null
       toolbar: null
@@ -36,7 +37,7 @@
       @toolbar_target = @_prepareDropdown()
       toolbar.append @toolbar_target
 
-      @dropdownform = @_prepareButton @_setup, @toolbar_target
+      @dropdownform = @_prepareButton jQuery.proxy(@_setup,@), @toolbar_target
       buttonset.append @dropdownform
       toolbar.append buttonset
 
@@ -48,14 +49,12 @@
         @options.editable.undoWaypointCommit(true)
         @options.editable.undoWaypointStart('characterselect')
       # make sure the selectbox plugin is initialized and destroyed correctly
-      if ( typeof selectbox.selectBox == 'function' )
-        jQuery(@toolbar_target).find('select').each (index,item) =>
-          jQuery(item).selectBox()
+      if ( typeof jQuery.fn.selectBox == 'function' )
+        jQuery(@toolbar_target).find('select').selectBox()
         @toolbar_target.bind 'hide', =>
-          jQuery(@toolbar_target).find('select').each (index,item) =>
-            jQuery(item).selectBox('destroy')
+          jQuery(@toolbar_target).find('select').selectBox('destroy')
       # setup temporary id in editable and fill it with the option-character
-      @tmpid='mod_' + (new Date()).getTime()
+      @tmpid = 'mod_' + (new Date()).getTime()
       selected_character = @options.default_character;
       @cur_character = jQuery('<span id="' + @tmpid + '">' + selected_character + '</span>');
       selection = rangy.getSelection()
@@ -66,24 +65,24 @@
       else
         # when no selection is available add the character to the end of the text
         @options.editable.append(@cur_character)
-      window.setTimeout @_setup_recalc, 300
+      window.setTimeout jQuery.proxy(@_setup_recalc,@), 300
       return true
 
     # deferred recalct after setup, makes sure the dialog selectbox is correct
     # and the range is correct
     _setup_recalc: ->
       @recalcHTML()
-      selectbox = $('#' + @content_id + 'group')
-      if ( selectbox.length )
+      @selectbox = $('#' + @_content_id + 'group')
+      if ( @selectbox.length )
         if ( window._character_select_range )
-          if ( typeof selectbox.selectBox == 'function' )
-            selectbox.selectBox('value',window._character_select_range)
+          if ( typeof @selectbox.selectBox == 'function' )
+            @selectbox.selectBox('value',window._character_select_range)
           else
-            selectbox.val(window._character_select_range) #
-        if ( typeof selectbox.selectBox == 'function')
-          @recalcRange selectbox.selectBox('value')
+            @selectbox.val(window._character_select_range) #
+        if ( typeof @selectbox.selectBox == 'function')
+          @recalcRange @selectbox.selectBox('value')
         else
-          @recalcRange selectbox.val() #selectBox('value'))
+          @recalcRange @selectbox.val() #selectBox('value'))
       @updateCharacterSelectRecent()
 
     # updates the recent character list
@@ -130,7 +129,7 @@
       all_chars.bind 'dblclick', (event) =>
         @_insertAction()
       all_chars.bind 'mouseover', (event) =>
-        $('#' + @_content_id).find('.character_preview').html(@toolbar_target.html())
+        $('#' + @_content_id).find('.character_preview').html(jQuery(event.target).html())
       all_chars.bind 'mouseout', (event) =>
         $('#' + @_content_id).find('.character_preview').html('')
 
@@ -165,27 +164,29 @@
 
     # recalc the range after selection
     _recalc_select: () ->
-      if ( typeof selectbox.selectBox == 'function')
-        char_range = selectbox.selectBox('value')
+      if ( typeof jQuery.fn.selectBox == 'function')
+        char_range = @selectbox.selectBox('value')
       else
-        char_range = selectbox.val() #selectBox('value')
+        char_range = @selectbox.val() #selectBox('value')
       window._character_select_range = char_range
       @recalcRange(char_range)
 
     # create a selectbox and return it
     _addSelect: (element,elements) ->
-      elid='#' + @_content_id + element
+      elid = @_content_id + element
       el = jQuery '<li><label for"' + elid + '">' + utils.tr(element) + '</label><select id="' + elid + '"/></li>'
-      selectbox = el.find('#' + elid)
+      @selectbox = el.find('#' + elid)
       jQuery.each elements,(label,value) =>
-        selectbox.append('<option value="' + value + '">' + label + '</option>')
+        @selectbox.append('<option value="' + value + '">' + label + '</option>')
 
-      selectbox.bind('keyup change',@_recalc_select)
-      # selectbox.selectBox()
+      @selectbox.bind 'keyup change', () =>
+        @_recalc_select()
+
+      # @selectbox.selectBox()
       el
 
-    # create a button and return it
     _addButton: (element,event_handler) ->
+      # create a button and return it
       el = jQuery '<li><button class="action_button" id="' + @tmpid + element + '" title="' + utils.tr_action_tooltip(element) + '">' + utils.tr_action_title(element) + '</button></li>'
 
       #unless containingElement is 'div'
