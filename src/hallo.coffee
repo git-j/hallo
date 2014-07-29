@@ -812,13 +812,13 @@ http://hallojs.org
         range = selection.getRangeAt(0)
         li = $(range.startContainer).closest('li')
         li = $(range.endContainer).closest('li') if !li.length
-        if ( li.length )
+        if ( li.length && !li.has(widget.element).length )
           return if widget.element.closest('li').length && widget.element.closest('li')[0] == li[0]
           widget.execute("indent")
           event.preventDefault()
           return
         td = $(range.startContainer).closest('td,th')
-        if ( td.length )
+        if ( td.length && !td.has(widget.element).length )
           widget.undoWaypointCommit(false)
           widget.undoWaypointStart('text')
           table = td.closest('table')
