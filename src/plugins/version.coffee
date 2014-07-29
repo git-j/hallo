@@ -74,6 +74,9 @@
       if ( element_text == 'update from manage' )
         if ( window.action_list && window.action_list['hallojs_version_update_from_manage'] != undefined )
           element_text =  window.action_list['hallojs_version_update_from_manage'].title
+      span = $('<span>')
+      span.html(element_text) # process &uuml;
+      element_text = span.text();
       if ( element_text.length > 40 )
         element_text = element_text.substr(0,20) + '...' + element_text.substr(element_text.length-20,20)
       el = jQuery "<button class=\"version-selector\"></button>"
