@@ -98,7 +98,10 @@
           console.log('modify',latex_formula,@cur_formula) if @debug
           $('#' + contentId + 'latex').val(latex_formula)
           $('#' + contentId + 'title').val(title)
-          $('#' + contentId + 'inline').attr('checked',@cur_formula.hasClass('inline'))
+          if ( @cur_formula.hasClass('inline') )
+            $('#' + contentId + 'inline').addClass('active')
+          else
+            $('#' + contentId + 'inline').removeClass('active')
           @cur_formula.attr('id',@tmpid)
           @cur_formula.html('')
         else
@@ -115,7 +118,10 @@
               rangy.getSelection().setSingleRange(range)
 
           $('#' + contentId + 'latex').val(@options.default)
-          $('#' + contentId + 'inline').attr('checked',@options.inline)
+          if ( @options.inline )
+            $('#' + contentId + 'inline').addClass('active')
+          else
+            $('#' + contentId + 'inline').removeClass('active')
           $('#' + contentId + 'title').val()
           console.log('insert',@cur_formula) if @debug
           @updateFormulaHTML(contentId)
@@ -140,7 +146,7 @@
         console.error(@options.editable.element.html())
         return
       latex_formula = $('#' + contentId + 'latex').val();
-      inline = $('#' + contentId + 'inline').is(':checked');
+      inline = $('#' + contentId + 'inline').hasClass('active');
       title = $('#' + contentId + 'title').val();
       console.log(latex_formula,inline,title,formula,@tmpid) if @debug
       #if ( formula.html() == '' )
@@ -186,7 +192,7 @@
       if ( preview.length == 0 )
         return
       latex_formula = $('#' + contentId + 'latex').val();
-      inline = $('#' + contentId + 'inline').is(':checked');
+      inline = $('#' + contentId + 'inline').hasClass('active');
       if ( inline )
         preview.html(@options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + @options.mathjax_inline_delim_right)
       else
@@ -208,18 +214,35 @@
 
         el
       addInput = (type,element,default_value,recalc_preview) =>
-        elid="#{contentId}#{element}"
-        el = jQuery "<li><label for=\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
-        if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
-          el.find('input').attr('checked',true);
-        else if ( default_value )
-          el.find('input').val(default_value)
-        recalc= =>
-          @recalcHTML(contentId)
-          if ( recalc_preview )
-            @recalcPreview(contentId)
-            @recalcMath()
-        el.find('input').bind('keyup change',recalc)
+        elid = "#{contentId}#{element}"
+        el = jQuery "<li></li>"
+        if ( type == 'checkbox' )
+          toggle_button = jQuery('<button type="button" class="toggle_button"  id="' + elid + '"/>')
+          toggle_button_container = jQuery('<div>')
+          toggle_button_container.css({'height':'2em'})
+          recalc= =>
+            toggle_button.toggleClass('active')
+            @recalcHTML(contentId)
+            if ( recalc_preview )
+              @recalcPreview(contentId)
+              @recalcMath()
+          toggle_button.html(utils.tr(element))
+          toggle_button.bind('click', recalc)
+          if ( default_value == true )
+            toggle_button.addClass('active')
+          toggle_button_container.append(toggle_button)
+          el.append(toggle_button_container)
+        else
+          recalc= =>
+            @recalcHTML(contentId)
+            if ( recalc_preview )
+              @recalcPreview(contentId)
+              @recalcMath()
+          el.append('<label for="' + elid + '">' + utils.tr(element) + '</label>')
+          el.append('<input type="' + type + '" id="' + elid + '"/>')
+          if ( default_value )
+            el.find('input').val(default_value)
+          el.find('input').bind('keyup change',recalc)
 
         el
       addButton = (element,event_handler) =>

@@ -61,12 +61,18 @@
                 rows = rindx if rows < rindx
               $('#' + contentId + 'cols').val(cols + 1)
               $('#' + contentId + 'rows').val(rows + 1)
-              $('#' + contentId + 'border').attr('checked',border)
-              $('#' + contentId + 'heading').attr('checked',heading)
+              if ( border )
+                $('#' + contentId + 'border').addClass('active')
+              else
+                $('#' + contentId + 'border').removeClass('active')
+              if ( heading )
+                $('#' + contentId + 'heading').addClass('active')
+              else
+                $('#' + contentId + 'heading').removeClass('active')
               table_selected = true
         if !table_selected
           #create
-          table_placeholder = '<table id="' + @tmpid + '" border="1" class="table-border"></table>'
+          table_placeholder = '<table id="' + @tmpid + '" class="table-border"></table>'
           table_placeholder_node = jQuery(table_placeholder)
           selection_html = @options.editable.getSelectionHtml()
           if ( selection_html == '' )
@@ -102,13 +108,12 @@
       table = $('#' + @tmpid)
       rows = $('#' + contentId + 'rows').val();
       cols = $('#' + contentId + 'cols').val();
-      border = $('#' + contentId + 'border').is(':checked');
-      heading = $('#' + contentId + 'heading').is(':checked');
+      border = $('#' + contentId + 'border').hasClass('active')
+      heading = $('#' + contentId + 'heading').hasClass('active');
       if ( rows=='' || cols == '' || parseInt(rows) == NaN || parseInt(cols) == NaN || rows < 0 || cols < 0 ) 
         return false
       if ( border )
         table.attr('class','table-border')
-        table.attr('border','1')
       else
         table.attr('class','table-no-border')
         table.removeAttr('border')
@@ -163,30 +168,42 @@
       contentAreaUL = contentArea.find('ul')
 
 
-      addInput = (type,element,default_value) =>
-        elid="#{contentId}#{element}"
-        el = jQuery "<li><label for\"#{elid}\">" + utils.tr(element) + "</label><input type=\"#{type}\" id=\"#{elid}\"/></li>"
-        if ( el.find('input').is('input[type="checkbox"]') && default_value=="true" )
-          el.find('input').attr('checked',true);
-        else if ( default_value )
-          el.find('input').val(default_value)
-        recalc= =>
-          @recalcHTML(contentId)
-        el.find('input').bind('keyup change',recalc)
+      addInput = (type,element,default_value,recalc_preview) =>
+        elid = "#{contentId}#{element}"
+        el = jQuery "<li></li>"
+        if ( type == 'checkbox' )
+          toggle_button = jQuery('<button type="button" class="toggle_button"  id="' + elid + '"/>')
+          recalc= =>
+            toggle_button.toggleClass('active')
+            @recalcHTML(contentId)
+          toggle_button.html(utils.tr(element))
+          toggle_button.bind('click', recalc)
+          if ( default_value == true )
+            toggle_button.addClass('active')
+          el.append(toggle_button)
+
+        else
+          recalc= =>
+            @recalcHTML(contentId)
+          el.append('<label for="' + elid + '">' + utils.tr(element) + '</label>')
+          el.append('<input type="' + type + '" id="' + elid + '"/>')
+          if ( default_value )
+            el.find('input').val(default_value)
+          el.find('input').bind('keyup change',recalc)
 
         el
       addButton = (element,event_handler) =>
-        el = jQuery "<li><button class=\"action_button\" id=\"" + @tmpid+element + "\">" + utils.tr(element) + "</button></li>"
+        el = jQuery "<li><button class=\"action_button\" id=\"" + @tmpid + element + "\">" + utils.tr(element) + "</button></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
 
         el.find('button').bind 'click', event_handler
         el
-      contentAreaUL.append addInput("text", "rows","3")
-      contentAreaUL.append addInput("text", "cols","3")
-      contentAreaUL.append addInput("checkbox", "heading","true")
-      contentAreaUL.append addInput("checkbox", "border","true")
+      contentAreaUL.append addInput("number", "rows","3")
+      contentAreaUL.append addInput("number", "cols","3")
+      contentAreaUL.append addInput("checkbox", "heading", true)
+      contentAreaUL.append addInput("checkbox", "border", true)
 
       contentAreaUL.append addButton "apply", =>
         @recalcHTML(contentId)
