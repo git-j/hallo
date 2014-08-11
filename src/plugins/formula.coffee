@@ -288,6 +288,7 @@
       buttons.append addButton "apply", =>
         @recalcHTML(contentId)
         @recalcMath()
+        @_setupUndoWaypoint()
         formula = $('#' + @tmpid)
         if ( formula.length )
           if ( ! formula[0].nextSibling )
@@ -296,11 +297,13 @@
         else
           formulas = $('.formula').each (index,item) =>
             jQuery(item).removeAttr('id')
-        @_setupUndoWaypoint()
+        @_commitUndoWaypoint()
+
         @dropdownform.hallodropdownform('hideForm')
       buttons.append addButton "remove", =>
-        $('#' + @tmpid).remove()
         @_setupUndoWaypoint()
+        $('#' + @tmpid).remove()
+        @_commitUndoWaypoint()
         @dropdownform.hallodropdownform('hideForm')
       contentAreaUL.append(buttons)
       contentArea
@@ -332,7 +335,6 @@
         current_undo_stack.command(current_undo_stack.index()).postdo = postdo_handler
       if ( current_undo_stack.canRedo() && current_undo_stack.index() > 1 )
         current_undo_stack.command(current_undo_stack.index() + 1).postdo = postdo_handler
+    _commitUndoWaypoint: () ->
       @options.editable.undoWaypointCommit()
-
-
 )(jQuery)
