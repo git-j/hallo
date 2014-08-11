@@ -220,6 +220,7 @@
       @_addRecent(character.html())
       character.contents().unwrap();
       @options.editable.undoWaypointCommit()
+
       @dropdownform.hallodropdownform('hideForm')
 
     # character selected action
@@ -227,6 +228,8 @@
     # display a larger version of the character
     _selectedAction: () ->
       character = $('#' + @tmpid)
+      form = $('#' + @_content_id);
+      all_chars = form.find('.character')
       target = $(event.target).closest('span')
       @selected_character_index = target.attr('rel')
       character.html('&#' + @selected_character_index + ';')
