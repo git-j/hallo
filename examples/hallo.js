@@ -2608,7 +2608,7 @@
             formula = $('#' + this.tmpid);
             formula.addClass('inline');
           } else {
-            string = '<div id="' + this.tmpid + '">' + this.options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_inline_delim_right + '</div>';
+            string = '<div id="' + this.tmpid + '">' + this.options.mathjax_delim_left + utils.sanitize(latex_formula) + this.options.mathjax_delim_right + '</div>';
             formula.replaceWith(string);
             formula = $('#' + this.tmpid);
           }
@@ -2632,7 +2632,11 @@
           this.options.editable.element.find('.formula').each(function(index, formula_item) {
             var formula_node;
             formula_node = jQuery(formula_item);
-            return formula_node.html(_this.options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + _this.options.mathjax_inline_delim_right);
+            if (formula_node.hasClass('inline')) {
+              return formula_node.html(_this.options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + _this.options.mathjax_inline_delim_right);
+            } else {
+              return formula_node.html(_this.options.mathjax_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + _this.options.mathjax_delim_right);
+            }
           });
           return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
         }
@@ -2761,6 +2765,7 @@
           var formula, formulas;
           _this.recalcHTML(contentId);
           _this.recalcMath();
+          _this._setupUndoWaypoint();
           formula = $('#' + _this.tmpid);
           if (formula.length) {
             if (!formula[0].nextSibling) {
@@ -2772,12 +2777,13 @@
               return jQuery(item).removeAttr('id');
             });
           }
-          _this._setupUndoWaypoint();
+          _this._commitUndoWaypoint();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         buttons.append(addButton("remove", function() {
-          $('#' + _this.tmpid).remove();
           _this._setupUndoWaypoint();
+          $('#' + _this.tmpid).remove();
+          _this._commitUndoWaypoint();
           return _this.dropdownform.hallodropdownform('hideForm');
         }));
         contentAreaUL.append(buttons);
@@ -2815,8 +2821,10 @@
           current_undo_stack.command(current_undo_stack.index()).postdo = postdo_handler;
         }
         if (current_undo_stack.canRedo() && current_undo_stack.index() > 1) {
-          current_undo_stack.command(current_undo_stack.index() + 1).postdo = postdo_handler;
+          return current_undo_stack.command(current_undo_stack.index() + 1).postdo = postdo_handler;
         }
+      },
+      _commitUndoWaypoint: function() {
         return this.options.editable.undoWaypointCommit();
       }
     });
@@ -3390,17 +3398,26 @@
         return contentArea;
       },
       _applyAction: function() {
-        var character;
+        var character, character_html;
+        this.options.editable.undoWaypointCommit(true);
         this.recalcHTML();
         character = jQuery('#' + this.tmpid);
-        this._addRecent(character.html());
+        character_html = character.html();
+        character.html('?');
+        this.options.editable.undoWaypointStart('characterselect');
+        character.html(character_html);
+        this._addRecent(character_html);
         character.contents().unwrap();
         this.options.editable.undoWaypointCommit();
-        return this.dropdownform.hallodropdownform('hideForm');
+        this.options.editable.undoWaypointStart('text');
+        this.dropdownform.hallodropdownform('hideForm');
+        return this.options.editable.store();
       },
       _selectedAction: function() {
-        var character, target;
+        var all_chars, character, form, target;
         character = $('#' + this.tmpid);
+        form = $('#' + this._content_id);
+        all_chars = form.find('.character');
         target = $(event.target).closest('span');
         this.selected_character_index = target.attr('rel');
         character.html('&#' + this.selected_character_index + ';');
@@ -3417,11 +3434,14 @@
         this.options.editable.undoWaypointStart('characterselect');
         character_content.insertBefore(character);
         this.options.editable.undoWaypointCommit();
+        this.options.editable.undoWaypointStart('characterselect');
         this._addRecent(character.html());
         return character.html(this.options.default_character);
       },
       _cancelAction: function() {
         $('#' + this.tmpid).remove();
+        this.options.editable.undoWaypointCommit();
+        this.options.editable.undoWaypointStart('text');
         if (typeof this.select.selectBox === 'function') {
           this.select.selectBox('destroy');
         }
