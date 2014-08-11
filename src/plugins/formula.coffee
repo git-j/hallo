@@ -159,7 +159,7 @@
           formula = $('#' + @tmpid)
           formula.addClass('inline')
         else
-          string = '<div id="' + @tmpid + '">' + @options.mathjax_inline_delim_left + utils.sanitize(latex_formula) + @options.mathjax_inline_delim_right + '</div>'
+          string = '<div id="' + @tmpid + '">' + @options.mathjax_delim_left + utils.sanitize(latex_formula) + @options.mathjax_delim_right + '</div>'
           formula.replaceWith(string);
           formula = $('#' + @tmpid);
         if @debug
@@ -179,7 +179,10 @@
       if ( @has_mathjax )
         @options.editable.element.find('.formula').each (index,formula_item) =>
           formula_node = jQuery(formula_item)
-          formula_node.html(@options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + @options.mathjax_inline_delim_right)
+          if ( formula_node.hasClass('inline') )
+            formula_node.html(@options.mathjax_inline_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + @options.mathjax_inline_delim_right)
+          else
+            formula_node.html(@options.mathjax_delim_left + utils.sanitize(decodeURIComponent(formula_node.attr('rel'))) + @options.mathjax_delim_right)
 
         MathJax.Hub.Queue(['Typeset',MathJax.Hub])
 
