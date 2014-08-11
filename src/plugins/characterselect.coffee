@@ -214,14 +214,20 @@
     # close-commit the dropdownform storing the current character in the history
     # removes the wrapping around the current character
     _applyAction: () ->
+      @options.editable.undoWaypointCommit(true)
       @recalcHTML()
       character = jQuery('#' + @tmpid)
-
-      @_addRecent(character.html())
+      character_html = character.html()
+      character.html('?') # force changing character before apply to make it redoable
+      @options.editable.undoWaypointStart('characterselect')
+      character.html(character_html)
+      @_addRecent(character_html)
       character.contents().unwrap();
       @options.editable.undoWaypointCommit()
+      @options.editable.undoWaypointStart('text');
 
       @dropdownform.hallodropdownform('hideForm')
+      @options.editable.store()
 
     # character selected action
     # update the current editable html with the selected character and
@@ -247,12 +253,15 @@
       @options.editable.undoWaypointStart('characterselect')
       character_content.insertBefore(character)
       @options.editable.undoWaypointCommit()
+      @options.editable.undoWaypointStart('characterselect')
       @_addRecent(character.html())
       character.html(@options.default_character)
 
     # cancel the insertion of characters and remove the current preview from the editable
     _cancelAction: () ->
       $('#' + @tmpid).remove()
+      @options.editable.undoWaypointCommit()
+      @options.editable.undoWaypointStart('text');
       if ( typeof @select.selectBox == 'function' )
         @select.selectBox('destroy')
       @dropdownform.hallodropdownform('hideForm')
