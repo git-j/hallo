@@ -1752,6 +1752,7 @@
         if (!this._undo_stack) {
           return;
         }
+        this.undoWaypointCommit(true);
         if (this.debug) {
           console.log('undo', command);
         }
@@ -4232,25 +4233,53 @@
         return row;
       },
       _formChanged: function(event, options) {
-        var data, error, path, target, user_number;
+        var data, from, path, publication_page_from_to_match, publication_page_over_match, publication_page_to_match, sd_from, sd_to, sourcedescription_from_to_match, sourcedescription_over_match, sourcedescription_to_match, target, to;
         target = jQuery(event.target);
         path = target.attr('id');
         data = target.val();
         if (omc && options.loid) {
           options.values[path] = data;
         }
-        if (path.indexOf("number_of_pages") === 0 && data !== '' && !isNaN(data) && !isNaN(options.publication.number_of_pages)) {
-          try {
-            user_number = parseInt(data);
-            if (user_number <= options.publication.number_of_pages) {
-              return jQuery('#' + path).attr('class', 'valid');
-            } else {
-              utils.info(utils.tr('number_of_pages not in range'));
-              return jQuery('#' + path).attr('class', 'invalid');
-            }
-          } catch (_error) {
-            error = _error;
+        if (path.indexOf("number_of_pages") === 0 && data !== '' && typeof data === 'string') {
+          publication_page_from_to_match = options.publication.number_of_pages.match(/^(\d*)-(\d*)$/);
+          sourcedescription_from_to_match = data.match(/^(\d*)-(\d*)$/);
+          publication_page_to_match = options.publication.number_of_pages.match(/^(\d*)$/);
+          sourcedescription_to_match = data.match(/^(\d*)$/);
+          publication_page_over_match = options.publication.number_of_pages.match(/^(\d+)[^-\d]+$/);
+          sourcedescription_over_match = data.match(/^(\d+)[^-\d]+$/);
+          from = 0;
+          to = 0;
+          sd_from = 0;
+          sd_to = 0;
+          if (publication_page_from_to_match !== null) {
+            from = parseInt(publication_page_from_to_match[1], 10);
+            to = parseInt(publication_page_from_to_match[2], 10);
+          } else if (publication_page_to_match !== null) {
+            to = parseInt(publication_page_to_match[1], 10);
+          } else if (publication_page_over_match !== null) {
+            from = parseInt(publication_page_over_match[1], 10);
+            to = Infinity;
+          } else {
+            from = 0;
+            to = Infinity;
+          }
+          if (sourcedescription_from_to_match !== null) {
+            sd_from = parseInt(sourcedescription_from_to_match[1], 10);
+            sd_to = parseInt(sourcedescription_from_to_match[2], 10);
+          } else if (sourcedescription_to_match !== null) {
+            sd_to = parseInt(sourcedescription_to_match[1], 10);
+            sd_from = sd_to;
+          } else if (sourcedescription_over_match !== null) {
+            sd_from = parseInt(sourcedescription_over_match[1], 10);
+            sd_to = sd_from;
+          } else {
             return jQuery('#' + path).attr('class', 'unparseable');
+          }
+          if (sd_from < from || sd_to > to) {
+            utils.info(utils.tr('number_of_pages not in range'));
+            return jQuery('#' + path).attr('class', 'invalid');
+          } else {
+            return jQuery('#' + path).attr('class', 'valid');
           }
         }
       },
@@ -5259,6 +5288,7 @@
           _this.options.toolbar_actions['SortTime'] = _this.list_toolbar.default_actions.SortTime;
           _this.options.toolbar_actions['SortType'] = _this.list_toolbar.default_actions.SortType;
           _this.options.toolbar_actions['_filter'] = _this.list_toolbar.default_actions._filter;
+          _this.options.toolbar_actions['_removeFilter'] = _this.list_toolbar.default_actions._removeFilter;
           _this.list_toolbar.displayBase('body', 'publicationselector', _this.options.toolbar_actions, true, jQuery('#publication_list'));
           _this.list_toolbar.toolbar.stop(true, true);
           _this.list_toolbar.toolbar.css({

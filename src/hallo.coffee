@@ -1089,7 +1089,7 @@ http://hallojs.org
         # use event trigger element
         @_undo_stack = @undoWaypointLoad(target)
       return if (!@_undo_stack)
-
+      @undoWaypointCommit(true)
       console.log('undo',command) if @debug
       @_undo_stack.undo()
     

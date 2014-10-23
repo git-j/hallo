@@ -61,6 +61,7 @@
         @options.toolbar_actions['SortTime'] = @list_toolbar.default_actions.SortTime;
         @options.toolbar_actions['SortType'] = @list_toolbar.default_actions.SortType;
         @options.toolbar_actions['_filter'] = @list_toolbar.default_actions._filter; # for sort
+        @options.toolbar_actions['_removeFilter'] = @list_toolbar.default_actions._removeFilter;
         @list_toolbar.displayBase('body','publicationselector',@options.toolbar_actions,true,jQuery('#publication_list'))
         @list_toolbar.toolbar.stop(true,true); # otherwise z-index is cleared when animation finishes
         @list_toolbar.toolbar.css({'z-index':@options.default_css['z-index'] + 1})

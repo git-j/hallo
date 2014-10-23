@@ -199,6 +199,7 @@
         @_formChanged(event,@options)
       @options.orig_values[identifier] = value
       return row
+
     _formChanged: (event, options) ->
       target = jQuery(event.target)
       #debug.log('form changed' + target.html())
@@ -208,16 +209,48 @@
         options.values[path] = data;
         #omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
-      if path.indexOf("number_of_pages") == 0 && data != '' && !isNaN(data) && !isNaN(options.publication.number_of_pages)
-        try
-          user_number = parseInt(data)
-          if user_number <= options.publication.number_of_pages
-            jQuery('#' + path).attr('class','valid')
-          else
-            utils.info(utils.tr('number_of_pages not in range'));
-            jQuery('#' + path).attr('class','invalid')
-        catch error
-          jQuery('#' + path).attr('class','unparseable')
+      if path.indexOf("number_of_pages") == 0 && data != '' && typeof data == 'string'
+        # e.g.44-45
+        publication_page_from_to_match = options.publication.number_of_pages.match(/^(\d*)-(\d*)$/)
+        sourcedescription_from_to_match = data.match(/^(\d*)-(\d*)$/)
+        #e.g.44
+        publication_page_to_match = options.publication.number_of_pages.match(/^(\d*)$/)
+        sourcedescription_to_match = data.match(/^(\d*)$/)
+        #e.g.44 pp
+        publication_page_over_match = options.publication.number_of_pages.match(/^(\d+)[^-\d]+$/)
+        sourcedescription_over_match = data.match(/^(\d+)[^-\d]+$/)
+        from = 0
+        to = 0
+        sd_from = 0
+        sd_to = 0
+        if publication_page_from_to_match != null 
+          from = parseInt(publication_page_from_to_match[1],10)
+          to = parseInt(publication_page_from_to_match[2],10)
+        else if publication_page_to_match != null
+          to = parseInt(publication_page_to_match[1],10)
+        else if publication_page_over_match != null
+          from = parseInt(publication_page_over_match[1],10)
+          to = Infinity
+        else
+          from = 0
+          to = Infinity
+        if sourcedescription_from_to_match != null
+          sd_from = parseInt(sourcedescription_from_to_match[1],10)
+          sd_to = parseInt(sourcedescription_from_to_match[2],10)
+        else if sourcedescription_to_match != null
+          sd_to = parseInt(sourcedescription_to_match[1],10)
+          sd_from = sd_to
+        else if sourcedescription_over_match != null
+          sd_from = parseInt(sourcedescription_over_match[1],10)
+          sd_to = sd_from
+        else
+          return jQuery('#' + path).attr('class', 'unparseable')
+
+        if sd_from < from || sd_to > to
+          utils.info(utils.tr('number_of_pages not in range'))
+          return jQuery('#' + path).attr('class', 'invalid')
+        else
+          return jQuery('#' + path).attr('class', 'valid')
     _create: ->
       #debug.log('created');
       @
