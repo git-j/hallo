@@ -197,21 +197,22 @@ http://hallojs.org
       @undoWaypointCommit(true)
       unless @element.html().trim()
         @element.html this.options.placeholder
-        unless ( @element.is('h1,h2,h3,h4,h5,h6'))
+        unless ( @element.is('h1,h2,h3,h4,h5,h6, .Document.PageView .Text > .content'))
           # control_base.resizeMaxWidth
           update_size_fn = () =>
             @element.css
               'min-width': ''
               'min-height': ''
-            new_width = @element.innerWidth()
-            new_width-= parseInt(@element.css("padding-right"),10)
-            new_width-= parseInt(@element.css("padding-left"),10)
-            new_height = @element.innerHeight()
-            new_height-= parseInt(@element.css("padding-top"),10)
-            new_height-= parseInt(@element.css("padding-bottom"),10)
-            @element.css
-              'min-width': new_width
-              'min-height': new_height
+            unless ( @element.is('h1,h2,h3,h4,h5,h6, .Document .Text > .content'))
+              new_width = @element.innerWidth()
+              new_width-= parseInt(@element.css("padding-right"),10)
+              new_width-= parseInt(@element.css("padding-left"),10)
+              new_height = @element.innerHeight()
+              new_height-= parseInt(@element.css("padding-top"),10)
+              new_height-= parseInt(@element.css("padding-bottom"),10)
+              @element.css
+                'min-width': new_width
+                'min-height': new_height
           if ( typeof window.current_hallo_resize_handler == 'function' )
             jQuery(window).unbind('resize',window.current_hallo_resize_handler)
           window.current_hallo_resize_handler = update_size_fn
