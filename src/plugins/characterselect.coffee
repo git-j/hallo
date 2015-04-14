@@ -17,7 +17,7 @@
     _content_id: 0
     html: null
     toolbar_target: null
-    seletbox: null
+    selectbox: null
     options:
       editable: null
       toolbar: null
