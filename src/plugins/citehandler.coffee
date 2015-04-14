@@ -113,8 +113,6 @@ class _Citehandler
         ov_data+= '<li class="bibliography selectable">' + utils.tr('endnotes') + ': ' +  @citation_data.bibliography + '</li>'
       ov_data+= '</ul><ul class="actions">'
       # TODO: rewrite to use actions
-      ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
-      ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
       ov_data+= '<li>'
       if ( !@editable || (typeof @editable != 'undefined' && @editable.nugget_only) || @editable.is_auto_editable )
         @_sync_editable(element,false)
@@ -127,6 +125,8 @@ class _Citehandler
       #  ov_data+='<button class="open_url action_button">' + utils.tr_action_title('FileOpenUrl') + '</button></li>'
       #if ( @citation_data.location_in_filesystem )
       #  ov_data+='<button class="open_file_path action_button">' + utils.tr_action_title('FileOpen') + '</button></li>'
+      ov_data+= '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>'
+      ov_data+= '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>'
       ov_data+= '</ul>'
 
       target.append(ov_data)
