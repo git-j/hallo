@@ -774,23 +774,25 @@
         this.undoWaypointCommit(true);
         if (!this.element.html().trim()) {
           this.element.html(this.options.placeholder);
-          if (!(this.element.is('h1,h2,h3,h4,h5,h6'))) {
+          if (!(this.element.is('h1,h2,h3,h4,h5,h6, .Document.PageView .Text > .content'))) {
             update_size_fn = function() {
               var new_height, new_width;
               _this.element.css({
                 'min-width': '',
                 'min-height': ''
               });
-              new_width = _this.element.innerWidth();
-              new_width -= parseInt(_this.element.css("padding-right"), 10);
-              new_width -= parseInt(_this.element.css("padding-left"), 10);
-              new_height = _this.element.innerHeight();
-              new_height -= parseInt(_this.element.css("padding-top"), 10);
-              new_height -= parseInt(_this.element.css("padding-bottom"), 10);
-              return _this.element.css({
-                'min-width': new_width,
-                'min-height': new_height
-              });
+              if (!(_this.element.is('h1,h2,h3,h4,h5,h6, .Document .Text > .content'))) {
+                new_width = _this.element.innerWidth();
+                new_width -= parseInt(_this.element.css("padding-right"), 10);
+                new_width -= parseInt(_this.element.css("padding-left"), 10);
+                new_height = _this.element.innerHeight();
+                new_height -= parseInt(_this.element.css("padding-top"), 10);
+                new_height -= parseInt(_this.element.css("padding-bottom"), 10);
+                return _this.element.css({
+                  'min-width': new_width,
+                  'min-height': new_height
+                });
+              }
             };
             if (typeof window.current_hallo_resize_handler === 'function') {
               jQuery(window).unbind('resize', window.current_hallo_resize_handler);
@@ -3195,7 +3197,7 @@
       _content_id: 0,
       html: null,
       toolbar_target: null,
-      seletbox: null,
+      selectbox: null,
       options: {
         editable: null,
         toolbar: null,
@@ -3712,8 +3714,6 @@
           ov_data += '<li class="bibliography selectable">' + utils.tr('endnotes') + ': ' + _this.citation_data.bibliography + '</li>';
         }
         ov_data += '</ul><ul class="actions">';
-        ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
-        ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
         ov_data += '<li>';
         if (!_this.editable || (typeof _this.editable !== 'undefined' && _this.editable.nugget_only) || _this.editable.is_auto_editable) {
           _this._sync_editable(element, false);
@@ -3725,6 +3725,8 @@
             ov_data += '<button class="remove action_button">' + utils.tr('remove') + '</button></li>';
           }
         }
+        ov_data += '<li><button class="goto action_button">' + utils.tr('goto') + '</button></li>';
+        ov_data += '<li><button class="edit action_button">' + utils.tr('edit') + '</button></li>';
         ov_data += '</ul>';
         target.append(ov_data);
         sourcedescriptioneditor = function() {
