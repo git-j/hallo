@@ -530,16 +530,25 @@ http://hallojs.org
     _click: (event) ->
       event.data.storeContentPosition()
       if ( jQuery('.dropdown-menu').length )
+        if ( jQuery('.dropdown-form:visible').length )
+          jQuery('.dropdown-form:visible').each (index,item) =>
+            jQuery(item).hallodropdownform('hideForm')
         jQuery('.dropdown-menu').hide()
         jQuery('.dropdown-menu').removeClass('open')
 
     _clickdouble: (event) ->
       if ( jQuery('.dropdown-menu').length )
+        if ( jQuery('.dropdown-form:visible').length )
+          jQuery('.dropdown-form:visible').each (index,item) =>
+            jQuery(item).hallodropdownform('hideForm')
         jQuery('.dropdown-menu').hide()
         jQuery('.dropdown-menu').removeClass('open')
 
     _clickdown: (event) ->
       if ( jQuery('.dropdown-menu').length )
+        if ( jQuery('.dropdown-form:visible').length )
+          jQuery('.dropdown-form:visible').each (index,item) =>
+            jQuery(item).hallodropdownform('hideForm')
         jQuery('.dropdown-menu').hide()
         jQuery('.dropdown-menu').removeClass('open')
 
