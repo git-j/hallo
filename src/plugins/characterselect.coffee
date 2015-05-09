@@ -10,7 +10,6 @@
     tmpid: 0
     selected_row: null
     selected_cell: null
-    html: null
     options:
       editable: null
       toolbar: null
@@ -27,42 +26,35 @@
         console.log('setup characterselect form',select_target,target_id) if @debug
         return if rangy.getSelection().rangeCount == 0 && typeof select_target == 'undefined'
         @options.editable.undoWaypointStart('character')
-        @tmpid='mod_' + (new Date()).getTime()
+        @tmpid = 'mod_' + (new Date()).getTime()
+        @selected_text = ''
         selection = rangy.getSelection()
         if ( selection.rangeCount > 0 )
           range = selection.getRangeAt(0)
+          @selected_text = $(range.cloneContents()).text()
+          range.deleteContents()
         else
           range = rangy.createRange()
           range.selectNode(@options.editable.element[0])
           range.collapse()
-        @action = 'insert'
+        @original_selected_text = @selected_text
         # TODO use wke env to get theme
-        @cur_characters = jQuery('<span class="insert_characterselect">')
+        @cur_characters = jQuery('<span class="characters">')
+        @cur_characters.attr('id',@tmpid)
+        @cur_characters.text(@original_selected_text)
         @options.editable.getSelectionStartNode (insert_position) =>
           if ( insert_position.length )
             @cur_characters.insertBefore(insert_position)
           else
             @options.editable.append(@cur_characters)
         #console.log(@cur_characters)
-        @updateCharacterHTML(contentId)
-        @_setupForm()
-        recalc = =>
-          @recalcHTML(target.attr('id'))
+        @_setupForm(contentId)
         jQuery('#' + contentId).unbind 'hide', jQuery.proxy(@_destroyForm,@)
         jQuery('#' + contentId).bind 'hide', jQuery.proxy(@_destroyForm,@)
         return true
-        window.setTimeout recalc, 300
       @dropdownform = @_prepareButton setup, target
       buttonset.append @dropdownform
       toolbar.append buttonset
-
-    updateCharacterHTML: (contentId) ->
-      character = @cur_characters
-      return character[0].outerHTML #?
-
-    recalcHTML: (contentId) ->
-      @html = @updateCharacterHTML(contentId)
-      @options.editable.store()
 
     _prepareDropdown: (contentId) ->
       contentArea = jQuery '<div id="' + contentId + '"><div class="subform"></div><ul></ul></div>'
@@ -80,17 +72,18 @@
         el
 
       contentAreaUL.append addButton "apply", =>
-        @recalcHTML(contentId)
-        image = $('#' + @tmpid)
-        @options.editable.setContentPosition(image)
-        image.removeAttr('id')
+        @cur_characters.text(@dropdownsubform.characterSelect('value'))
+        @options.editable.setContentPosition(@cur_characters)
+        @cur_characters.removeAttr('id')
+        @cur_characters.contents().unwrap()
         @options.editable.undoWaypointCommit()
         @dropdownsubform.characterSelect('destroy')
         @dropdownform.hallodropdownform('hideForm')
-      contentAreaUL.append addButton "remove", =>
-        image = $('#' + @tmpid)
-        image.closest('.image_container').remove()
-        image.remove()
+      contentAreaUL.append addButton "Cancel", =>
+        @cur_characters.text(@original_selected_text)
+        @options.editable.setContentPosition(@cur_characters)
+        @cur_characters.removeAttr('id')
+        @cur_characters.contents().unwrap()
         @options.editable.undoWaypointCommit()
         @dropdownsubform.characterSelect('destroy')
         @dropdownform.hallodropdownform('hideForm')
@@ -114,11 +107,13 @@
     _destroyForm: () ->
       @dropdownsubform.characterSelect('destroy')
 
-    _setupForm: () ->
+    _setupForm: (contentId) ->
       plugin_options =
-        characters: this.cur_characters.text()
-      @dropdownsubform.characterSelect('destroy')
+        characters: @selected_text
+      @dropdownsubform = $('#' + contentId + ' .subform');
+      jQuery('select').selectBox('destroy')
+      jQuery('.selectbox-dropdown-menu').remove()
       @dropdownsubform.characterSelect(plugin_options)
-      @dropdownsubform.characterSelect('createMenu', [@tmpid]);
+      @dropdownsubform.characterSelect('render')
 
 )(jQuery)
