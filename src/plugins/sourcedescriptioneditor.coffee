@@ -32,7 +32,7 @@
     _init: ->
       #debug.log('sourcedescriptioneditor initialized',@options)
 
-      @options.tip_element.hide() if @options.tip_element
+      @options.tip_element.qtip('hide') if @options.tip_element
       if jQuery('.selectBox-dropdown-menu').length
         jQuery('.selectBox-dropdown-menu').remove()
       if jQuery('#cite_editor').length
@@ -55,41 +55,43 @@
         @selectables = '<option value="">' + utils.tr('more') + '</option>'
         needs_number_of_pages = false
         needs_number_of_pages = true if sdi.publication.instance_type_definition == 'PubBook' || sdi.publication.instance_type_definition == 'PubBookSection' || sdi.publication.instance_type_definition == 'PubJournalArticle' || sdi.publication.instance_type_definition == 'PubMagazineArticle' || sdi.publication.instance_type_definition == 'PubEncyclopediaArticle' || sdi.publication.instance_type_definition == 'PubConferencePaper' || sdi.publication.instance_type_definition == 'PubNewspaperArticle'
-        jQuery.each sdi.description, (index, value) =>
-          return if index == '__AUTOIDENT' || index == 'loid' || index == 'type' || index == 'tr_title' || index == 'related_persons'
-          return if sdi.instance[index] == undefined
-          return if !value.label
-          qvalue = sdi.instance[index]
+        jQuery.each constants.publication_order[sdi.publication.instance_type_definition], (index,attribute_name) =>
+          return if attribute_name == '__AUTOIDENT' || attribute_name == 'loid' || attribute_name == 'type' || attribute_name == 'tr_title' || attribute_name == 'related_persons'
+          return if sdi.instance[attribute_name] == undefined
+          return if !sdi.description[attribute_name].label
+          qvalue = sdi.instance[attribute_name]
           if ( qvalue == '' )
-            if ( needs_number_of_pages && index == 'number_of_pages' )
-              inputs.append(@_createInput(index,value.label,qvalue))
-            else
-              @selectables+='<option value="' + index + '">' + value.label + '</option>'
+            if ( needs_number_of_pages && attribute_name == 'number_of_pages' )
+              inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
+            else if ( attribute_name == 'notes' | attribute_name == 'notes' )
+              inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
           else
-            inputs.append(@_createInput(index,value.label,qvalue))
-        @widget.append('<div class="top_bar"><label>&nbsp;</label><div class="max_width"><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div></div>')
+            inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
+        # @widget.append('<div class="top_bar"><label>&nbsp;</label><div class="max_width"><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div></div>')
+        @widget.append('<div class="top_bar"><label>&nbsp;</label></div>')
         @widget.append(inputs)
         str_html_buttons = ''
         if @options.back
           str_html_buttons = '<button id="sourcedescriptioneditor_back" class="action_button">' + utils.tr('back') + '</button>'
         str_html_buttons+= '<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>'
+        str_html_buttons+= '<button id="sourcedescriptioneditor_goto" class="action_button">' + utils.tr('goto') + '</button>'
         @widget.append('<div class="button_container">' + str_html_buttons + '</div>')
         jQuery(window).resize()
-        jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
-        jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
-          new_input = jQuery(ev.target).val()
-          return if ( new_input == '' )
-          input = @_createInput(new_input,sdi.description[new_input].label,'');
-          inputs.append(input)
-          jQuery(window).resize()
-          input.find('input').focus()
-          sels = jQuery('<select>' + @selectables + '</select>')
-          sels.find('option[value="' + new_input + '"]').remove();
-          @selectables = sels.html()
-          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
-          jQuery('#sourcedescriptioneditor_selectable').html(@selectables )
-          jQuery('#sourcedescriptioneditor_selectable').selectBox()
-          #/bind change selectable
+#        jQuery('#sourcedescriptioneditor_selectable').selectBox() if jQuery('body').selectBox
+#        jQuery('#sourcedescriptioneditor_selectable').bind 'change', (ev) =>
+#          new_input = jQuery(ev.target).val()
+#          return if ( new_input == '' )
+#          input = @_createInput(new_input,sdi.description[new_input].label,'');
+#          inputs.append(input)
+#          jQuery(window).resize()
+#          input.find('input').focus()
+#          sels = jQuery('<select>' + @selectables + '</select>')
+#          sels.find('option[value="' + new_input + '"]').remove();
+#          @selectables = sels.html()
+#          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
+#          jQuery('#sourcedescriptioneditor_selectable').html(@selectables )
+#          jQuery('#sourcedescriptioneditor_selectable').selectBox()
+#          #/bind change selectable
         jQuery('#sourcedescriptioneditor_apply').bind 'click', =>
           @widget.focus() # trigger form changed
           values = jQuery.extend({},@options.values)
@@ -140,7 +142,7 @@
           # run the action
           undo_command.redo()
           undo_manager = (new UndoManager()).getStack()
-          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
+          #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @widget.remove()
           jQuery('#content, #toolbar').show()
           jQuery('body').css({'overflow':'auto'})
@@ -151,12 +153,23 @@
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
           @options.orig_values = {}
-          jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
+          #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           jQuery('.form_display').remove();
           jQuery('#content, #toolbar').show()
           jQuery('body').css({'overflow':'auto'})
           jQuery(window).scrollTop(@scroll_pos_before_show)
           #/bind click back
+        jQuery('#sourcedescriptioneditor_goto').bind 'click', =>
+          if ( typeof @options.data != 'object' || parseInt(@options.data.publication_loid,10) == 0 )
+            jQuery('#sourcedescriptioneditor_goto').hide()
+          occ.GotoObject(@options.data.publication_loid)
+          @options.values = {}
+          @options.orig_values = {}
+          #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
+          jQuery('.form_display').remove();
+          jQuery('#content, #toolbar').show()
+          jQuery('body').css({'overflow':'auto'})
+          jQuery(window).scrollTop(@scroll_pos_before_show)
         window.setTimeout =>
           jQuery(window).resize()
           if ( @widget.find('#number_of_pages').length )
@@ -184,6 +197,8 @@
         input.val(value)
       if ( identifier == 'number_of_pages' || identifier == 'notes' || identifier == 'running_time' || identifier == 'code_volume' || identifier == 'code_pages' || identifier == 'code_sections' )
         label.addClass('persistent_sourcedescription_attribute')
+      else
+        input.attr('disabled','true')
       row.append(input)
       # if ( tooltip )
       #  input.attr('title',tooltip)
