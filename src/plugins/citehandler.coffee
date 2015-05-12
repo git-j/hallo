@@ -35,13 +35,10 @@ class _Citehandler
     @citation_data = {}
     @tips = jQuery('<span></span>')
     @overlay_id = 'cite_overlay'
-    @sourcedescription_loid = 0
-    @tips.hallotipoverlay (
-      'selector': '.cite'
-      'tip_id': @overlay_id
-      'data_cb': jQuery.proxy(@_makeTip,@)
-    )
+    @_makeTip()
+
   # remove all editable sourcedescription and recreate them with the current data
+  # called from the toolbar
   setupSourceDescriptions: (target, editable, add_element_cb) ->
     # debug.log('setup sourcedescriptions...')
     target.find('.SourceDescription').remove()
@@ -58,17 +55,6 @@ class _Citehandler
     if ( omc_settings )
       omc_settings.getSettings().done (current_settings) =>
         @settings = current_settings
-
-  # update the data that is used for the given element (editable.closest('.nugget'))
-  _updateCitationDisplay: (element) -> #element: jq-dom-node
-    #debug.log('update citation')
-    @footnote = ''
-    @bibliography = ''
-    @citation_data = {}
-    @sourcedescription_loid = 0
-    
-    #TODO update publication_type from sourcedescription
-    return domnugget.getSourceDescriptionData(element)
 
   # with multiple editables, the given element (usualy triggered by mouseover)
   # must find its parent editable in order to perform correctly
@@ -93,48 +79,37 @@ class _Citehandler
 
   # create the HTML for the hallotip by evaluating the nugget sourcedescription, the citation data
   # and creating bibliographies
-  _makeTip: (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
+  _makeTip: () -> # (target, element) -> # target: jq-dom-node (tip), element: jq-dom-node (tipping element)
     @_updateSettings()
-    ov_data = ''
-    @tip_element = target
-    @tipping_element = element
-    update_dfd = @_updateCitationDisplay(@tipping_element)
-    update_dfd.always (current_citation_data) =>
-      if ( typeof current_citation_data == 'undefined' )
-        current_citation_data = {}
-      @citation_data = current_citation_data
-      @citation_data.is_auto_cite = false
-      if ( typeof @editable == 'object' && null != @editable && @editable.element )
-        if ( @tipping_element.closest('.cite').hasClass('auto-cite') )
-          @citation_data.is_auto_cite = true
-      if ( window.citeproc )
-        citation_processor = window.citeproc
-      else
-        citation_processor = new ICiteProc()
-      domnugget = new DOMNugget();
-      popup_widget = $('<div>')
-      popup_widget.citationPopup (
-        citation_processor: citation_processor
-        class_name: 'hallo_sourcedescription_popup'
-        goto_action: (publication_loid) =>
-          occ.GotoObject(publication_loid)
-          # activity_router.gotoInstance(publication_loid)
-        goto_url_action: (url) =>
-          wke.openUrlInBrowser(url)
-        goto_file_action: (filename) =>
-          utils.correctAndOpenFilePath(filename)
-        edit_action: jQuery.proxy(@_sourcedescriptioneditorAction,@)
-        remove_action: jQuery.proxy(@_removeAction,@)
-        remove_from_nugget_action: jQuery.proxy(@_removeAction,@)
-        get_source_description_data: domnugget.getSourceDescriptionData
-      )
-      popup_widget.citationPopup('setCitationData',@citation_data)
-      @tip_element.append(popup_widget)
-      @tipping_element.bind 'click', (ev) =>
-         @_sourcedescriptioneditorAction(@citation_data)
-  _sourcedescriptioneditorAction: (citation_data) =>
-    @_sync_editable(@tipping_element,true)
-    dom_nugget = @tipping_element.closest('.nugget')
+    is_auto_cite = false
+    if ( typeof @editable == 'object' && null != @editable && @editable.element )
+      if ( @tipping_element.closest('.cite').hasClass('auto-cite') )
+        is_auto_cite = true;
+    if ( window.citeproc )
+      citation_processor = window.citeproc
+    else
+      citation_processor = new ICiteProc()
+    domnugget = new DOMNugget();
+    jQuery('body').citationPopup (
+      citation_processor: citation_processor
+      class_name: 'hallo_sourcedescription_popup'
+      goto_action: (publication_loid) =>
+        occ.GotoObject(publication_loid)
+        # activity_router.gotoInstance(publication_loid)
+      goto_url_action: (url) =>
+        wke.openUrlInBrowser(url)
+      goto_file_action: (filename) =>
+        utils.correctAndOpenFilePath(filename)
+      edit_action: jQuery.proxy(@_sourcedescriptioneditorAction,@)
+      remove_action: jQuery.proxy(@_removeAction,@)
+      remove_from_nugget_action: jQuery.proxy(@_removeAction,@)
+      get_source_description_data: domnugget.getSourceDescriptionData
+      citation_selector: '.cite'
+    )
+
+  _sourcedescriptioneditorAction: (citation_data, tip_element, tipping_element) =>
+    @_sync_editable(tipping_element,true)
+    dom_nugget = tipping_element.closest('.nugget')
     if ( typeof UndoManager != 'undefined' && typeof @editable.undoWaypointIdentifier == 'function' )
       wpid = @editable.undoWaypointIdentifier(dom_nugget)
       undo_stack = (new UndoManager()).getStack(wpid)
@@ -142,29 +117,30 @@ class _Citehandler
     jQuery('body').hallosourcedescriptioneditor
       'loid': citation_data.loid
       'data': citation_data
-      'element': @tipping_element
-      'tip_element': @tip_element
+      'element': tipping_element
+      'tip_element': tip_element
       'back':true
       'nugget_loid':@editable.element.closest('.Text').attr('id')
-  _removeAction: (citation_data) =>
+
+  _removeAction: (citation_data, tip_element, tipping_element) =>
     nugget = new DOMNugget();
-    @_sync_editable(@tipping_element,true)
-    loid = @tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
+    @_sync_editable(tipping_element,true)
+    loid = tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
     #console.log(loid);
 
-    citation = @tipping_element.closest('.cite').prev('.citation')
-    is_auto_cite =  @tipping_element.closest('.cite').hasClass('auto-cite')
+    citation = tipping_element.closest('.cite').prev('.citation')
+    is_auto_cite =  tipping_element.closest('.cite').hasClass('auto-cite')
     citation_html = ''
     if ( !citation_data.processed )
-      loid = @tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
-      citation = @tipping_element.closest('.cite').prev('.citation')
+      loid = tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/,'$1')
+      citation = tipping_element.closest('.cite').prev('.citation')
       if ( citation.length )
         citation_html = citation.html()
         #not that simple: citation.selectText()
         citation.contents().unwrap();
         #console.log(citation.html())
-      if ( @tipping_element.closest('.cite').length )
-        cite =  @tipping_element.closest('.cite')
+      if ( tipping_element.closest('.cite').length )
+        cite =  tipping_element.closest('.cite')
         #not that simple: @tipping_element.closest('.cite').selectText()
         cite.remove()
       jQuery('#' + @overlay_id).remove()
@@ -178,8 +154,8 @@ class _Citehandler
     if ( is_auto_cite )
       sd_loid = citation_data.loid
       nugget.removeSourceDescription(@editable.element,sd_loid)
-    if ( @tipping_element.closest('.cite').length )
-      cite =  @tipping_element.closest('.cite')
+    if ( tipping_element.closest('.cite').length )
+      cite = tipping_element.closest('.cite')
       #not that simple: @tipping_element.closest('.cite').selectText()
       cite.remove()
       $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html)
