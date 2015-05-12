@@ -928,6 +928,9 @@ http://hallojs.org
         window.clearTimeout(@autostore_timer)
       if ( jQuery('.inEditMode').length )
         #avoid multiple instances that fail to turn of their toolbars
+        if ( jQuery('.inEditMode')[0] == @element[0] )
+          # already turned on
+          return
         jQuery('.inEditMode').hallo('turnOff')
       if this.getContents() is this.options.placeholder
         #this.setContents ' '
@@ -959,7 +962,7 @@ http://hallojs.org
       if @options.store_callback
         contents = @getContents()
         contents_dom = $('<div>' + contents + '</div>');
-        if ( !contents_dom.find('table, img, .formula').length )
+        if ( !contents_dom.find('table, img, .formula, .characters').length )
           contents_text = contents_dom.text()
           contents_text = contents_text.replace(/\n/g,' ');
           if contents_text.trim() == '' || contents_text == @options.placeholder
@@ -987,7 +990,7 @@ http://hallojs.org
       if event.data.options.store_callback
         contents = event.data.getContents()
         contents_dom = $('<div>' + contents + '</div>');
-        if ( !contents_dom.find('table, img, .formula').length )
+        if ( !contents_dom.find('table, img, .formula, .characters').length )
           contents_text = contents_dom.text()
           contents_text = contents_text.replace(/\n/g,' ');
           if contents_text.trim() == '' || contents_text == event.data.options.placeholder
