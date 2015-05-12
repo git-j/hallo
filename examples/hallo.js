@@ -2856,153 +2856,6 @@
   })(jQuery);
 
   (function(jQuery) {
-    return jQuery.widget('IKS.hallotipoverlay', {
-      options: {
-        editable: null,
-        toolbar: null,
-        selector: '.cite',
-        tip_id: '#__hallotipoverlay',
-        can_edit: false,
-        data_cb: null,
-        timeout: 500,
-        default_css: {
-          'position': 'fixed',
-          'margin-top': '1em',
-          'min-height': '2em',
-          'min-width': '420px',
-          'z-index': '99998',
-          'top': '0',
-          'left': '0'
-        }
-      },
-      can_hide: 0,
-      node: null,
-      timeout: 0,
-      tip_node: null,
-      _create: function() {
-        return this.bindEvents();
-      },
-      bindEvents: function() {
-        var can_edit, hide_fn, show_fn;
-        show_fn = jQuery.proxy(this._show, this);
-        hide_fn = jQuery.proxy(this._hide, this);
-        jQuery(window).bind('scroll', function(ev) {
-          return hide_fn();
-        });
-        can_edit = this.options.can_edit;
-        return jQuery(this.options.selector).live('mouseover', function(ev) {
-          jQuery(this).attr('contenteditable', can_edit);
-          return show_fn(this);
-        });
-      },
-      _restartCheckHide: function() {
-        var check_hide_fn;
-        window.clearTimeout(this.timeout);
-        check_hide_fn = jQuery.proxy(this._checkHide, this);
-        return this.timeout = window.setTimeout(check_hide_fn, this.options.timeout);
-      },
-      _hide: function(cb) {
-        var _this = this;
-        if (this.tip_node && this.tip_node.length) {
-          this.tip_node.unbind();
-          this.tip_node.fadeOut(100, function() {
-            _this.tip_node.remove();
-            _this.can_hide = 0;
-            _this.node = null;
-            if (cb && !cb.target) {
-              return cb();
-            }
-          });
-        } else {
-          this.can_hide = 0;
-          this.node = null;
-          if (cb && !cb.target) {
-            cb();
-          }
-        }
-        return window.clearTimeout(this.timeout);
-      },
-      _checkHide: function() {
-        if (this.can_hide === 1) {
-          this._restartCheckHide();
-        }
-        if (this.can_hide === 2) {
-          return this._hide();
-        }
-      },
-      _show: function(target) {
-        var b_width, data, element, newleft, node_unbind, node_unbind_ptr, ov_height, ov_top, ov_width, position, w_height,
-          _this = this;
-        element = jQuery(target);
-        if (this.can_hide > 0 && this.node && this.node.length && element[0] !== this.node[0]) {
-          this._hide(function() {
-            return _this._show(target);
-          });
-        }
-        if (this.can_hide === 0) {
-          data = '[dev] no callback defined for tipoverlay.options.data_cb: ' + element.html();
-          if ((jQuery('#' + this.options.tip_id).length)) {
-            jQuery('#' + this.options.tip_id).remove;
-          }
-          this.tip_node = jQuery('<span id="' + this.options.tip_id + '"></span>');
-          this.tip_node.css(this.options.default_css);
-          if (this.options.data_cb) {
-            this.options.data_cb(this.tip_node, element);
-          }
-          jQuery('body').append(this.tip_node);
-          ov_width = this.tip_node.width();
-          ov_height = this.tip_node.height();
-          b_width = jQuery('body').width() - 15;
-          w_height = jQuery(window).height();
-          position = element.offset();
-          this.tip_node.css({
-            'left': position.left,
-            'top': position.top
-          });
-          if (position.left + ov_width > b_width) {
-            newleft = b_width - ov_width;
-            this.tip_node.css('left', newleft);
-          }
-          ov_top = position.top - jQuery('body').scrollTop();
-          if (ov_top + ov_height > w_height) {
-            this.tip_node.css('top', ov_top - 20 - ov_height);
-          } else {
-            this.tip_node.css('top', ov_top);
-          }
-          this.tip_node.hide();
-          this.tip_node.fadeIn(300);
-          this.can_hide = 2;
-          this.node = element;
-          node_unbind_ptr = null;
-          node_unbind = function() {
-            element.unbind('mouseleave', node_unbind_ptr);
-            if (_this.node && _this.node.length && element[0] === _this.node[0]) {
-              _this.can_hide = 2;
-              return _this._restartCheckHide();
-            }
-          };
-          node_unbind_ptr = node_unbind;
-          element.bind('mouseleave', node_unbind_ptr);
-          this.tip_node.bind('mouseenter', function() {
-            _this.can_hide = 1;
-            _this._restartCheckHide();
-            return _this.tip_node.animate({
-              'opacity': '1'
-            });
-          });
-          return this.tip_node.bind('mouseleave', function() {
-            _this.can_hide = 2;
-            _this._restartCheckHide();
-            return _this.tip_node.animate({
-              'opacity': '0.6'
-            });
-          });
-        }
-      }
-    });
-  })(jQuery);
-
-  (function(jQuery) {
     return jQuery.widget('IKS.hallocleanup', {
       dropdownform: null,
       tmpid: 0,
@@ -3397,12 +3250,7 @@
       this.citation_data = {};
       this.tips = jQuery('<span></span>');
       this.overlay_id = 'cite_overlay';
-      this.sourcedescription_loid = 0;
-      this.tips.hallotipoverlay({
-        'selector': '.cite',
-        'tip_id': this.overlay_id,
-        'data_cb': jQuery.proxy(this._makeTip, this)
-      });
+      this._makeTip();
     }
 
     _Citehandler.prototype.setupSourceDescriptions = function(target, editable, add_element_cb) {
@@ -3424,14 +3272,6 @@
           return _this.settings = current_settings;
         });
       }
-    };
-
-    _Citehandler.prototype._updateCitationDisplay = function(element) {
-      this.footnote = '';
-      this.bibliography = '';
-      this.citation_data = {};
-      this.sourcedescription_loid = 0;
-      return domnugget.getSourceDescriptionData(element);
     };
 
     _Citehandler.prototype._sync_editable = function(element, change_focus) {
@@ -3456,62 +3296,46 @@
       }
     };
 
-    _Citehandler.prototype._makeTip = function(target, element) {
-      var ov_data, update_dfd,
+    _Citehandler.prototype._makeTip = function() {
+      var citation_processor, domnugget, is_auto_cite,
         _this = this;
       this._updateSettings();
-      ov_data = '';
-      this.tip_element = target;
-      this.tipping_element = element;
-      update_dfd = this._updateCitationDisplay(this.tipping_element);
-      return update_dfd.always(function(current_citation_data) {
-        var citation_processor, domnugget, popup_widget;
-        if (typeof current_citation_data === 'undefined') {
-          current_citation_data = {};
+      is_auto_cite = false;
+      if (typeof this.editable === 'object' && null !== this.editable && this.editable.element) {
+        if (this.tipping_element.closest('.cite').hasClass('auto-cite')) {
+          is_auto_cite = true;
         }
-        _this.citation_data = current_citation_data;
-        _this.citation_data.is_auto_cite = false;
-        if (typeof _this.editable === 'object' && null !== _this.editable && _this.editable.element) {
-          if (_this.tipping_element.closest('.cite').hasClass('auto-cite')) {
-            _this.citation_data.is_auto_cite = true;
-          }
-        }
-        if (window.citeproc) {
-          citation_processor = window.citeproc;
-        } else {
-          citation_processor = new ICiteProc();
-        }
-        domnugget = new DOMNugget();
-        popup_widget = $('<div>');
-        popup_widget.citationPopup({
-          citation_processor: citation_processor,
-          class_name: 'hallo_sourcedescription_popup',
-          goto_action: function(publication_loid) {
-            return occ.GotoObject(publication_loid);
-          },
-          goto_url_action: function(url) {
-            return wke.openUrlInBrowser(url);
-          },
-          goto_file_action: function(filename) {
-            return utils.correctAndOpenFilePath(filename);
-          },
-          edit_action: jQuery.proxy(_this._sourcedescriptioneditorAction, _this),
-          remove_action: jQuery.proxy(_this._removeAction, _this),
-          remove_from_nugget_action: jQuery.proxy(_this._removeAction, _this),
-          get_source_description_data: domnugget.getSourceDescriptionData
-        });
-        popup_widget.citationPopup('setCitationData', _this.citation_data);
-        _this.tip_element.append(popup_widget);
-        return _this.tipping_element.bind('click', function(ev) {
-          return _this._sourcedescriptioneditorAction(_this.citation_data);
-        });
+      }
+      if (window.citeproc) {
+        citation_processor = window.citeproc;
+      } else {
+        citation_processor = new ICiteProc();
+      }
+      domnugget = new DOMNugget();
+      return jQuery('body').citationPopup({
+        citation_processor: citation_processor,
+        class_name: 'hallo_sourcedescription_popup',
+        goto_action: function(publication_loid) {
+          return occ.GotoObject(publication_loid);
+        },
+        goto_url_action: function(url) {
+          return wke.openUrlInBrowser(url);
+        },
+        goto_file_action: function(filename) {
+          return utils.correctAndOpenFilePath(filename);
+        },
+        edit_action: jQuery.proxy(this._sourcedescriptioneditorAction, this),
+        remove_action: jQuery.proxy(this._removeAction, this),
+        remove_from_nugget_action: jQuery.proxy(this._removeAction, this),
+        get_source_description_data: domnugget.getSourceDescriptionData,
+        citation_selector: '.cite'
       });
     };
 
-    _Citehandler.prototype._sourcedescriptioneditorAction = function(citation_data) {
+    _Citehandler.prototype._sourcedescriptioneditorAction = function(citation_data, tip_element, tipping_element) {
       var dom_nugget, undo_stack, wpid;
-      this._sync_editable(this.tipping_element, true);
-      dom_nugget = this.tipping_element.closest('.nugget');
+      this._sync_editable(tipping_element, true);
+      dom_nugget = tipping_element.closest('.nugget');
       if (typeof UndoManager !== 'undefined' && typeof this.editable.undoWaypointIdentifier === 'function') {
         wpid = this.editable.undoWaypointIdentifier(dom_nugget);
         undo_stack = (new UndoManager()).getStack(wpid);
@@ -3520,31 +3344,31 @@
       return jQuery('body').hallosourcedescriptioneditor({
         'loid': citation_data.loid,
         'data': citation_data,
-        'element': this.tipping_element,
-        'tip_element': this.tip_element,
+        'element': tipping_element,
+        'tip_element': tip_element,
         'back': true,
         'nugget_loid': this.editable.element.closest('.Text').attr('id')
       });
     };
 
-    _Citehandler.prototype._removeAction = function(citation_data) {
+    _Citehandler.prototype._removeAction = function(citation_data, tip_element, tipping_element) {
       var citation, citation_html, cite, dom_nugget, is_auto_cite, loid, nugget, publication_loid, sd_loid, undo_stack, wpid,
         _this = this;
       nugget = new DOMNugget();
-      this._sync_editable(this.tipping_element, true);
-      loid = this.tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
-      citation = this.tipping_element.closest('.cite').prev('.citation');
-      is_auto_cite = this.tipping_element.closest('.cite').hasClass('auto-cite');
+      this._sync_editable(tipping_element, true);
+      loid = tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
+      citation = tipping_element.closest('.cite').prev('.citation');
+      is_auto_cite = tipping_element.closest('.cite').hasClass('auto-cite');
       citation_html = '';
       if (!citation_data.processed) {
-        loid = this.tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
-        citation = this.tipping_element.closest('.cite').prev('.citation');
+        loid = tipping_element.closest('.cite').attr('class').replace(/^.*sourcedescription-(\d*).*$/, '$1');
+        citation = tipping_element.closest('.cite').prev('.citation');
         if (citation.length) {
           citation_html = citation.html();
           citation.contents().unwrap();
         }
-        if ((this.tipping_element.closest('.cite').length)) {
-          cite = this.tipping_element.closest('.cite');
+        if ((tipping_element.closest('.cite').length)) {
+          cite = tipping_element.closest('.cite');
           cite.remove();
         }
         jQuery('#' + this.overlay_id).remove();
@@ -3558,8 +3382,8 @@
         sd_loid = citation_data.loid;
         nugget.removeSourceDescription(this.editable.element, sd_loid);
       }
-      if ((this.tipping_element.closest('.cite').length)) {
-        cite = this.tipping_element.closest('.cite');
+      if ((tipping_element.closest('.cite').length)) {
+        cite = tipping_element.closest('.cite');
         cite.remove();
         $('.sourcedescription-' + loid).prev('.citation').replaceWith(citation_html);
         $('.sourcedescription-' + loid).remove();
@@ -3765,7 +3589,7 @@
         var inputs, nugget,
           _this = this;
         if (this.options.tip_element) {
-          this.options.tip_element.hide();
+          this.options.tip_element.qtip('hide');
         }
         if (jQuery('.selectBox-dropdown-menu').length) {
           jQuery('.selectBox-dropdown-menu').remove();
@@ -3792,57 +3616,38 @@
           if (sdi.publication.instance_type_definition === 'PubBook' || sdi.publication.instance_type_definition === 'PubBookSection' || sdi.publication.instance_type_definition === 'PubJournalArticle' || sdi.publication.instance_type_definition === 'PubMagazineArticle' || sdi.publication.instance_type_definition === 'PubEncyclopediaArticle' || sdi.publication.instance_type_definition === 'PubConferencePaper' || sdi.publication.instance_type_definition === 'PubNewspaperArticle') {
             needs_number_of_pages = true;
           }
-          jQuery.each(sdi.description, function(index, value) {
+          jQuery.each(constants.publication_order[sdi.publication.instance_type_definition], function(index, attribute_name) {
             var qvalue;
-            if (index === '__AUTOIDENT' || index === 'loid' || index === 'type' || index === 'tr_title' || index === 'related_persons') {
+            if (attribute_name === '__AUTOIDENT' || attribute_name === 'loid' || attribute_name === 'type' || attribute_name === 'tr_title' || attribute_name === 'related_persons') {
               return;
             }
-            if (sdi.instance[index] === void 0) {
+            if (sdi.instance[attribute_name] === void 0) {
               return;
             }
-            if (!value.label) {
+            if (!sdi.description[attribute_name].label) {
               return;
             }
-            qvalue = sdi.instance[index];
+            qvalue = sdi.instance[attribute_name];
             if (qvalue === '') {
-              if (needs_number_of_pages && index === 'number_of_pages') {
-                return inputs.append(_this._createInput(index, value.label, qvalue));
-              } else {
-                return _this.selectables += '<option value="' + index + '">' + value.label + '</option>';
+              if (needs_number_of_pages && attribute_name === 'number_of_pages') {
+                return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
+              } else if (attribute_name === 'notes' | attribute_name === 'notes') {
+                return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
               }
             } else {
-              return inputs.append(_this._createInput(index, value.label, qvalue));
+              return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
             }
           });
-          _this.widget.append('<div class="top_bar"><label>&nbsp;</label><div class="max_width"><select id="sourcedescriptioneditor_selectable">' + _this.selectables + '</select></div></div>');
+          _this.widget.append('<div class="top_bar"><label>&nbsp;</label></div>');
           _this.widget.append(inputs);
           str_html_buttons = '';
           if (_this.options.back) {
             str_html_buttons = '<button id="sourcedescriptioneditor_back" class="action_button">' + utils.tr('back') + '</button>';
           }
           str_html_buttons += '<button id="sourcedescriptioneditor_apply" class="action_button">' + utils.tr('apply') + '</button>';
+          str_html_buttons += '<button id="sourcedescriptioneditor_goto" class="action_button">' + utils.tr('goto') + '</button>';
           _this.widget.append('<div class="button_container">' + str_html_buttons + '</div>');
           jQuery(window).resize();
-          if (jQuery('body').selectBox) {
-            jQuery('#sourcedescriptioneditor_selectable').selectBox();
-          }
-          jQuery('#sourcedescriptioneditor_selectable').bind('change', function(ev) {
-            var input, new_input, sels;
-            new_input = jQuery(ev.target).val();
-            if (new_input === '') {
-              return;
-            }
-            input = _this._createInput(new_input, sdi.description[new_input].label, '');
-            inputs.append(input);
-            jQuery(window).resize();
-            input.find('input').focus();
-            sels = jQuery('<select>' + _this.selectables + '</select>');
-            sels.find('option[value="' + new_input + '"]').remove();
-            _this.selectables = sels.html();
-            jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
-            jQuery('#sourcedescriptioneditor_selectable').html(_this.selectables);
-            return jQuery('#sourcedescriptioneditor_selectable').selectBox();
-          });
           jQuery('#sourcedescriptioneditor_apply').bind('click', function() {
             var loid, nugget_loid, orig_values, undo_command, undo_manager, values;
             _this.widget.focus();
@@ -3903,7 +3708,6 @@
             };
             undo_command.redo();
             undo_manager = (new UndoManager()).getStack();
-            jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
             _this.widget.remove();
             jQuery('#content, #toolbar').show();
             jQuery('body').css({
@@ -3917,7 +3721,20 @@
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
             _this.options.orig_values = {};
-            jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy');
+            jQuery('.form_display').remove();
+            jQuery('#content, #toolbar').show();
+            jQuery('body').css({
+              'overflow': 'auto'
+            });
+            return jQuery(window).scrollTop(_this.scroll_pos_before_show);
+          });
+          jQuery('#sourcedescriptioneditor_goto').bind('click', function() {
+            if (typeof _this.options.data !== 'object' || parseInt(_this.options.data.publication_loid, 10) === 0) {
+              jQuery('#sourcedescriptioneditor_goto').hide();
+            }
+            occ.GotoObject(_this.options.data.publication_loid);
+            _this.options.values = {};
+            _this.options.orig_values = {};
             jQuery('.form_display').remove();
             jQuery('#content, #toolbar').show();
             jQuery('body').css({
@@ -3957,6 +3774,8 @@
         }
         if (identifier === 'number_of_pages' || identifier === 'notes' || identifier === 'running_time' || identifier === 'code_volume' || identifier === 'code_pages' || identifier === 'code_sections') {
           label.addClass('persistent_sourcedescription_attribute');
+        } else {
+          input.attr('disabled', 'true');
         }
         row.append(input);
         if (jQuery.datepicker && (identifier === 'date' || 'identifier' === 'accessed')) {
