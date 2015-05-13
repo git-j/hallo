@@ -79,7 +79,7 @@
         @options.editable.undoWaypointCommit()
         @dropdownsubform.characterSelect('destroy')
         @dropdownform.hallodropdownform('hideForm')
-      contentAreaUL.append addButton "Cancel", =>
+      contentAreaUL.append addButton "cancel", =>
         @cur_characters.text(@original_selected_text)
         @options.editable.setContentPosition(@cur_characters)
         @cur_characters.removeAttr('id')
