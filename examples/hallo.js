@@ -3621,10 +3621,10 @@
             if (attribute_name === '__AUTOIDENT' || attribute_name === 'loid' || attribute_name === 'type' || attribute_name === 'tr_title' || attribute_name === 'related_persons') {
               return;
             }
-            if (sdi.instance[attribute_name] === void 0) {
+            if (typeof sdi.instance[attribute_name] === 'undefined') {
               return;
             }
-            if (!sdi.description[attribute_name].label) {
+            if (typeof sdi.description[attribute_name] !== 'object' || !sdi.description[attribute_name].label) {
               return;
             }
             qvalue = sdi.instance[attribute_name];
@@ -3639,6 +3639,7 @@
             }
           });
           _this.widget.append('<div class="top_bar"><label>&nbsp;</label></div>');
+          inputs.append('<div class="info_text"><p>' + utils.uiString('sourcedescription information') + '</p></div>');
           _this.widget.append(inputs);
           str_html_buttons = '';
           if (_this.options.back) {
@@ -3762,7 +3763,7 @@
           _this = this;
         label = jQuery('<label for="' + identifier + '">' + label + '</label>');
         input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>');
-        input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width"><!--user-data--></textarea>');
+        input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width" rows="5"><!--user-data--></textarea>');
         row = jQuery('<div></div>');
         row.append(label);
         if (identifier === 'abstract' || identifier === 'extra' || identifier === 'notes') {

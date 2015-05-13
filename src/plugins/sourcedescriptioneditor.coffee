@@ -57,8 +57,8 @@
         needs_number_of_pages = true if sdi.publication.instance_type_definition == 'PubBook' || sdi.publication.instance_type_definition == 'PubBookSection' || sdi.publication.instance_type_definition == 'PubJournalArticle' || sdi.publication.instance_type_definition == 'PubMagazineArticle' || sdi.publication.instance_type_definition == 'PubEncyclopediaArticle' || sdi.publication.instance_type_definition == 'PubConferencePaper' || sdi.publication.instance_type_definition == 'PubNewspaperArticle'
         jQuery.each constants.publication_order[sdi.publication.instance_type_definition], (index,attribute_name) =>
           return if attribute_name == '__AUTOIDENT' || attribute_name == 'loid' || attribute_name == 'type' || attribute_name == 'tr_title' || attribute_name == 'related_persons'
-          return if sdi.instance[attribute_name] == undefined
-          return if !sdi.description[attribute_name].label
+          return if typeof sdi.instance[attribute_name] == 'undefined'
+          return if typeof sdi.description[attribute_name] != 'object' || !sdi.description[attribute_name].label
           qvalue = sdi.instance[attribute_name]
           if ( qvalue == '' )
             if ( needs_number_of_pages && attribute_name == 'number_of_pages' )
@@ -68,7 +68,7 @@
           else
             inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
         # @widget.append('<div class="top_bar"><label>&nbsp;</label><div class="max_width"><select id="sourcedescriptioneditor_selectable">' + @selectables + '</select></div></div>')
-        @widget.append('<div class="top_bar"><label>&nbsp;</label></div>')
+        inputs.append('<div class="info_text"><p>' + utils.uiString('sourcedescription information') + '</p></div>')
         @widget.append(inputs)
         str_html_buttons = ''
         if @options.back
@@ -186,7 +186,7 @@
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
       label = jQuery('<label for="' + identifier + '">' + label + '</label>')
       input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>')
-      input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width"><!--user-data--></textarea>')
+      input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width" rows="5"><!--user-data--></textarea>')
       row = jQuery('<div></div>')
       row.append(label)
       if ( identifier == 'abstract' || identifier == 'extra' || identifier == 'notes' )
