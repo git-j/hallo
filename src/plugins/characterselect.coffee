@@ -63,7 +63,7 @@
 
       addButton = (element,event_handler) =>
         elid="#{contentId}#{element}"
-        el = jQuery "<li><button class=\"action_button\" id=\"" + @elid + "\">" + utils.tr(element) + "</button></li>"
+        el = jQuery "<li><button class=\"action_button\" id=\"" + @elid + "\" title=\"" + utils.tr_action_tooltip(element) + "\">" + utils.tr_action_title(element) + "</button></li>"
 
         #unless containingElement is 'div'
         #  el.addClass 'disabled'
@@ -71,7 +71,7 @@
         el.find('button').bind 'click', event_handler
         el
 
-      contentAreaUL.append addButton "apply", =>
+      contentAreaUL.append addButton "Apply", =>
         @cur_characters.text(@dropdownsubform.characterSelect('value'))
         @options.editable.setContentPosition(@cur_characters)
         @cur_characters.removeAttr('id')
@@ -79,7 +79,7 @@
         @options.editable.undoWaypointCommit()
         @dropdownsubform.characterSelect('destroy')
         @dropdownform.hallodropdownform('hideForm')
-      contentAreaUL.append addButton "cancel", =>
+      contentAreaUL.append addButton "Cancel", =>
         @cur_characters.text(@original_selected_text)
         @options.editable.setContentPosition(@cur_characters)
         @cur_characters.removeAttr('id')

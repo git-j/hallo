@@ -3137,11 +3137,11 @@
         addButton = function(element, event_handler) {
           var el, elid;
           elid = "" + contentId + element;
-          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.elid + "\">" + utils.tr(element) + "</button></li>");
+          el = jQuery("<li><button class=\"action_button\" id=\"" + _this.elid + "\" title=\"" + utils.tr_action_tooltip(element) + "\">" + utils.tr_action_title(element) + "</button></li>");
           el.find('button').bind('click', event_handler);
           return el;
         };
-        contentAreaUL.append(addButton("apply", function() {
+        contentAreaUL.append(addButton("Apply", function() {
           _this.cur_characters.text(_this.dropdownsubform.characterSelect('value'));
           _this.options.editable.setContentPosition(_this.cur_characters);
           _this.cur_characters.removeAttr('id');
@@ -3638,7 +3638,6 @@
               return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
             }
           });
-          _this.widget.append('<div class="top_bar"><label>&nbsp;</label></div>');
           inputs.append('<div class="info_text"><p>' + utils.uiString('sourcedescription information') + '</p></div>');
           _this.widget.append(inputs);
           str_html_buttons = '';
