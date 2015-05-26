@@ -3141,7 +3141,7 @@
           el.find('button').bind('click', event_handler);
           return el;
         };
-        contentAreaUL.append(addButton("Apply", function() {
+        contentAreaUL.append(addButton("Insert", function() {
           _this.cur_characters.text(_this.dropdownsubform.characterSelect('value'));
           _this.options.editable.setContentPosition(_this.cur_characters);
           _this.cur_characters.removeAttr('id');

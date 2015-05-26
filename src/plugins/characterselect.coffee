@@ -71,7 +71,7 @@
         el.find('button').bind 'click', event_handler
         el
 
-      contentAreaUL.append addButton "Apply", =>
+      contentAreaUL.append addButton "Insert", =>
         @cur_characters.text(@dropdownsubform.characterSelect('value'))
         @options.editable.setContentPosition(@cur_characters)
         @cur_characters.removeAttr('id')
