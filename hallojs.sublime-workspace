@@ -3,47 +3,712 @@
 	{
 		"selected_items":
 		[
+			[
+				"scr",
+				"scroll_element"
+			],
+			[
+				"paragr",
+				"paragraph"
+			],
+			[
+				"undoW",
+				"undoWaypointCommit"
+			],
+			[
+				"spli",
+				"split_parent"
+			],
+			[
+				"image",
+				"image_container"
+			],
+			[
+				"spl",
+				"split_parent"
+			],
+			[
+				"parag",
+				"paragraph"
+			],
+			[
+				"nugget",
+				"nugget_container"
+			],
+			[
+				"pre",
+				"prev_container"
+			],
+			[
+				"first",
+				"first_in_nugget"
+			],
+			[
+				"this",
+				"this_container"
+			],
+			[
+				"parent",
+				"parent_container"
+			],
+			[
+				"fir",
+				"first_in_nugget"
+			],
+			[
+				"formula",
+				"formula_node"
+			],
+			[
+				"redo",
+				"redoable_undo_formula"
+			],
+			[
+				"char",
+				"character_html"
+			],
+			[
+				"_un",
+				"_undo_stack"
+			],
+			[
+				"_cu",
+				"_current_undo_command"
+			],
+			[
+				"activ",
+				"active_style"
+			],
+			[
+				"cita",
+				"citation_style"
+			],
+			[
+				"pag",
+				"page_link"
+			],
+			[
+				"ke",
+				"keywords"
+			],
+			[
+				"key",
+				"keyword"
+			],
+			[
+				"ref_",
+				"ref_id"
+			],
+			[
+				"pa",
+				"page_link"
+			],
+			[
+				"ref",
+				"ref_id"
+			],
+			[
+				"js",
+				"js_data"
+			],
+			[
+				"f",
+				"function"
+			],
+			[
+				"bb",
+				"bibliography_dfd"
+			],
+			[
+				"re",
+				"reject"
+			],
+			[
+				"gl",
+				"glossary_dfd"
+			],
+			[
+				"bib",
+				"bibliography_dfd"
+			],
+			[
+				"ill",
+				"illustration_dfd"
+			],
+			[
+				"to",
+				"toggle_button_container"
+			],
+			[
+				"togg",
+				"toggle_button"
+			],
+			[
+				"class",
+				"class_name"
+			],
+			[
+				"element",
+				"element_text"
+			],
+			[
+				"el",
+				"element_text"
+			],
+			[
+				"tog",
+				"toggle_button"
+			],
+			[
+				"def",
+				"default_value"
+			],
+			[
+				"ch",
+				"checkbox"
+			],
+			[
+				"person",
+				"person_references"
+			],
+			[
+				"dfd_sto",
+				"dfd_store_attributes"
+			],
+			[
+				"dfd",
+				"dfd_list"
+			],
+			[
+				"dfd_",
+				"dfd_store_attributes"
+			],
+			[
+				"publication",
+				"publication"
+			],
+			[
+				"pers",
+				"person_string"
+			],
+			[
+				"updateC",
+				"updateCitationPreview"
+			],
+			[
+				"up",
+				"updateCitation"
+			],
+			[
+				"update",
+				"updateCitationPreview"
+			],
+			[
+				"upd",
+				"updateCitationPreview"
+			],
+			[
+				"for",
+				"forenames"
+			],
+			[
+				"per",
+				"person_references"
+			],
+			[
+				"pub",
+				"publication_type"
+			],
+			[
+				"instan",
+				"instance_type_definition"
+			],
+			[
+				"publ",
+				"publisher"
+			],
+			[
+				"jq",
+				"jq_value"
+			],
+			[
+				"citat",
+				"citation_data"
+			],
+			[
+				"cit",
+				"citation_style"
+			],
+			[
+				"defa",
+				"default_citation_style"
+			],
+			[
+				"curr",
+				"current_language"
+			],
+			[
+				"citation",
+				"citation_data"
+			],
+			[
+				"clea",
+				"clearPersonFields"
+			],
+			[
+				"Reme",
+				"RemoveFilter"
+			],
+			[
+				"Remove",
+				"RemoveFilter"
+			],
+			[
+				"all",
+				"all_persons_list"
+			],
+			[
+				"rem",
+				"removeClass"
+			],
+			[
+				"add",
+				"addClass"
+			],
+			[
+				"vis",
+				"visible_items"
+			],
+			[
+				"set",
+				"set_first_active"
+			],
+			[
+				"sto",
+				"storageLocation"
+			],
+			[
+				"num",
+				"num_pages"
+			],
+			[
+				"cur",
+				"cur_page"
+			],
+			[
+				"oeff",
+				"Oeffentlicher"
+			],
+			[
+				"test",
+				"test_connection"
+			],
+			[
+				"Zi",
+				"Zitationsstil"
+			],
+			[
+				"Ausw",
+				"Auswahl"
+			],
+			[
+				"Dokument",
+				"Dokumentenverzeichnis"
+			],
+			[
+				"Spr",
+				"Sprache"
+			],
+			[
+				"Ein",
+				"Eintraege"
+			],
+			[
+				"check",
+				"Checkbox"
+			],
+			[
+				"vorschau",
+				"Vorschau"
+			],
+			[
+				"Zit",
+				"Zitationsstile"
+			],
+			[
+				"Select",
+				"Selectbox"
+			],
+			[
+				"Zitat",
+				"Zitationsstils"
+			],
+			[
+				"Inform",
+				"Informationen-Tab"
+			],
+			[
+				"Zitationss",
+				"Zitationsstil"
+			],
+			[
+				"ausgewa",
+				"ausgewaehlt"
+			],
+			[
+				"Informati",
+				"Informationen-Tab"
+			],
+			[
+				"Toolbar",
+				"Toolbarbutton"
+			],
+			[
+				"erst",
+				"erstellen"
+			],
+			[
+				"zw",
+				"zweiten"
+			],
+			[
+				"Refe",
+				"Referenziertes"
+			],
+			[
+				"Veroe",
+				"Veroeffentlichungen"
+			],
+			[
+				"Geh",
+				"Gehezu"
+			],
+			[
+				"Veroeffentl",
+				"Veroeffentlichung"
+			],
+			[
+				"Quell",
+				"Quellenverweisen"
+			],
+			[
+				"ausgew",
+				"ausgewaehlt"
+			],
+			[
+				"Quellen",
+				"Quellenverweisen"
+			],
+			[
+				"sammlun",
+				"Sammlungsknoten"
+			],
+			[
+				"Zue",
+				"Zurueck"
+			],
+			[
+				"Samm",
+				"Sammlung"
+			],
+			[
+				"Sammlung",
+				"Sammlungsknoten"
+			],
+			[
+				"Quellenv",
+				"Quellenvorschau"
+			],
+			[
+				"ueber",
+				"ueberfahren"
+			],
+			[
+				"Bib",
+				"Bibtex"
+			],
+			[
+				"text",
+				"Textverarbeitungsprogramm"
+			],
+			[
+				"ausgewaeh",
+				"ausgewaehlten"
+			],
+			[
+				"Oef",
+				"Oeffnen"
+			],
+			[
+				"Qe",
+				"Quellenliste"
+			],
+			[
+				"aktu",
+				"aktualisiert"
+			],
+			[
+				"auswa",
+				"Auswahl"
+			],
+			[
+				"E",
+				"Eintrag"
+			],
+			[
+				"Anhang",
+				"Anhangstitel"
+			],
+			[
+				"Einzelin",
+				"Einzelinhalt"
+			],
+			[
+				"Too",
+				"Toolbarbutton"
+			],
+			[
+				"Eint",
+				"Eintraege"
+			],
+			[
+				"einge",
+				"eingetragen"
+			],
+			[
+				"Toolba",
+				"Toolbarbuttons"
+			],
+			[
+				"Einze",
+				"Einzelinhalt"
+			],
+			[
+				"Tool",
+				"Toolbarbuttons"
+			],
+			[
+				"vorher",
+				"vorherige"
+			],
+			[
+				"dur",
+				"durchgefuehrt"
+			],
+			[
+				"Nach",
+				"Nach-Unten-Taste"
+			],
+			[
+				"Einzel",
+				"Einzelinhalt"
+			],
+			[
+				"Rechtschr",
+				"Rechtschreibung"
+			],
+			[
+				"Zitation",
+				"Zitationsstil"
+			],
+			[
+				"Q",
+				"Quellenverweisen"
+			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "Makefile",
+			"file": "src/hallo.coffee",
 			"settings":
 			{
-				"buffer_size": 69,
+				"buffer_size": 42176,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/toolbar/absolute.coffee",
+			"file": "/data/develop/refeus/workspaces/bdd/refeus.feature",
 			"settings":
 			{
-				"buffer_size": 2274,
+				"buffer_size": 84934,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/plugins/halloformat.coffee",
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/IDOM.js",
 			"settings":
 			{
-				"buffer_size": 1373,
+				"buffer_size": 41131,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/js/tests/lib/refeus/Utilities/IDOM/test.js",
+			"settings":
+			{
+				"buffer_size": 31999,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/Constants.js",
+			"settings":
+			{
+				"buffer_size": 32160,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/plugins/jquery.spellcheck.js",
+			"settings":
+			{
+				"buffer_size": 29943,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_nugget/edit_nugget.js",
+			"settings":
+			{
+				"buffer_size": 22840,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/control_base/control_base.js",
+			"settings":
+			{
+				"buffer_size": 27367,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Editor/DOMNugget.js",
+			"settings":
+			{
+				"buffer_size": 28643,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/document_editor/document_editor.js",
+			"settings":
+			{
+				"buffer_size": 21370,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/EventActionControl.js",
+			"settings":
+			{
+				"buffer_size": 27942,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/en.EventActionControl.js",
+			"settings":
+			{
+				"buffer_size": 26361,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/de.EventActionControl.js",
+			"settings":
+			{
+				"buffer_size": 29006,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_person_references/edit_person_references.js",
+			"settings":
+			{
+				"buffer_size": 26304,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_person_references/edit.html",
+			"settings":
+			{
+				"buffer_size": 4173,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix",
+				"name": "Find Results"
 			}
 		},
 		{
 			"file": "examples/hallo.js",
 			"settings":
 			{
-				"buffer_size": 130623,
+				"buffer_size": 237680,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "src/hallo.coffee",
+			"file": "/data/develop/refeus/workspaces/desktop/controls/js/lib/hallojs/hallo.js",
 			"settings":
 			{
-				"buffer_size": 15419,
+				"buffer_size": 237680,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/publicationselector.coffee",
+			"settings":
+			{
+				"buffer_size": 8705,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/sourcedescriptioneditor.coffee",
+			"settings":
+			{
+				"buffer_size": 12401,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "buttons.login.bind('click',$.proxy(self.requestAuthKey,self));\nbuttons.save_close.bind('click',function(){self.save(); window.setTimeout(function(){self.close();},300); });\nbuttons.load_defaults.bind('click',$.proxy(self.loadDefaults,self));\nbuttons.use_local_infopool.bind('click',$.proxy(self.useLocalInfopool,self));\nbuttons.use_plus_infopool.bind('click',$.proxy(self.usePlusInfopool,self));\nbuttons.use_public_infopool.bind('click',$.proxy(self.usePublicInfopool,self));\n\nObject.keys(buttons..forEach(function(button_name){\n  buttons.button_name].attr('title',utils.tr_action_tooltip(button.text()));\n  button.text(utils.tr_action_title(button.text()));\n});\n",
+			"settings":
+			{
+				"buffer_size": 663,
+				"line_ending": "Unix",
+				"name": "buttons.login.bind('click',$.proxy(self.requestAut"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/Enumerations/en.EventActionControl.js",
+			"settings":
+			{
+				"buffer_size": 27599,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/Enumerations/de.EventActionControl.js",
+			"settings":
+			{
+				"buffer_size": 30531,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/plugins/jquery.personCollectionEdit.js",
+			"settings":
+			{
+				"buffer_size": 6850,
 				"line_ending": "Unix"
 			}
 		}
@@ -51,9 +716,105 @@
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"command_palette":
 	{
-		"height": 72.0,
+		"height": 392.0,
 		"selected_items":
 		[
+			[
+				"git:",
+				"Git: Gui"
+			],
+			[
+				"g",
+				"Git: Gui"
+			],
+			[
+				"git gui",
+				"GitGutter: Compare Against Branch"
+			],
+			[
+				"sidebar",
+				"View: Toggle Side Bar"
+			],
+			[
+				"view",
+				"View: Toggle Side Bar"
+			],
+			[
+				"gi",
+				"Git: Gui"
+			],
+			[
+				"git",
+				"Git: Toggle Annotations"
+			],
+			[
+				"git:g",
+				"Git: Gui"
+			],
+			[
+				"git: gui",
+				"Git: Gui"
+			],
+			[
+				"git:gui",
+				"Git: Gui"
+			],
+			[
+				"git ",
+				"Git: Gui"
+			],
+			[
+				"Git:",
+				"Git: Gui"
+			],
+			[
+				"git :",
+				"Git: Gui"
+			],
+			[
+				"gitk",
+				"Git: Gitk All"
+			],
+			[
+				"git:gu",
+				"Git: Gui"
+			],
+			[
+				"git gu",
+				"GitGutter: Compare Against HEAD"
+			],
+			[
+				"git bl",
+				"Git: Blame"
+			],
+			[
+				"git b",
+				"Git: Blame"
+			],
+			[
+				"",
+				"Convert Case: Upper Case"
+			],
+			[
+				"con",
+				"Convert Case: Lower Case"
+			],
+			[
+				"git g",
+				"Git: Gui"
+			],
+			[
+				"git cus",
+				"Git: Custom Command"
+			],
+			[
+				"custo",
+				"Git: Custom Command"
+			],
+			[
+				"command",
+				"Git: Custom Command"
+			],
 			[
 				"install",
 				"Package Control: Install Package"
@@ -79,7 +840,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 712.0
+		"width": 750.0
 	},
 	"console":
 	{
@@ -96,47 +857,166 @@
 	},
 	"file_history":
 	[
-		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/toolbar/fixed.coffee",
-		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/block.coffee",
-		"/data/develop/tmp/derby-ui-boot/index.js",
-		"/data/develop/tmp/derby-ui-boot/nav/index.js",
-		"/data/develop/tmp/derby-ui-boot/example/views/controller/index.html",
-		"/data/develop/tmp/derby-ui-boot/example/package.json",
-		"/data/develop/tmp/derby-ui-boot/example/README.md",
-		"/data/develop/tmp/derby-ui-boot/nav/index.html",
-		"/data/user/.config/sublime-text-2/Packages/Default/Preferences.sublime-settings",
-		"/data/develop/tmp/derby-ui-boot/progress/index.html",
-		"/data/develop/tmp/derby-ui-boot/README.md",
-		"/data/develop/tmp/derby-ui-boot/progress/index.js",
-		"/data/develop/tmp/derby-ui-boot/media/index.html",
-		"/data/develop/tmp/derby-ui-boot/media/index.js",
-		"/data/develop/tmp/derby-ui-boot/thumbnails/index.html",
-		"/data/develop/tmp/derby-ui-boot/thumbnails/index.js",
-		"/data/develop/tmp/derby-ui-boot/typography/index.html",
-		"/data/develop/tmp/derby-ui-boot/typography/index.js",
-		"/data/develop/tmp/derby-ui-boot/alerts/index.html",
-		"/data/develop/tmp/derby-ui-boot/alerts/index.js",
-		"/data/user/develop/refeus/workspaces/team/auth/README.md",
-		"/data/user/develop/refeus/workspaces/team/auth/module/ui/index.js",
-		"/data/user/develop/refeus/workspaces/team/auth/module/lib/auth/index.js",
-		"/data/user/develop/refeus/workspaces/team/auth/module/views/collect/index.html",
-		"/data/user/develop/refeus/workspaces/team/auth/module/lib/server/index.js",
-		"/data/user/develop/refeus/workspaces/team/auth/module/lib/auth/../index.js",
-		"/data/user/develop/refeus/workspaces/team/auth/module/lib/server/serverError.js",
-		"/data/user/develop/refeus/workspaces/team/auth/module/styles/404.styl",
-		"/data/user/develop/refeus/workspaces/team/auth/module/styles/ui.styl",
-		"/data/user/develop/refeus/workspaces/team/team",
-		"/data/user/develop/refeus/workspaces/team/package.json"
+		"/data/develop/refeus/workspaces/webcollect/chrome/de.EventActionControl.js",
+		"/data/develop/refeus/workspaces/osi/js/tests/lib/refeus/Utilities/IDOM/test.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/startup/startup.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/plugins/jquery.news.js",
+		"/data/develop/refeus/workspaces/win32/start_plus_with_debug.cmd",
+		"/data/develop/refeus/workspaces/osi/tools/error.lst",
+		"/data/develop/refeus/workspaces/glue/src/FileSystem.cpp",
+		"/data/develop/refeus/workspaces/desktop/application/share/refeus/csl/universitat-heidelberg-historisches-seminar.csl",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/ODFBaseTextFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/ODT.js",
+		"/net/node/refeus/file.vpn.refeus.de/data/development/tmp/out.txt",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/IDOM.js",
+		"/data/develop/refeus/workspaces/desktop/controls/js/controls/document_page.less",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Editor/IDocumentPage.js",
+		"/data/develop/refeus/workspaces/bdd/refeus.feature",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/control_base/control_base.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_document/edit_document.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_document/edit.html",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/examples/hallo.js",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/hallo.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/characterselect.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/formula.coffee",
+		"/data/develop/refeus/workspaces/osi/tools/public/external_lib/jquery.selectbox.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/manage_settings/manage_settings.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/plugins/jquery.startupSettings.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_publication_collect/edit_publication_collect.js",
+		"/data/develop/refeus/workspaces/webcollect/chrome/de.uiStrings.js",
+		"/data/develop/refeus/workspaces/bdd/cuke-watcher.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/export_document/export_document.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Editor/IDocument.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/ICiteProc.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/IFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/TEXTBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/PDFBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/ODPBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/HTMLBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/IFilterBase.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/DocumentXML.js",
+		"/data/develop/refeus/workspaces/bdd/features/export with selected citation style.feature",
+		"/data/develop/refeus/workspaces/bdd/features/glossary.feature",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/ODF.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/LATEX.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/LATEXBaseTextFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/LATEXBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Export/ODTBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/jquery.jquery.citationSelect.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/plugins/jquery.citationSelect.js",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/version.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/js/controls/halloeditor.less",
+		"/data/develop/refeus/workspaces/desktop/controls/js/controls/nugget_edit.less",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/table.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/js/lib/jquery.publicationSelect.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/List.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/ToolBars/ToolBarActions.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/ToolBars/ToolBarBase.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_person_references/edit.html",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_person_references/edit_person_references.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_publication/edit.html",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_publication_collect/edit_publication_collect.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_publication/edit_publication.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_publication_publish/edit_publication_publish.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_publication_publish/edit_publication_publish.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_publication_publish/edit.html",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_publication/edit_publication.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/ICiteProcPublication.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/control_base/control_base.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/plugins/jquery.publicationSelect.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/ModelConnector/SettingsModelConnector.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Utilities/List.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/ToolBars/ToolBarActions.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/FileComparator.js",
+		"/data/develop/refeus/workspaces/glue/usercontrols/_uc_WebKitEdit/src/WebKitEdit.cpp",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_nugget/edit_nugget.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/edit_composition/edit_composition.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_person_references/edit_person_references.js",
+		"/data/develop/refeus/workspaces/osi/tools/public/export/load_tests.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODF.js",
+		"/data/develop/refeus/workspaces/ExportMappings.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODFBaseTextFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/tests/lib/refeus/Export/ODFBaseTextFormat/test.js",
+		"/data/develop/refeus/workspaces/osi/js/controls/view_information/edit.html",
+		"/data/develop/refeus/workspaces/osi/js/controls/startup/startup.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Utilities/IDOM.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/manage_settings/edit.html",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/Iutils.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Import/ImportResult.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Import/BooksearchResult.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Import/ImportDOM.js",
+		"/data/develop/refeus/workspaces/osi/tools/out/js/controls/collect_search/collect_search.js",
+		"/data/develop/tmp/apa-fr.csl",
+		"/data/user/develop/tmp/sp-phy.csl",
+		"/data/develop/refeus/workspaces/bdd/features/step_definitions/run-processes.js",
+		"/data/develop/refeus/workspaces/bdd/features/check-website.feature",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Editor/DOMNugget.js",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/citehandler.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/sourcedescription.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/tipoverlay.coffee",
+		"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins/sourcedescriptioneditor.coffee",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/HTML.js",
+		"/data/develop/refeus/workspaces/bdd/README.md",
+		"/data/develop/refeus/workspaces/bdd/features/step_definitions/add-items.js",
+		"/data/develop/refeus/workspaces/bdd/features/refeus.feature",
+		"/data/develop/refeus/workspaces/bdd/features/test.feature",
+		"/data/develop/refeus/workspaces/osi/js/controls/document_editor/document_editor.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Editor/IDocument.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Utilities/Iutils.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Editor/IEditor.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/HTMLBaseTextFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/HTMLBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODP.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODPBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/LATEXBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/Filter.js",
+		"/data/develop/refeus/workspaces/desktop/templates/refeus/Filter.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/DocumentXML.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODT.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODTBaseFormat.js",
+		"/data/develop/tmp/features",
+		"/data/develop/refeus/workspaces/bdd/package.json",
+		"/data/develop/refeus/workspaces/bdd/.gitignore",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/TEXTBaseFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/ODPBaseTextFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/FilterRegistry.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/FormatPreview.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/IFilterBase.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/IFormat.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Utilities/jquery.imageSettings.js",
+		"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export/TEXTBaseTextFormat.js"
 	],
 	"find":
 	{
-		"height": 34.0
+		"height": 45.0
 	},
 	"find_in_files":
 	{
 		"height": 0.0,
 		"where_history":
 		[
+			"/data/develop/refeus/workspaces/desktop/controls/hallojs",
+			"/data/develop/refeus/workspaces/osi/js",
+			"/data/develop/refeus/workspaces/desktop/controls/hallojs/src",
+			"/data/develop/refeus/workspaces/osi/js/lib/refeus/Export",
+			"/data/develop/refeus/workspaces/desktop/controls/js/controls",
+			"/data/develop/tmp/infopool",
+			"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/projects/",
+			"/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/projects/ipwebclient",
+			"/data/develop/refeus/workspaces/webcollect/infopool/assets/linker/js/app",
+			"/data/develop/refeus/",
+			"/data/develop/refeus/workspaces/webcollect/infopool/assets/",
+			"/data/develop/refeus/workspaces/webcollect/infopool/assets/linker",
+			"/data/develop/refeus/workspaces/mobile/projects",
+			"/data/develop/refeus/workspaces/desktop/controls/hallojs/src/plugins",
+			"/data/develop/refeus/workspaces/auxiliary/3rdparty",
+			"/data/develop/refeus/workspaces/desktop/controls/hallojs/src",
+			"/data/user/develop/refeus/workspaces/osi/js/WebCollect",
+			"/data/user/develop/refeus/workspaces/osi",
+			"/data/user/develop/refeus/workspaces/tmp",
+			"/data/user/develop/refeus/workspaces/osi/js/",
+			"/data/user/develop/refeus/workspaces/osi/js/WebCollect",
+			"/data/develop/refeus/workspaces/desktop/controls/hallojs/src"
 		]
 	},
 	"find_state":
@@ -144,70 +1024,271 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"link",
-			"{.",
-			"action",
-			"-- >",
-			"-->",
-			"<!--",
-			" -",
-			"        <!- ",
-			"<!-",
-			" -- >\n-- >",
-			" -- >\n",
-			"-- >",
-			"><",
-			"\n        ",
-			" -- >\n",
-			"-- >",
-			"\n    ",
-			" -- >\n",
-			"-- >",
-			"Float an e",
-			"-->",
-			"thumbnails",
-			"thumbnail",
-			"thumbnails",
-			"cell_size",
-			"nav",
-			"header",
+			"\"SeparateAbstract\"",
+			"\"SelectPublication\"",
+			"\"SelectPerson\"",
+			"\"SelectDirectory\"",
+			"\"Search\"",
+			"Search\"",
+			"Search",
+			"Scan",
+			"SaveClose",
+			"ShowInfopoolHelp",
+			"self.btn.",
+			"my_self",
+			"_formChanged",
+			"FilterSystem",
+			"/***",
+			"loadE",
+			"spellcheck",
+			"loadVe",
+			"loadVersion",
+			"loadNugget",
+			"text_floa",
+			"\\\\\"",
+			"removeForbidde",
+			"this",
+			"syske",
+			"<p></p>",
+			"</p></p>",
+			"</div>",
+			"<div>",
+			"getAllText",
+			"$",
+			"^",
+			"\\[Bearbeiten\\]",
+			"tables",
 			"title",
-			"name",
-			"fixed",
-			"state",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"ACTION",
-			"action",
-			"Action",
-			"action",
-			"Action",
-			"action",
-			"tabs",
-			"tab",
-			"tabs"
+			"editor",
+			"in",
+			"Image",
+			"Abstract",
+			"toggle",
+			"two",
+			"ShowO",
+			"\\.prev",
+			".prev\\(",
+			"findBreakL",
+			"breakContainer",
+			"img",
+			"recalcH",
+			"_setupUndoWay",
+			"disable",
+			"proxy",
+			"deactivate",
+			"undowayp",
+			"undoway",
+			"datum",
+			"author",
+			"vorbe",
+			"all_ch",
+			"selectedAction",
+			"all_ch",
+			"removeAttr",
+			"attr",
+			"Versionen",
+			"Start",
+			"initTemplateS",
+			"filter",
+			"ChangeTemplate",
+			"\\.selected",
+			"processData",
+			"Informa",
+			"Informationen",
+			"check",
+			"processCitations",
+			"format_name",
+			"#content",
+			"active_style",
+			"current_style",
+			"Illus",
+			"List",
+			"webfile",
+			"mail",
+			"booksearch",
+			"infopool",
+			"TableCell",
+			"Paragraph",
+			"Glossar",
+			"Text",
+			"Title",
+			"TableCell",
+			"this",
+			"_keyword_map",
+			"IllustrationsIndex",
+			"toi",
+			"Illustrat",
+			"syskeys",
+			"syskey",
+			"class",
+			"formula",
+			"check",
+			"checkbo",
+			"check",
+			"self.person_references",
+			"initPersonReferences",
+			"replaceEntityHTML",
+			"initPublication",
+			"title",
+			"publication_element",
+			"change",
+			"title",
+			"changePublicationType",
+			"related_persons",
+			"persons",
+			"referenced_persons",
+			"persons",
+			"updateCitation",
+			"ICiteProcPublication",
+			"persons",
+			"initPublicationSelect",
+			"updateCitationPreview",
+			"Filter",
+			"initReferencedPersons",
+			"save_person_button",
+			"updateReference",
+			"persons_list",
+			"role_map",
+			"updateCitationP",
+			"updateCitationPe",
+			"trigger"
 		],
 		"highlight": true,
 		"in_selection": false,
 		"preserve_case": false,
-		"regex": false,
+		"regex": true,
 		"replace_history":
 		[
-			"- ->",
-			"<!- -"
+			"buttons.",
+			"buttons",
+			"self",
+			"\"",
+			"",
+			"</p>",
+			"<p>",
+			"</li>",
+			"  <li>",
+			"",
+			"chili",
+			"webfile",
+			"mail",
+			"h4.$1",
+			"h4. $1",
+			" ",
+			"\"",
+			"\"Sammlungsknotentest\"",
+			"string +",
+			"url +",
+			" +",
+			"+ ",
+			"' +",
+			"+ '",
+			"+ ",
+			": $1",
+			" + text + ",
+			"if ( $1 )",
+			"if ( $1 ) {",
+			": $1",
+			" : $1",
+			":",
+			"style =",
+			":$",
+			"Ueberfahren",
+			"Eingabe",
+			"beim Doppelklick",
+			"dem Betaetigen",
+			"Untertexten",
+			", S. 100",
+			"S. 100",
+			"der Auswahl",
+			"Klick",
+			"\"",
+			"\\n",
+			"\"",
+			"\\n",
+			"</li>",
+			"+= $1",
+			"+= '",
+			"+=",
+			"= ( $1 ? $2 : $3 );",
+			"$1 === $2",
+			"$1 < $2",
+			"$1 > $2",
+			"+ '",
+			": ",
+			"function(",
+			": ",
+			" + '",
+			"' + ",
+			" + ",
+			"try {",
+			"} else",
+			"if ( $1",
+			"avoid_trigger_event_option",
+			" + '",
+			"' + self",
+			"' + prefix_name + '",
+			"' + class_name + '",
+			"' + prefix_name + '",
+			"extern_title_element",
+			"extern_icon_element",
+			"value_display_class",
+			"value_container_class",
+			"publication_attribute_order",
+			"options.publication_types",
+			"\\\\n",
+			"['enum']",
+			"Ungül",
+			"Ort im Archiv",
+			"android:lines=\"5\"",
+			"android:minLines=\"5\"",
+			"}\\n",
+			"replaceEntityHTML",
+			"unescapeForText",
+			"RemoteModel",
+			"/linker/icons/",
+			"/images/",
+			"'",
+			"response_data",
+			"response",
+			"{",
+			"\\n  , ",
+			"collection_name",
+			"api_cb",
+			"'<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>'",
+			"getTextAndImageNodesIn",
+			"Tests",
+			"osi_string",
+			"",
+			"../../styles/",
+			"../styles/default/icons/",
+			"getGlobalSettings",
+			"'",
+			"+ '\\\\n",
+			"\\\\'",
+			"'",
+			"+ '\\\\n",
+			"'",
+			"   + '\\\\n",
+			"\\\\r\\\\n",
+			"+ '\\\\n",
+			"+ '\\n",
+			"'",
+			"   + '",
+			"publication_type",
+			"publication",
+			", ",
+			" ,",
+			": ",
+			"",
+			"'",
+			"self.input_type_map",
+			"self.type_map",
+			"self.input_field_map",
+			"self.book_section_field_map",
+			"self.field_map"
 		],
-		"reverse": true,
+		"reverse": false,
 		"show_context": true,
 		"use_buffer2": true,
 		"whole_word": false,
@@ -216,84 +1297,893 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 23,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "Makefile",
+					"file": "src/hallo.coffee",
 					"settings":
 					{
-						"buffer_size": 69,
+						"buffer_size": 42176,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								68,
-								68
+								38996,
+								38996
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 15301.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "src/toolbar/absolute.coffee",
+					"file": "/data/develop/refeus/workspaces/bdd/refeus.feature",
 					"settings":
 					{
-						"buffer_size": 2274,
+						"buffer_size": 84934,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								216,
-								216
+								31346,
+								31346
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 10242.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "src/plugins/halloformat.coffee",
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/IDOM.js",
 					"settings":
 					{
-						"buffer_size": 1373,
+						"buffer_size": 41131,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								168,
-								168
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2420.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/data/develop/refeus/workspaces/osi/js/tests/lib/refeus/Utilities/IDOM/test.js",
+					"settings":
+					{
+						"buffer_size": 31999,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 5070.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Utilities/Constants.js",
+					"settings":
+					{
+						"buffer_size": 32160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2195.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/plugins/jquery.spellcheck.js",
+					"settings":
+					{
+						"buffer_size": 29943,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 8946.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_nugget/edit_nugget.js",
+					"settings":
+					{
+						"buffer_size": 22840,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								12754,
+								12754
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 4674.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/control_base/control_base.js",
+					"settings":
+					{
+						"buffer_size": 27367,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 8356.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Editor/DOMNugget.js",
+					"settings":
+					{
+						"buffer_size": 28643,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								26431,
+								26431
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 10699.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/document_editor/document_editor.js",
+					"settings":
+					{
+						"buffer_size": 21370,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 5514.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/EventActionControl.js",
+					"settings":
+					{
+						"buffer_size": 27942,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -302,57 +2192,952 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "examples/hallo.js",
+					"buffer": 11,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/en.EventActionControl.js",
 					"settings":
 					{
-						"buffer_size": 130623,
+						"buffer_size": 26361,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								26179,
-								26179
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 11045.0,
+						"translation.y": 2546.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "src/hallo.coffee",
+					"buffer": 12,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/lib/refeus/Enumerations/de.EventActionControl.js",
 					"settings":
 					{
-						"buffer_size": 15419,
+						"buffer_size": 29006,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								10289,
-								10289
+								0,
+								0
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 4592.0,
+						"translation.y": 2546.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_person_references/edit_person_references.js",
+					"settings":
+					{
+						"buffer_size": 26304,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1356.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "/data/develop/refeus/workspaces/osi/tools/out/js/controls/edit_person_references/edit.html",
+					"settings":
+					{
+						"buffer_size": 4173,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3507,
+								3507
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 690.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"detect_indentation": false,
+							"function_name_status_row": 0,
+							"output_tag": 1,
+							"result_base_dir": "",
+							"result_file_regex": "^([A-Za-z\\\\/<].*):$",
+							"result_line_regex": "^ +([0-9]+):",
+							"scroll_past_end": true,
+							"syntax": "Packages/Default/Find Results.hidden-tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "examples/hallo.js",
+					"settings":
+					{
+						"buffer_size": 237680,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 54861.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"file": "/data/develop/refeus/workspaces/desktop/controls/js/lib/hallojs/hallo.js",
+					"settings":
+					{
+						"buffer_size": 237680,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 55056.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 18,
+					"file": "src/plugins/publicationselector.coffee",
+					"settings":
+					{
+						"buffer_size": 8705,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2821,
+								2821
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage"
+						},
+						"translation.x": 12.0,
+						"translation.y": 413.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 19,
+					"file": "src/plugins/sourcedescriptioneditor.coffee",
+					"settings":
+					{
+						"buffer_size": 12401,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10438,
+								10438
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 0,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/CoffeeScript/CoffeeScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 2655.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 20,
+					"settings":
+					{
+						"buffer_size": 663,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								663,
+								663
+							]
+						],
+						"settings":
+						{
+							"auto_name": "buttons.login.bind('click',$.proxy(self.requestAut",
+							"function_name_status_row": 0,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 21,
+					"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/Enumerations/en.EventActionControl.js",
+					"settings":
+					{
+						"buffer_size": 27599,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								16752,
+								16752
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 652,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 8269.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 22,
+					"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/Enumerations/de.EventActionControl.js",
+					"settings":
+					{
+						"buffer_size": 30531,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								22865,
+								22865
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": 810,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 11272.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 23,
+					"file": "/data/develop/refeus/workspaces_master/osi/tools/out/js/lib/refeus/plugins/jquery.personCollectionEdit.js",
+					"settings":
+					{
+						"buffer_size": 6850,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5782,
+								5782
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+							},
+							"function_name_status_row": -1,
+							"gjslint_ignore":
+							[
+								110
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"laxbreak": true,
+								"laxcomma": true
+							},
+							"pep8": true,
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 2,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": true,
+							"sublimelinter_gutter_marks_theme": "simple",
+							"sublimelinter_mark_style": "outline",
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"C++": "c",
+								"Python Django": "python",
+								"Ruby on Rails": "ruby"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1677.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -393,7 +3178,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 100.0
+		"height": 231.0
 	},
 	"output.git":
 	{
@@ -401,7 +3186,7 @@
 	},
 	"replace":
 	{
-		"height": 62.0
+		"height": 196.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -409,6 +3194,166 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"edit_persons",
+				"controls/edit_person_references/edit_person_references.js"
+			],
+			[
+				"en.eventaction",
+				"lib/refeus/Enumerations/en.EventActionControl.js"
+			],
+			[
+				"eventact",
+				"workspaces/webcollect/chrome/de.EventActionControl.js"
+			],
+			[
+				"event",
+				"lib/refeus/Enumerations/EventActionControl.js"
+			],
+			[
+				"document",
+				"controls/document_editor/document_editor.js"
+			],
+			[
+				"domnu",
+				"lib/refeus/Editor/DOMNugget.js"
+			],
+			[
+				"control_b",
+				"controls/control_base/control_base.js"
+			],
+			[
+				"edit_nugg",
+				"controls/edit_nugget/edit_nugget.js"
+			],
+			[
+				"spellcheck.js",
+				"lib/refeus/plugins/jquery.spellcheck.js"
+			],
+			[
+				"constan",
+				"lib/refeus/Utilities/Constants.js"
+			],
+			[
+				"idom",
+				"lib/refeus/Utilities/IDOM.js"
+			],
+			[
+				"idom/te",
+				"osi/js/tests/lib/refeus/Utilities/IDOM/test.js"
+			],
+			[
+				"refeus",
+				"workspaces/bdd/refeus.feature"
+			],
+			[
+				"startup/start",
+				"controls/startup/startup.js"
+			],
+			[
+				"news.j",
+				"lib/refeus/plugins/jquery.news.js"
+			],
+			[
+				"heidelb",
+				"workspaces/desktop/application/share/refeus/csl/universitat-heidelberg-historisches-seminar.csl"
+			],
+			[
+				"de.eve",
+				"workspaces/webcollect/chrome/de.EventActionControl.js"
+			],
+			[
+				"odt",
+				"lib/refeus/Export/ODT.js"
+			],
+			[
+				"control_ba",
+				"controls/control_base/control_base.js"
+			],
+			[
+				"edit_docum",
+				"controls/edit_document/edit_document.js"
+			],
+			[
+				"odfbasete",
+				"lib/refeus/Export/ODFBaseTextFormat.js"
+			],
+			[
+				"startupsett",
+				"lib/refeus/plugins/jquery.startupSettings.js"
+			],
+			[
+				"selectbox",
+				"osi/tools/public/external_lib/jquery.selectbox.js"
+			],
+			[
+				"edit_publication",
+				"controls/edit_publication_collect/edit_publication_collect.js"
+			],
+			[
+				"de.uis",
+				"workspaces/webcollect/chrome/de.uiStrings.js"
+			],
+			[
+				"export_document",
+				"controls/export_document/export_document.js"
+			],
+			[
+				"idocument",
+				"lib/refeus/Editor/IDocument.js"
+			],
+			[
+				"icitepoc",
+				"lib/refeus/Utilities/ICiteProc.js"
+			],
+			[
+				"citationsele",
+				"lib/refeus/plugins/jquery.citationSelect.js"
+			],
+			[
+				"citationselect",
+				"lib/jquery.jquery.citationSelect.js"
+			],
+			[
+				"publicationsel",
+				"js/lib/jquery.publicationSelect.js"
+			],
+			[
+				"edit_publication_pu",
+				"controls/edit_publication_publish/edit_publication_publish.js"
+			],
+			[
+				"iciteproc",
+				"lib/refeus/Utilities/ICiteProcPublication.js"
+			],
+			[
+				"list.js",
+				"lib/refeus/Utilities/List.js"
+			],
+			[
+				"toolbarbase",
+				"lib/refeus/ToolBars/ToolBarBase.js"
+			],
+			[
+				"manage",
+				"controls/manage_settings/manage_settings.js"
+			],
+			[
+				"collectimportprev",
+				"lib/refeus/projects/ipwebclient/app/viewcontroller/CollectImportPreview.js"
+			],
+			[
+				"iwke",
+				"osi/js/lib/refeus/Utilities/Iwkej.js"
+			],
+			[
+				"gitgui",
+				"web/generator/node_modules/grunt-contrib-imagemin/node_modules/gifsicle/node_modules/bin-wrapper/node_modules/mout/random/guid.js"
+			],
+			[
+				"objectmodelconnector/test.js",
+				"workspaces/tmp/js/tests/lib/refeus/ModelConnector/ObjectModelConnector/test.js"
+			]
 		],
 		"width": 0.0
 	},
@@ -424,6 +3369,6 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 210.0,
+	"side_bar_width": 332.0,
 	"status_bar_visible": true
 }

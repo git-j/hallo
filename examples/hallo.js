@@ -1281,10 +1281,13 @@
           range.insertNode(jq_temp[0]);
         } else {
           jq_temp = jq_temp.contents();
-          jq_temp.unwrap();
-          range.insertNode(jq_temp[0]);
+          if (jq_temp.contents().length === 1) {
+            range.insertNode(jq_temp.contents()[0]);
+          } else {
+            range.insertNode(jq_temp[0]);
+            range.selectNode(jq_temp[0]);
+          }
         }
-        range.selectNode(jq_temp[0]);
         range.collapse(false);
         selection.setSingleRange(range);
         return event.data.undoWaypointCommit(false);

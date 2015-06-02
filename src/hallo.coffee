@@ -614,10 +614,12 @@ http://hallojs.org
         range.insertNode(jq_temp[0])
       else
         jq_temp = jq_temp.contents()
-        jq_temp.unwrap()
         # console.log('unwrapped',jq_temp)
-        range.insertNode(jq_temp[0])
-      range.selectNode(jq_temp[0])
+        if ( jq_temp.contents().length == 1 )
+          range.insertNode(jq_temp.contents()[0])
+        else
+          range.insertNode(jq_temp[0])
+          range.selectNode(jq_temp[0])
       range.collapse(false) # collapse to end
       selection.setSingleRange(range)
       event.data.undoWaypointCommit(false)
