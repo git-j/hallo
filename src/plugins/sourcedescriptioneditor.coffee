@@ -143,21 +143,14 @@
           undo_command.redo()
           undo_manager = (new UndoManager()).getStack()
           #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
-          @widget.remove()
-          jQuery('#content, #toolbar').show()
-          jQuery('body').css({'overflow':'auto'})
-          jQuery(window).scrollTop(@scroll_pos_before_show)
-          @options.editable.focus() if ( @options.editable)
+          @_cleanup()
           #/bind click apply
 
         jQuery('#sourcedescriptioneditor_back').bind 'click', =>
           @options.values = {}
           @options.orig_values = {}
           #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
-          jQuery('.form_display').remove();
-          jQuery('#content, #toolbar').show()
-          jQuery('body').css({'overflow':'auto'})
-          jQuery(window).scrollTop(@scroll_pos_before_show)
+          @_cleanup()
           #/bind click back
         jQuery('#sourcedescriptioneditor_goto').bind 'click', =>
           if ( typeof @options.data != 'object' || parseInt(@options.data.publication_loid,10) == 0 )
@@ -166,10 +159,7 @@
           @options.values = {}
           @options.orig_values = {}
           #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
-          jQuery('.form_display').remove();
-          jQuery('#content, #toolbar').show()
-          jQuery('body').css({'overflow':'auto'})
-          jQuery(window).scrollTop(@scroll_pos_before_show)
+          @_cleanup()
         window.setTimeout =>
           jQuery(window).resize()
           if ( @widget.find('#number_of_pages').length )
@@ -181,6 +171,16 @@
               pages[0].focus();
         , 100
       jQuery(window).resize()
+
+    _cleanup: () ->
+      @widget.remove()
+      jQuery('.form_display').remove();
+      jQuery('#content, #toolbar').show()
+      jQuery('body').css({'overflow':'auto'})
+      jQuery(window).scrollTop(@scroll_pos_before_show)
+      @options.editable.focus() if ( @options.editable )
+      if ( jQuery('#' + @options.nugget_loid ).closest('.Document').length && typeof wkej == 'object' && typeof wkej.instance == 'object' && typeof wkej.instance.doc == 'object')
+        wkej.instance.doc.updateView();
 
     _createInput: (identifier, label, value) ->
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)

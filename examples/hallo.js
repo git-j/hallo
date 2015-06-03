@@ -3711,25 +3711,12 @@
             };
             undo_command.redo();
             undo_manager = (new UndoManager()).getStack();
-            _this.widget.remove();
-            jQuery('#content, #toolbar').show();
-            jQuery('body').css({
-              'overflow': 'auto'
-            });
-            jQuery(window).scrollTop(_this.scroll_pos_before_show);
-            if (_this.options.editable) {
-              return _this.options.editable.focus();
-            }
+            return _this._cleanup();
           });
           jQuery('#sourcedescriptioneditor_back').bind('click', function() {
             _this.options.values = {};
             _this.options.orig_values = {};
-            jQuery('.form_display').remove();
-            jQuery('#content, #toolbar').show();
-            jQuery('body').css({
-              'overflow': 'auto'
-            });
-            return jQuery(window).scrollTop(_this.scroll_pos_before_show);
+            return _this._cleanup();
           });
           jQuery('#sourcedescriptioneditor_goto').bind('click', function() {
             if (typeof _this.options.data !== 'object' || parseInt(_this.options.data.publication_loid, 10) === 0) {
@@ -3738,12 +3725,7 @@
             occ.GotoObject(_this.options.data.publication_loid);
             _this.options.values = {};
             _this.options.orig_values = {};
-            jQuery('.form_display').remove();
-            jQuery('#content, #toolbar').show();
-            jQuery('body').css({
-              'overflow': 'auto'
-            });
-            return jQuery(window).scrollTop(_this.scroll_pos_before_show);
+            return _this._cleanup();
           });
           return window.setTimeout(function() {
             var pages;
@@ -3759,6 +3741,21 @@
           }, 100);
         });
         return jQuery(window).resize();
+      },
+      _cleanup: function() {
+        this.widget.remove();
+        jQuery('.form_display').remove();
+        jQuery('#content, #toolbar').show();
+        jQuery('body').css({
+          'overflow': 'auto'
+        });
+        jQuery(window).scrollTop(this.scroll_pos_before_show);
+        if (this.options.editable) {
+          this.options.editable.focus();
+        }
+        if (jQuery('#' + this.options.nugget_loid).closest('.Document').length && typeof wkej === 'object' && typeof wkej.instance === 'object' && typeof wkej.instance.doc === 'object') {
+          return wkej.instance.doc.updateView();
+        }
       },
       _createInput: function(identifier, label, value) {
         var dp, fn_dp_show, fn_update_select, input, input_multiline, input_singleline, row,
