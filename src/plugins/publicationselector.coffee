@@ -122,18 +122,20 @@
         nugget.updateSourceDescriptionData(@options.editable.element).done =>
           nugget.resetCitations(@options.editable.element).done =>
             #console.log(new_sd_node)
-            new_sd_class = new_sd_node.attr('class')
-            if new_sd_class
-              sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
-              nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
-                jQuery('body').hallosourcedescriptioneditor
-                  'loid':sd_loid
-                  'data':citation_data
-                  'element':new_sd_node
-                  'back':false
-                  'nugget_loid':target_loid
+            @openSourceDescriptionEditor(nugget,target_loid,new_sd_node)
         @back()
 
+    openSourceDescriptionEditor: (nugget,target_loid,new_sd_node) ->
+      new_sd_class = new_sd_node.attr('class')
+      if new_sd_class
+        sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
+        nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
+          jQuery('body').hallosourcedescriptioneditor
+            'loid': sd_loid
+            'data': citation_data
+            'element': new_sd_node
+            'back': false
+            'nugget_loid': target_loid
 
     back: ->
       @widget.remove()

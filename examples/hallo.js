@@ -4934,24 +4934,28 @@
           new_sd_node.removeAttr('id');
           nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
             return nugget.resetCitations(_this.options.editable.element).done(function() {
-              var new_sd_class, sd_loid;
-              new_sd_class = new_sd_node.attr('class');
-              if (new_sd_class) {
-                sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/, "$1");
-                return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
-                  return jQuery('body').hallosourcedescriptioneditor({
-                    'loid': sd_loid,
-                    'data': citation_data,
-                    'element': new_sd_node,
-                    'back': false,
-                    'nugget_loid': target_loid
-                  });
-                });
-              }
+              return _this.openSourceDescriptionEditor(nugget, target_loid, new_sd_node);
             });
           });
           return _this.back();
         });
+      },
+      openSourceDescriptionEditor: function(nugget, target_loid, new_sd_node) {
+        var new_sd_class, sd_loid,
+          _this = this;
+        new_sd_class = new_sd_node.attr('class');
+        if (new_sd_class) {
+          sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/, "$1");
+          return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
+            return jQuery('body').hallosourcedescriptioneditor({
+              'loid': sd_loid,
+              'data': citation_data,
+              'element': new_sd_node,
+              'back': false,
+              'nugget_loid': target_loid
+            });
+          });
+        }
       },
       back: function() {
         this.widget.remove();
