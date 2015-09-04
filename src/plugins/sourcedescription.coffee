@@ -98,9 +98,9 @@
       el.addClass "selected" if containing_element == element
       el.append "<span class=\"data\" style=\"display:none\">#{data}</span>" if data
       #el.addClass "disabled" if containing_element != 'div'
-      has_citation = jQuery(@options.editable.element).find(".sourcedescription-#{data}").length
+      has_citation = jQuery(@options.editable.element).find("[data-sourcedescriptionloid=#{data}]").length
       if has_citation
-        has_auto_citation = jQuery(@options.editable.element).find(".sourcedescription-#{data}").hasClass('auto-cite')
+        has_auto_citation = jQuery(@options.editable.element).find("[data-sourcedescriptionloid=#{data}]").hasClass('auto-cite')
         if !has_auto_citation
           el.attr("disabled","disabled")
           el.addClass 'used'

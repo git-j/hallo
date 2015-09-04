@@ -2052,9 +2052,9 @@
         if (data) {
           el.append("<span class=\"data\" style=\"display:none\">" + data + "</span>");
         }
-        has_citation = jQuery(this.options.editable.element).find(".sourcedescription-" + data).length;
+        has_citation = jQuery(this.options.editable.element).find("[data-sourcedescriptionloid=" + data + "]").length;
         if (has_citation) {
-          has_auto_citation = jQuery(this.options.editable.element).find(".sourcedescription-" + data).hasClass('auto-cite');
+          has_auto_citation = jQuery(this.options.editable.element).find("[data-sourcedescriptionloid=" + data + "]").hasClass('auto-cite');
           if (!has_auto_citation) {
             el.attr("disabled", "disabled");
             el.addClass('used');
@@ -3305,7 +3305,7 @@
       this._updateSettings();
       is_auto_cite = false;
       if (typeof this.editable === 'object' && null !== this.editable && this.editable.element) {
-        if (this.tipping_element.closest('.cite').hasClass('auto-cite')) {
+        if (this.tipping_element.closest('.Z3988').hasClass('auto-cite')) {
           is_auto_cite = true;
         }
       }
@@ -3331,7 +3331,7 @@
         remove_action: jQuery.proxy(this._removeAction, this),
         remove_from_nugget_action: jQuery.proxy(this._removeAction, this),
         get_source_description_data: domnugget.getSourceDescriptionData,
-        citation_selector: '.cite'
+        citation_selector: '.Z3988'
       });
     };
 
@@ -4490,7 +4490,6 @@
           _this = this;
         dom = new DOMNugget();
         citeproc = new ICiteProc();
-        citeproc.restoreTextForCitation(this.editable_element);
         dom.prepareTextForStorage(this.editable_element);
         this.saved_selection = rangy.saveSelection();
         selection_marker = this.editable_element.find(this.options.editable.selection_marker);

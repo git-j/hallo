@@ -83,7 +83,7 @@ class _Citehandler
     @_updateSettings()
     is_auto_cite = false
     if ( typeof @editable == 'object' && null != @editable && @editable.element )
-      if ( @tipping_element.closest('.cite').hasClass('auto-cite') )
+      if ( @tipping_element.closest('.Z3988').hasClass('auto-cite') )
         is_auto_cite = true;
     if ( window.citeproc )
       citation_processor = window.citeproc
@@ -104,7 +104,7 @@ class _Citehandler
       remove_action: jQuery.proxy(@_removeAction,@)
       remove_from_nugget_action: jQuery.proxy(@_removeAction,@)
       get_source_description_data: domnugget.getSourceDescriptionData
-      citation_selector: '.cite'
+      citation_selector: '.Z3988'
     )
 
   _sourcedescriptioneditorAction: (citation_data, tip_element, tipping_element) =>

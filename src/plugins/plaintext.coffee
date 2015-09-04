@@ -121,7 +121,6 @@
     _prepare_plain_content: ->
       dom = new DOMNugget()
       citeproc = new ICiteProc()
-      citeproc.restoreTextForCitation(@editable_element);
       dom.prepareTextForStorage(@editable_element)
       @saved_selection = rangy.saveSelection()
       selection_marker = @editable_element.find(@options.editable.selection_marker)
