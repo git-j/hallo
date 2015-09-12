@@ -103,8 +103,8 @@ class _Citehandler
       edit_action: jQuery.proxy(@_sourcedescriptioneditorAction,@)
       remove_action: jQuery.proxy(@_removeAction,@)
       remove_from_nugget_action: jQuery.proxy(@_removeAction,@)
-      get_source_description_data: domnugget.getSourceDescriptionData
-      citation_selector: '.Z3988'
+      get_source_description_data: jQuery.proxy(domnugget.getSourceDescriptionData,domnugget)
+      citation_selector: '.cite'
     )
 
   _sourcedescriptioneditorAction: (citation_data, tip_element, tipping_element) =>

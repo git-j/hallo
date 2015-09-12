@@ -127,7 +127,7 @@
                   replacement = "<span class=\"citation\">" + selection_html + "</span>"
                 else
                   replacement = ""
-                replacement+= "<span class=\"cite sourcedescription-#{data}\">#{element}</span>"
+                replacement+= "<span class=\"cite\"><span class=\"csl\">#{element}</span><span class=\"Z3988\" data-sourcedescriptionloid=\"#{data}\"><span style=\"display:none;\">&#160;</span></span>"
                 replacement_node = jQuery('<span></span>').append(replacement)
                 if ( has_block_contents )
                   utils.info(utils.tr('warning selected block contents'))

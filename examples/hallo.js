@@ -2084,7 +2084,7 @@
                   } else {
                     replacement = "";
                   }
-                  replacement += "<span class=\"cite sourcedescription-" + data + "\">" + element + "</span>";
+                  replacement += "<span class=\"cite\"><span class=\"csl\">" + element + "</span><span class=\"Z3988\" data-sourcedescriptionloid=\"" + data + "\"><span style=\"display:none;\">&#160;</span></span>";
                   replacement_node = jQuery('<span></span>').append(replacement);
                   if (has_block_contents) {
                     utils.info(utils.tr('warning selected block contents'));
@@ -3330,8 +3330,8 @@
         edit_action: jQuery.proxy(this._sourcedescriptioneditorAction, this),
         remove_action: jQuery.proxy(this._removeAction, this),
         remove_from_nugget_action: jQuery.proxy(this._removeAction, this),
-        get_source_description_data: domnugget.getSourceDescriptionData,
-        citation_selector: '.Z3988'
+        get_source_description_data: jQuery.proxy(domnugget.getSourceDescriptionData, domnugget),
+        citation_selector: '.cite'
       });
     };
 
