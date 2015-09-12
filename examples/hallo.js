@@ -5444,34 +5444,36 @@
         contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
         target = this._prepareDropdown(contentId);
         setup = function() {
-          var display_name, nugget, setupSubVersions, versions;
+          var nugget;
           nugget = new DOMNugget();
           target.find('.version').remove();
           if (_this.options.in_document) {
             return;
           }
           _this.options.current_version = _this.options.editable.element.closest('.nugget').attr('id');
-          versions = nugget.getNuggetVersions(_this.options.editable.element);
-          if (versions.version) {
-            display_name = versions.version.display_name;
-            target.append(_this._addElement(display_name, versions.version));
-          }
-          setupSubVersions = function(versions) {
-            var subversion, _i, _len, _ref, _results;
-            if (versions.subversions && versions.subversions.length) {
-              versions.subversions.reverse();
-              _ref = versions.subversions;
-              _results = [];
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                subversion = _ref[_i];
-                display_name = subversion.version.display_name;
-                target.append(_this._addElement(display_name, subversion.version));
-                _results.push(setupSubVersions(subversion));
-              }
-              return _results;
+          nugget.getNuggetVersions(_this.options.editable.element).done(function(versions) {
+            var display_name, setupSubVersions;
+            if (versions.version) {
+              display_name = versions.version.display_name;
+              target.append(_this._addElement(display_name, versions.version));
             }
-          };
-          setupSubVersions(versions);
+            setupSubVersions = function(versions) {
+              var subversion, _i, _len, _ref, _results;
+              if (versions.subversions && versions.subversions.length) {
+                versions.subversions.reverse();
+                _ref = versions.subversions;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  subversion = _ref[_i];
+                  display_name = subversion.version.display_name;
+                  target.append(_this._addElement(display_name, subversion.version));
+                  _results.push(setupSubVersions(subversion));
+                }
+                return _results;
+              }
+            };
+            return setupSubVersions(versions);
+          });
           return true;
         };
         buttonset.append(target);

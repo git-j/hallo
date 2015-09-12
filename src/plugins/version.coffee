@@ -29,19 +29,18 @@
         target.find('.version').remove()
         return if @options.in_document
         @options.current_version = @options.editable.element.closest('.nugget').attr('id');
-        versions = nugget.getNuggetVersions(@options.editable.element)
-
-        if versions.version
-          display_name = versions.version.display_name
-          target.append(@_addElement(display_name,versions.version))
-        setupSubVersions = (versions) =>
-          if versions.subversions && versions.subversions.length
-            versions.subversions.reverse()
-            for subversion in versions.subversions
-              display_name = subversion.version.display_name
-              target.append(@_addElement(display_name,subversion.version))
-              setupSubVersions(subversion)
-        setupSubVersions(versions)
+        nugget.getNuggetVersions(@options.editable.element).done (versions) =>
+          if versions.version
+            display_name = versions.version.display_name
+            target.append(@_addElement(display_name,versions.version))
+          setupSubVersions = (versions) =>
+            if versions.subversions && versions.subversions.length
+              versions.subversions.reverse()
+              for subversion in versions.subversions
+                display_name = subversion.version.display_name
+                target.append(@_addElement(display_name,subversion.version))
+                setupSubVersions(subversion)
+          setupSubVersions(versions)
         return true
       buttonset.append target
       buttonset.append @_prepareButton setup, target
