@@ -4903,7 +4903,7 @@
             } else {
               replacement = "<span class=\"citation\">" + selection_html + "</span>";
             }
-            replacement += "<span class=\"cite sourcedescription-" + data + "\" contenteditable=\"false\" id=\"" + tmp_id + "\">" + element + "</span>";
+            replacement += "<span class=\"cite\" contenteditable=\"false\"><span class=\"csl\" id=\"" + tmp_id + "\">" + element + "</span><span class=\"Z3988\" data-sourcedescriptionloid=\"" + data + "\"><span style=\"display:none;\">&#160;</span></span>";
             replacement_node = jQuery('<span></span>').append(replacement);
             selection = rangy.getSelection();
             if (selection.rangeCount > 0) {
@@ -4981,11 +4981,11 @@
               if (jQuery(node).find(".citation_data_processed").length === 0) {
                 jQuery(node).append('<div class="citation_data_processed"></div>');
                 jQuery.each(citation_data, function(key, value) {
-                  return jQuery(node).find('.citation_data_processed').append('<span class="cite" id="' + key + '"></span></div>');
+                  return jQuery(node).find('.citation_data_processed').append('<span class="cite"><span class="csl" id="' + key + '"></span></span></div>');
                 });
               }
               _this.citeproc.resetCitationData();
-              _this.citeproc.appendCitationData(JSON.stringify(citation_data));
+              _this.citeproc.appendCitationData(citation_data);
               _this.citeproc.citation_style = settings['default_citation_style'];
               _this.citeproc.process('#node_' + loid + ' .citation_data_processed', settings.iso_language);
               endnotes = _this.citeproc.endnotes();
