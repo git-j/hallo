@@ -32,7 +32,7 @@
     _init: ->
       #debug.log('sourcedescriptioneditor initialized',@options)
 
-      @options.tip_element.qtip('hide') if @options.tip_element
+      @options.tip_element.qtip('hide') if @options.tip_element && typeof @options.tip_element.data().api != 'undefined'
       if jQuery('.selectBox-dropdown-menu').length
         jQuery('.selectBox-dropdown-menu').remove()
       if jQuery('#cite_editor').length
@@ -47,10 +47,12 @@
       @scroll_pos_before_show = jQuery(window).scrollTop()
       jQuery('#content, #toolbar').hide();
 
+      target_nugget = jQuery('#' + @options.nugget_loid )
+
       #@wigtet.css('width', jQuery(window).width()) if !@options.default_css.width
       #@widget.css('height', jQuery(window).height()) if !@options.default_css.height
       nugget = new DOMNugget()
-      nugget.getAllSourceDescriptionAttributes(@options.loid).done (sdi) =>
+      nugget.getAllSourceDescriptionAttributes(target_nugget, @options.loid).done (sdi) =>
         @options.publication = sdi.publication
         @selectables = '<option value="">' + utils.tr('more') + '</option>'
         needs_number_of_pages = false

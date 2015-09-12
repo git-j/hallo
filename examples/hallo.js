@@ -3589,9 +3589,9 @@
         }
       },
       _init: function() {
-        var inputs, nugget,
+        var inputs, nugget, target_nugget,
           _this = this;
-        if (this.options.tip_element) {
+        if (this.options.tip_element && typeof this.options.tip_element.data().api !== 'undefined') {
           this.options.tip_element.qtip('hide');
         }
         if (jQuery('.selectBox-dropdown-menu').length) {
@@ -3610,8 +3610,9 @@
         this.widget.css(this.options.default_css);
         this.scroll_pos_before_show = jQuery(window).scrollTop();
         jQuery('#content, #toolbar').hide();
+        target_nugget = jQuery('#' + this.options.nugget_loid);
         nugget = new DOMNugget();
-        nugget.getAllSourceDescriptionAttributes(this.options.loid).done(function(sdi) {
+        nugget.getAllSourceDescriptionAttributes(target_nugget, this.options.loid).done(function(sdi) {
           var needs_number_of_pages, str_html_buttons;
           _this.options.publication = sdi.publication;
           _this.selectables = '<option value="">' + utils.tr('more') + '</option>';
