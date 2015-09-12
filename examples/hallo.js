@@ -3729,11 +3729,16 @@
             return _this._cleanup();
           });
           return window.setTimeout(function() {
-            var pages;
+            var page_sum, pages;
             jQuery(window).resize();
             if ((_this.widget.find('#number_of_pages').length)) {
               pages = _this.widget.find('#number_of_pages');
-              pages.closest('div').find('label').append(' (' + _this.options.publication.number_of_pages + ')');
+              if (_this.options.publication.number_of_pages !== '') {
+                page_sum = jQuery('<span class="sum_pages">');
+                page_sum.text(' (' + _this.options.publication.number_of_pages + ')');
+                pages.closest('div').find('label .sum_pages').remove();
+                pages.closest('div').find('label').append(page_sum);
+              }
               if (_this.widget.find('#number_of_pages').val() === _this.options.publication.number_of_pages) {
                 pages.val('');
                 return pages[0].focus();

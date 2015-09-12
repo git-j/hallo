@@ -166,8 +166,11 @@
           jQuery(window).resize()
           if ( @widget.find('#number_of_pages').length )
             pages = @widget.find('#number_of_pages')
-
-            pages.closest('div').find('label').append(' (' + @options.publication.number_of_pages + ')')
+            if ( @options.publication.number_of_pages  != '' )
+              page_sum = jQuery('<span class="sum_pages">')
+              page_sum.text(' (' + @options.publication.number_of_pages + ')')
+              pages.closest('div').find('label .sum_pages').remove();
+              pages.closest('div').find('label').append(page_sum)
             if ( @widget.find('#number_of_pages').val() == @options.publication.number_of_pages )
               pages.val('')
               pages[0].focus();
