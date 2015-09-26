@@ -117,6 +117,7 @@
           @options.editable.getSelectionStartNode (selection) =>
             if ( selection.length )
               dom = new IDOM()
+              nugget = new DOMNugget();
 
               saved_selection = rangy.saveSelection()
               @options.editable.getSelectionNode (selection_common) =>
@@ -129,18 +130,26 @@
                   replacement = ""
                 replacement+= "<span class=\"cite\"><span class=\"csl\">#{element}</span><span class=\"Z3988\" data-sourcedescriptionloid=\"#{data}\"><span style=\"display:none;\">&#160;</span></span>"
                 replacement_node = jQuery('<span></span>').append(replacement)
-                if ( has_block_contents )
-                  utils.info(utils.tr('warning selected block contents'))
-                  selection_common.append(replacement_node.contents())
-                else
-                  selection = rangy.getSelection()
-                  if ( selection.rangeCount > 0 )
-                    range = selection.getRangeAt(0)
-                    range.deleteContents()
-                    range.insertNode(replacement_node[0])
-                  else
+                nugget.getSourceDescriptionsIndex(@options.editable.element).done (sourcedescription_index) =>
+                  z3988 = new Z3988();
+                  z3988_node = jQuery('.Z3988',replacement_node)[0];
+                  co = sourcedescription_index.index_loid[data];
+                  if ( typeof co == 'undefined' )
+                    co = {loid:data}
+                  nugget.addDerivedSourceDescriptionAttributes(z3988_node,co);
+                  z3988.attach(z3988_node,{sourcedescription:co});
+                  if ( has_block_contents )
+                    utils.info(utils.tr('warning selected block contents'))
                     selection_common.append(replacement_node.contents())
-                rangy.removeMarkers(saved_selection)
+                  else
+                    selection = rangy.getSelection()
+                    if ( selection.rangeCount > 0 )
+                      range = selection.getRangeAt(0)
+                      range.deleteContents()
+                      range.insertNode(replacement_node[0])
+                    else
+                      selection_common.append(replacement_node.contents())
+                  rangy.removeMarkers(saved_selection)
             else
               utils.info(utils.tr('no selection'))
           #console.log(this_editable.element)
