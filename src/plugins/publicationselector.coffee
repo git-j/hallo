@@ -94,8 +94,14 @@
             replacement = ""
           else
             replacement = "<span class=\"citation\">" + selection_html + "</span>"
-          replacement+= "<span class=\"cite\" contenteditable=\"false\"><span class=\"csl\" id=\"#{tmp_id}\">#{element}</span><span class=\"Z3988\" data-sourcedescriptionloid=\"#{data}\"><span style=\"display:none;\">&#160;</span></span>"
+          replacement+= "<span class=\"cite\" contenteditable=\"false\" id=\"#{tmp_id}\"><span class=\"csl\">#{element}</span><span class=\"Z3988\" data-sourcedescriptionloid=\"#{data}\"><span style=\"display:none;\">&#160;</span></span>"
           replacement_node = jQuery('<span></span>').append(replacement)
+          z3988 = new Z3988();
+          nugget = new DOMNugget();
+          z3988_node = jQuery('.Z3988',replacement_node)[0];
+          co = {data:result};
+          nugget.addDerivedSourceDescriptionAttributes(z3988_node,co);
+          z3988.attach(z3988_node,{sourcedescription:co});
           selection = rangy.getSelection()
           if ( selection.rangeCount > 0 )
             range = selection.getRangeAt(0)
@@ -126,16 +132,12 @@
         @back()
 
     openSourceDescriptionEditor: (nugget,target_loid,new_sd_node) ->
-      new_sd_class = new_sd_node.attr('class')
-      if new_sd_class
-        sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/,"$1");
-        nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
-          jQuery('body').hallosourcedescriptioneditor
-            'loid': sd_loid
-            'data': citation_data
-            'element': new_sd_node
-            'back': false
-            'nugget_loid': target_loid
+      nugget.getSourceDescriptionData(new_sd_node).done (citation_data) =>
+        jQuery('body').hallosourcedescriptioneditor
+          'loid': citation_data.loid
+          'element': new_sd_node
+          'back': false
+          'nugget_loid': target_loid
 
     back: ->
       @widget.remove()
