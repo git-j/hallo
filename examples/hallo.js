@@ -1238,7 +1238,7 @@
         }
       },
       _paste: function(event) {
-        var dom, html, jq_temp, pdata, range, selection,
+        var attach_dfd, dom, html, jq_temp, nugget, nugget_node, pdata, range, selection,
           _this = this;
         pdata = '';
         if (jQuery.isArray(event.originalEvent.clipboardData.types)) {
@@ -1274,7 +1274,7 @@
           range.deleteContents();
         } else {
           range = rangy.createRange();
-          range.selectNode(this.element[0]);
+          range.selectNode(event.data.element[0]);
           range.collapse(false);
         }
         if (jq_temp.contents().length > 1) {
@@ -1290,7 +1290,23 @@
         }
         range.collapse(false);
         selection.setSingleRange(range);
-        return event.data.undoWaypointCommit(false);
+        if (typeof event.data === 'object' && typeof event.data.element === 'object' && event.data.element.length) {
+          nugget = new DOMNugget();
+          nugget_node = jQuery('> .content', event.data.element.closest('.nugget'));
+          if (nugget_node.length) {
+            attach_dfd = nugget._attachZ3988(nugget_node);
+            attach_dfd.done(function() {
+              return nugget._processZ3988(nugget_node).always(function() {
+                return event.data.undoWaypointCommit(false);
+              });
+            });
+            return attach_dfd.fail(function() {
+              return event.data.undoWaypointCommit(false);
+            });
+          }
+        } else {
+          return event.data.undoWaypointCommit(false);
+        }
       },
       _ignoreKeys: function(code) {
         if (code >= 33 && code <= 40) {
@@ -2071,12 +2087,13 @@
             });
           } else {
             _this.options.editable.getSelectionStartNode(function(selection) {
-              var dom, saved_selection;
+              var dom, nugget, saved_selection;
               if (selection.length) {
                 dom = new IDOM();
+                nugget = new DOMNugget();
                 saved_selection = rangy.saveSelection();
                 return _this.options.editable.getSelectionNode(function(selection_common) {
-                  var has_block_contents, range, replacement, replacement_node, selection_html;
+                  var has_block_contents, replacement, replacement_node, selection_html;
                   selection_html = _this.options.editable.getSelectionHtml();
                   has_block_contents = dom.hasBlockElement(jQuery('<span>' + selection_html + '</span>'));
                   if (selection_html !== '' && !has_block_contents) {
@@ -2086,20 +2103,35 @@
                   }
                   replacement += "<span class=\"cite\"><span class=\"csl\">" + element + "</span><span class=\"Z3988\" data-sourcedescriptionloid=\"" + data + "\"><span style=\"display:none;\">&#160;</span></span>";
                   replacement_node = jQuery('<span></span>').append(replacement);
-                  if (has_block_contents) {
-                    utils.info(utils.tr('warning selected block contents'));
-                    selection_common.append(replacement_node.contents());
-                  } else {
-                    selection = rangy.getSelection();
-                    if (selection.rangeCount > 0) {
-                      range = selection.getRangeAt(0);
-                      range.deleteContents();
-                      range.insertNode(replacement_node[0]);
-                    } else {
-                      selection_common.append(replacement_node.contents());
+                  return nugget.getSourceDescriptionsIndex(_this.options.editable.element).done(function(sourcedescription_index) {
+                    var co, range, z3988, z3988_node;
+                    z3988 = new Z3988();
+                    z3988_node = jQuery('.Z3988', replacement_node)[0];
+                    co = sourcedescription_index.index_loid[data];
+                    if (typeof co === 'undefined') {
+                      co = {
+                        loid: data
+                      };
                     }
-                  }
-                  return rangy.removeMarkers(saved_selection);
+                    nugget.addDerivedSourceDescriptionAttributes(z3988_node, co);
+                    z3988.attach(z3988_node, {
+                      sourcedescription: co
+                    });
+                    if (has_block_contents) {
+                      utils.info(utils.tr('warning selected block contents'));
+                      selection_common.append(replacement_node.contents());
+                    } else {
+                      selection = rangy.getSelection();
+                      if (selection.rangeCount > 0) {
+                        range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(replacement_node[0]);
+                      } else {
+                        selection_common.append(replacement_node.contents());
+                      }
+                    }
+                    return rangy.removeMarkers(saved_selection);
+                  });
                 });
               } else {
                 return utils.info(utils.tr('no selection'));
@@ -3300,7 +3332,7 @@
     };
 
     _Citehandler.prototype._makeTip = function() {
-      var citation_processor, domnugget, is_auto_cite,
+      var citation_processor, is_auto_cite, nugget,
         _this = this;
       this._updateSettings();
       is_auto_cite = false;
@@ -3314,7 +3346,7 @@
       } else {
         citation_processor = new ICiteProc();
       }
-      domnugget = new DOMNugget();
+      nugget = new DOMNugget();
       return jQuery('body').citationPopup({
         citation_processor: citation_processor,
         class_name: 'hallo_sourcedescription_popup',
@@ -3327,10 +3359,11 @@
         goto_file_action: function(filename) {
           return utils.correctAndOpenFilePath(filename);
         },
+        save_action: jQuery.proxy(nugget.addSourceDescription, nugget),
         edit_action: jQuery.proxy(this._sourcedescriptioneditorAction, this),
         remove_action: jQuery.proxy(this._removeAction, this),
         remove_from_nugget_action: jQuery.proxy(this._removeAction, this),
-        get_source_description_data: jQuery.proxy(domnugget.getSourceDescriptionData, domnugget),
+        get_source_description_data: jQuery.proxy(nugget.getSourceDescriptionData, nugget),
         citation_selector: '.cite'
       });
     };
@@ -3633,7 +3666,7 @@
             }
             qvalue = sdi.instance[attribute_name];
             if (qvalue === '') {
-              if (needs_number_of_pages && attribute_name === 'number_of_pages') {
+              if (needs_number_of_pages && attribute_name === 'page') {
                 return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
               } else if (attribute_name === 'notes' | attribute_name === 'notes') {
                 return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
@@ -3675,9 +3708,9 @@
               undo_command.dfd = jQuery.Deferred();
               dfdlist = [];
               jQuery.each(values, function(key, value) {
-                return dfdlist.push(omc.storePublicationDescriptionAttribute(loid, key, value));
+                return dfdlist.push(nugget.storePublicationDescriptionAttribute(jQuery('#' + nugget_loid), loid, key, value));
               });
-              jQuery.when.apply(jQuery, dfdlist).done(function() {
+              jQuery.when(dfdlist).done(function() {
                 return undo_command.dfd.resolve();
               });
               undo_command.dfd.promise();
@@ -3688,7 +3721,7 @@
               undo_command.dfd = jQuery.Deferred();
               dfdlist = [];
               jQuery.each(orig_values, function(key, value) {
-                return dfdlist.push(omc.storePublicationDescriptionAttribute(loid, key, value));
+                return dfdlist.push(nugget.storePublicationDescriptionAttribute(jQuery('#' + nugget_loid), loid, key, value));
               });
               jQuery.when.apply(jQuery, dfdlist).done(function() {
                 return undo_command.dfd.resolve();
@@ -3720,10 +3753,10 @@
             return _this._cleanup();
           });
           jQuery('#sourcedescriptioneditor_goto').bind('click', function() {
-            if (typeof _this.options.data !== 'object' || parseInt(_this.options.data.publication_loid, 10) === 0) {
+            if (typeof _this.options.publication !== 'object' || parseInt(_this.options.publication.publication_loid, 10) === 0) {
               jQuery('#sourcedescriptioneditor_goto').hide();
             }
-            occ.GotoObject(_this.options.data.publication_loid);
+            occ.GotoObject(_this.options.publication.publication_loid);
             _this.options.values = {};
             _this.options.orig_values = {};
             return _this._cleanup();
@@ -3731,15 +3764,15 @@
           return window.setTimeout(function() {
             var page_sum, pages;
             jQuery(window).resize();
-            if ((_this.widget.find('#number_of_pages').length)) {
-              pages = _this.widget.find('#number_of_pages');
-              if (_this.options.publication.number_of_pages !== '') {
+            if ((_this.widget.find('#page').length)) {
+              pages = _this.widget.find('#page');
+              if (typeof _this.options.publication.page !== 'undefined' && _this.options.publication.page !== '') {
                 page_sum = jQuery('<span class="sum_pages">');
-                page_sum.text(' (' + _this.options.publication.number_of_pages + ')');
+                page_sum.text(' (' + _this.options.publication.publication_pages + ')');
                 pages.closest('div').find('label .sum_pages').remove();
                 pages.closest('div').find('label').append(page_sum);
               }
-              if (_this.widget.find('#number_of_pages').val() === _this.options.publication.number_of_pages) {
+              if (_this.widget.find('#page').val() === _this.options.publication.publication_pages) {
                 pages.val('');
                 return pages[0].focus();
               }
@@ -3818,12 +3851,15 @@
         if (omc && options.loid) {
           options.values[path] = data;
         }
-        if (path.indexOf("number_of_pages") === 0 && data !== '' && typeof data === 'string') {
-          publication_page_from_to_match = options.publication.number_of_pages.match(/^(\d*)-(\d*)$/);
+        if (path.indexOf("page") === 0 && data !== '' && typeof data === 'string') {
+          if (typeof options.publication !== 'object' || typeof options.publication.publication_pages !== 'string') {
+            return null;
+          }
+          publication_page_from_to_match = options.publication.publication_pages.match(/^(\d*)-(\d*)$/);
           sourcedescription_from_to_match = data.match(/^(\d*)-(\d*)$/);
-          publication_page_to_match = options.publication.number_of_pages.match(/^(\d*)$/);
+          publication_page_to_match = options.publication.publication_pages.match(/^(\d*)$/);
           sourcedescription_to_match = data.match(/^(\d*)$/);
-          publication_page_over_match = options.publication.number_of_pages.match(/^(\d+)[^-\d]+$/);
+          publication_page_over_match = options.publication.publication_pages.match(/^(\d+)[^-\d]+$/);
           sourcedescription_over_match = data.match(/^(\d+)[^-\d]+$/);
           from = 0;
           to = 0;
@@ -4902,15 +4938,25 @@
           element = _this.current_node_label;
           _this.options.editable.restoreContentPosition();
           _this.options.editable.getSelectionNode(function(selection_common) {
-            var range, replacement, replacement_node, selection, selection_html;
+            var co, nugget, range, replacement, replacement_node, selection, selection_html, z3988, z3988_node;
             selection_html = _this.options.editable.getSelectionHtml();
             if (selection_html === "") {
               replacement = "";
             } else {
               replacement = "<span class=\"citation\">" + selection_html + "</span>";
             }
-            replacement += "<span class=\"cite\" contenteditable=\"false\"><span class=\"csl\" id=\"" + tmp_id + "\">" + element + "</span><span class=\"Z3988\" data-sourcedescriptionloid=\"" + data + "\"><span style=\"display:none;\">&#160;</span></span>";
+            replacement += "<span class=\"cite\" contenteditable=\"false\" id=\"" + tmp_id + "\"><span class=\"csl\">" + element + "</span><span class=\"Z3988\" data-sourcedescriptionloid=\"" + data + "\"><span style=\"display:none;\">&#160;</span></span>";
             replacement_node = jQuery('<span></span>').append(replacement);
+            z3988 = new Z3988();
+            nugget = new DOMNugget();
+            z3988_node = jQuery('.Z3988', replacement_node)[0];
+            co = {
+              data: result
+            };
+            nugget.addDerivedSourceDescriptionAttributes(z3988_node, co);
+            z3988.attach(z3988_node, {
+              sourcedescription: co
+            });
             selection = rangy.getSelection();
             if (selection.rangeCount > 0) {
               range = selection.getRangeAt(0);
@@ -4946,21 +4992,15 @@
         });
       },
       openSourceDescriptionEditor: function(nugget, target_loid, new_sd_node) {
-        var new_sd_class, sd_loid,
-          _this = this;
-        new_sd_class = new_sd_node.attr('class');
-        if (new_sd_class) {
-          sd_loid = new_sd_class.replace(/.*sourcedescription-(\d*).*/, "$1");
-          return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
-            return jQuery('body').hallosourcedescriptioneditor({
-              'loid': sd_loid,
-              'data': citation_data,
-              'element': new_sd_node,
-              'back': false,
-              'nugget_loid': target_loid
-            });
+        var _this = this;
+        return nugget.getSourceDescriptionData(new_sd_node).done(function(citation_data) {
+          return jQuery('body').hallosourcedescriptioneditor({
+            'loid': citation_data.loid,
+            'element': new_sd_node,
+            'back': false,
+            'nugget_loid': target_loid
           });
-        }
+        });
       },
       back: function() {
         this.widget.remove();
