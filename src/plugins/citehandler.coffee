@@ -89,7 +89,7 @@ class _Citehandler
       citation_processor = window.citeproc
     else
       citation_processor = new ICiteProc()
-    domnugget = new DOMNugget();
+    nugget = new DOMNugget();
     jQuery('body').citationPopup (
       citation_processor: citation_processor
       class_name: 'hallo_sourcedescription_popup'
@@ -100,10 +100,11 @@ class _Citehandler
         wke.openUrlInBrowser(url)
       goto_file_action: (filename) =>
         utils.correctAndOpenFilePath(filename)
+      save_action: jQuery.proxy(nugget.addSourceDescription,nugget)
       edit_action: jQuery.proxy(@_sourcedescriptioneditorAction,@)
       remove_action: jQuery.proxy(@_removeAction,@)
       remove_from_nugget_action: jQuery.proxy(@_removeAction,@)
-      get_source_description_data: jQuery.proxy(domnugget.getSourceDescriptionData,domnugget)
+      get_source_description_data: jQuery.proxy(nugget.getSourceDescriptionData,nugget)
       citation_selector: '.cite'
     )
 
