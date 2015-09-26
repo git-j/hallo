@@ -606,7 +606,7 @@ http://hallojs.org
         range.deleteContents()
       else
         range = rangy.createRange()
-        range.selectNode(@element[0])
+        range.selectNode(event.data.element[0])
         range.collapse(false)
       if ( jq_temp.contents().length > 1 )
         # wrapped in element
