@@ -112,12 +112,12 @@
           # console.log(num_updates,values)
 
           # make editing of values undoable
-          undo_command.redo = (event) => # event may be undefined
+          undo_command.redo = (event) =>  # event may be undefined
             undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each values, (key, value) =>
-              dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
-            jQuery.when.apply(jQuery,dfdlist).done () =>
+              dfdlist.push(nugget.storePublicationDescriptionAttribute(jQuery('#' + nugget_loid),loid,key,value))
+            jQuery.when(dfdlist).done () =>
               undo_command.dfd.resolve()
             undo_command.dfd.promise()
             undo_command.postdo()
@@ -126,7 +126,7 @@
             undo_command.dfd = jQuery.Deferred()
             dfdlist = []
             jQuery.each orig_values, (key, value) =>
-              dfdlist.push(omc.storePublicationDescriptionAttribute(loid,key,value))
+              dfdlist.push(nugget.storePublicationDescriptionAttribute(jQuery('#' + nugget_loid),loid,key,value))
             jQuery.when.apply(jQuery,dfdlist).done () =>
               undo_command.dfd.resolve()
             undo_command.dfd.promise()
@@ -155,23 +155,23 @@
           @_cleanup()
           #/bind click back
         jQuery('#sourcedescriptioneditor_goto').bind 'click', =>
-          if ( typeof @options.data != 'object' || parseInt(@options.data.publication_loid,10) == 0 )
+          if ( typeof @options.publication != 'object' || parseInt(@options.publication.publication_loid,10) == 0 )
             jQuery('#sourcedescriptioneditor_goto').hide()
-          occ.GotoObject(@options.data.publication_loid)
+          occ.GotoObject(@options.publication.publication_loid)
           @options.values = {}
           @options.orig_values = {}
           #jQuery('#sourcedescriptioneditor_selectable').selectBox('destroy')
           @_cleanup()
         window.setTimeout =>
           jQuery(window).resize()
-          if ( @widget.find('#number_of_pages').length )
-            pages = @widget.find('#number_of_pages')
-            if ( @options.publication.number_of_pages  != '' )
+          if ( @widget.find('#page').length )
+            pages = @widget.find('#page')
+            if ( typeof @options.publication.page != 'undefined' && @options.publication.page != '' )
               page_sum = jQuery('<span class="sum_pages">')
-              page_sum.text(' (' + @options.publication.number_of_pages + ')')
+              page_sum.text(' (' + @options.publication.publication_pages + ')')
               pages.closest('div').find('label .sum_pages').remove();
               pages.closest('div').find('label').append(page_sum)
-            if ( @widget.find('#number_of_pages').val() == @options.publication.number_of_pages )
+            if ( @widget.find('#page').val() == @options.publication.publication_pages )
               pages.val('')
               pages[0].focus();
         , 100
@@ -188,6 +188,7 @@
         wkej.instance.doc.updateView();
 
     _createInput: (identifier, label, value) ->
+      # identifier is attribute of core-type
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
       label = jQuery('<label for="' + identifier + '">' + label + '</label>')
       input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>')
