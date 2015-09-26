@@ -622,8 +622,18 @@ http://hallojs.org
           range.selectNode(jq_temp[0])
       range.collapse(false) # collapse to end
       selection.setSingleRange(range)
-      event.data.undoWaypointCommit(false)
-
+      if typeof event.data == 'object' && typeof event.data.element == 'object' && event.data.element.length
+        nugget = new DOMNugget();
+        nugget_node = jQuery('> .content',event.data.element.closest('.nugget'))
+        if nugget_node.length
+          attach_dfd = nugget._attachZ3988(nugget_node)
+          attach_dfd.done () =>
+            nugget._processZ3988(nugget_node).always () => 
+              event.data.undoWaypointCommit(false)
+          attach_dfd.fail => 
+            event.data.undoWaypointCommit(false)
+      else
+        event.data.undoWaypointCommit(false)
       
     _ignoreKeys: (code) ->
       # cursor movements
