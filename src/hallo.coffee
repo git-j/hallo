@@ -96,6 +96,7 @@ http://hallojs.org
     auto_store_timeout: 3000
     debug: false
     _key_handlers: []
+    _static_elements: []
 
     options:
       editable: true
@@ -745,6 +746,14 @@ http://hallojs.org
       return true if ( code == 20 ) #caps
 
       return false
+    _isRemoveContentKey: (widget, event) ->
+      selection = rangy.getSelection();
+      return true if ( event.keyCode == 8 ) # backspace
+      return true if ( event.keyCode == 46 ) # backspace
+      return true if ( event.keyCode == 88 && event.ctrlKey ) # ctrl+x
+      if ( !selection.isCollapsed )
+        return true
+      return false
     registerKey: (modifier,keyCode,callback_fn) ->
       check_fn = (event) =>
         check_modifiers = 
@@ -781,6 +790,8 @@ http://hallojs.org
       #    widget.turnOff()
       # console.log(event.keyCode)
       return if widget._ignoreKeys(event.keyCode)
+      # avoid disapearing content
+      jQuery('.static_element',widget.element).attr('contenteditable','false').removeClass('static_element')
       if ( event.keyCode == 32 || event.keyCode == 13 || event.keyCode == 8 || event.keyCode == 9 ) && !event.ctrlKey
         widget.undoWaypointCommit(false)
         widget.undoWaypointStart('text')
@@ -814,6 +825,14 @@ http://hallojs.org
     _syskeys: (event) ->
       widget = event.data
       return if widget._ignoreKeys(event.keyCode)
+      # avoid disapearing content
+      if widget._isRemoveContentKey(widget,event)
+        jQuery('.static_element',widget.element).attr('contenteditable','false').removeClass('static_element')
+        jQuery('[contenteditable=false]',widget.element).addClass('static_element').removeAttr('contenteditable')
+        restore_editable_fn = () =>
+          jQuery('.static_element',widget.element).attr('contenteditable','false').removeClass('static_element')
+        window.clearTimeout(widget._static_elements_timer)
+        widget._static_elements_timer = window.setTimeout restore_editable_fn, 30
       return if widget.checkRegisteredKeys(event)
       if event.keyCode == 13 && !event.shiftKey
         selection = rangy.getSelection()

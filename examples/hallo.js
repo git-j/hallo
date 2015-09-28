@@ -663,6 +663,7 @@
       auto_store_timeout: 3000,
       debug: false,
       _key_handlers: [],
+      _static_elements: [],
       options: {
         editable: true,
         plugins: {},
@@ -1317,6 +1318,23 @@
         }
         return false;
       },
+      _isRemoveContentKey: function(widget, event) {
+        var selection;
+        selection = rangy.getSelection();
+        if (event.keyCode === 8) {
+          return true;
+        }
+        if (event.keyCode === 46) {
+          return true;
+        }
+        if (event.keyCode === 88 && event.ctrlKey) {
+          return true;
+        }
+        if (!selection.isCollapsed) {
+          return true;
+        }
+        return false;
+      },
       registerKey: function(modifier, keyCode, callback_fn) {
         var check_fn,
           _this = this;
@@ -1360,6 +1378,7 @@
         if (widget._ignoreKeys(event.keyCode)) {
           return;
         }
+        jQuery('.static_element', widget.element).attr('contenteditable', 'false').removeClass('static_element');
         if ((event.keyCode === 32 || event.keyCode === 13 || event.keyCode === 8 || event.keyCode === 9) && !event.ctrlKey) {
           widget.undoWaypointCommit(false);
           widget.undoWaypointStart('text');
@@ -1396,11 +1415,20 @@
         return selection.setSingleRange(range);
       },
       _syskeys: function(event) {
-        var li, new_range, range, selection, table, td, tds, use_next, use_prev, widget,
+        var li, new_range, range, restore_editable_fn, selection, table, td, tds, use_next, use_prev, widget,
           _this = this;
         widget = event.data;
         if (widget._ignoreKeys(event.keyCode)) {
           return;
+        }
+        if (widget._isRemoveContentKey(widget, event)) {
+          jQuery('.static_element', widget.element).attr('contenteditable', 'false').removeClass('static_element');
+          jQuery('[contenteditable=false]', widget.element).addClass('static_element').removeAttr('contenteditable');
+          restore_editable_fn = function() {
+            return jQuery('.static_element', widget.element).attr('contenteditable', 'false').removeClass('static_element');
+          };
+          window.clearTimeout(widget._static_elements_timer);
+          widget._static_elements_timer = window.setTimeout(restore_editable_fn, 30);
         }
         if (widget.checkRegisteredKeys(event)) {
           return;
