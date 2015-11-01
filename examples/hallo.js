@@ -3392,7 +3392,8 @@
         remove_action: jQuery.proxy(this._removeAction, this),
         remove_from_nugget_action: jQuery.proxy(this._removeAction, this),
         get_source_description_data: jQuery.proxy(nugget.getSourceDescriptionData, nugget),
-        citation_selector: '.cite'
+        citation_selector: '.cite > .csl',
+        citation_data_selector: '.cite'
       });
     };
 
@@ -3940,6 +3941,111 @@
       },
       _create: function() {
         return this;
+      }
+    });
+  })(jQuery);
+
+  (function(jQuery) {
+    return jQuery.widget('IKS.hallostyle', {
+      options: {
+        editable: null,
+        toolbar: null,
+        uuid: '',
+        styles: ['large', 'normal', 'small', 'unreadable'],
+        buttonCssClass: null
+      },
+      populateToolbar: function(toolbar) {
+        var buttonset, contentId, target;
+        buttonset = jQuery("<span class=\"" + this.widgetName + "\"></span>");
+        contentId = "" + this.options.uuid + "-" + this.widgetName + "-data";
+        target = this._prepareDropdown(contentId);
+        buttonset.append(target);
+        buttonset.append(this._prepareButton(target));
+        return toolbar.append(buttonset);
+      },
+      _prepareDropdown: function(contentId) {
+        var addElement, containingElement, contentArea, style, _i, _len, _ref,
+          _this = this;
+        contentArea = jQuery("<div id=\"" + contentId + "\"></div>");
+        containingElement = this.options.editable.element.get(0).tagName.toLowerCase();
+        addElement = function(element) {
+          var button_label, button_tooltip, el, queryState, tr_span;
+          el = jQuery("<button class=\"styleselector\" rel=\"" + element + "\">" + element + "</button>");
+          button_label = element;
+          button_tooltip = '';
+          if (window.action_list && window.action_list['hallojs_style_' + element] !== void 0) {
+            button_label = window.action_list['hallojs_style_' + element].title;
+            button_tooltip = window.action_list['hallojs_style_' + element].tooltip;
+            tr_span = jQuery('<span>');
+            tr_span.html(button_label);
+            button_label = tr_span.text();
+            tr_span.html(button_tooltip);
+            button_tooltip = tr_span.text();
+          }
+          el.html(button_label);
+          el.attr('title', button_tooltip);
+          if (containingElement === element) {
+            el.addClass('selected');
+          }
+          if (containingElement !== 'div') {
+            el.addClass('disabled');
+          }
+          el.bind('click', function() {
+            if (el.hasClass('disabled')) {
+              return;
+            }
+            if (element === 'none') {
+              _this.options.editable.execute('removeFormat');
+              return;
+            }
+            if (navigator.appName === 'Microsoft Internet Explorer') {
+              return _this.options.editable.execute('FormatBlock', '<' + element.toUpperCase() + '>');
+            } else {
+              return _this.options.editable.execute('formatBlock', element.toUpperCase());
+            }
+          });
+          queryState = function(event) {
+            var block;
+            block = document.queryCommandValue('formatBlock');
+            if (block.toLowerCase() === element) {
+              el.addClass('selected');
+              return;
+            }
+            return el.removeClass('selected');
+          };
+          _this.options.editable.element.bind('keyup paste change mouseup', queryState);
+          _this.options.editable.element.bind('halloenabled', function() {
+            return _this.options.editable.element.bind('keyup paste change mouseup', queryState);
+          });
+          _this.options.editable.element.bind('hallodisabled', function() {
+            return _this.options.editable.element.unbind('keyup paste change mouseup', queryState);
+          });
+          return el;
+        };
+        _ref = this.options.styles;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          style = _ref[_i];
+          contentArea.append(addElement(style));
+        }
+        return contentArea;
+      },
+      _prepareButton: function(target) {
+        var buttonElement, button_label;
+        buttonElement = jQuery('<span></span>');
+        button_label = 'style';
+        if (window.action_list && window.action_list['hallojs_style'] !== void 0) {
+          button_label = window.action_list['hallojs_style'].title;
+        }
+        buttonElement.hallodropdownbutton({
+          uuid: this.options.uuid,
+          editable: this.options.editable,
+          label: button_label,
+          command: 'style',
+          icon: 'icon-text-height',
+          target: target,
+          cssClass: this.options.buttonCssClass
+        });
+        return buttonElement;
       }
     });
   })(jQuery);
