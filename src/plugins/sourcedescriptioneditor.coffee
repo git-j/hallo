@@ -63,7 +63,9 @@
           return if typeof sdi.description[attribute_name] != 'object' || !sdi.description[attribute_name].label
           qvalue = sdi.instance[attribute_name]
           if ( qvalue == '' )
-            if ( needs_number_of_pages && attribute_name == 'number_of_pages' )
+            if ( needs_number_of_pages && (attribute_name == 'page' || attribute_name == 'number_of_pages') )
+              #!!!
+              attribute_name = 'number_of_pages'
               inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
             else if ( attribute_name == 'notes' | attribute_name == 'notes' )
               inputs.append(@_createInput(attribute_name,sdi.description[attribute_name].label,qvalue))
@@ -164,14 +166,18 @@
           @_cleanup()
         window.setTimeout =>
           jQuery(window).resize()
-          if ( @widget.find('#page').length )
-            pages = @widget.find('#page')
-            if ( typeof @options.publication.page != 'undefined' && @options.publication.page != '' )
+          if ( @widget.find('#number_of_pages').length )
+            pages = @widget.find('#number_of_pages')
+            if ( (typeof @options.publication.publication_pages != 'undefined' && @options.publication.publication_pages != '') || (typeof @options.publication.number_of_pages != 'undefined' && @options.publication.number_of_pages != ''))
+              publication_pages = @options.publication.publication_pages
+              if ( typeof publication_pages == 'undefined' )
+                publication_pages = @options.publication.number_of_pages
+            if ( typeof publication_pages == 'string' && publication_pages != '' )
               page_sum = jQuery('<span class="sum_pages">')
-              page_sum.text(' (' + @options.publication.publication_pages + ')')
+              page_sum.text(' (' + publication_pages + ')')
               pages.closest('div').find('label .sum_pages').remove();
               pages.closest('div').find('label').append(page_sum)
-            if ( @widget.find('#page').val() == @options.publication.publication_pages )
+            if ( @widget.find('#number_of_pages').val() == publication_pages )
               pages.val('')
               pages[0].focus();
         , 100
@@ -190,11 +196,13 @@
     _createInput: (identifier, label, value) ->
       # identifier is attribute of core-type
       # tooltip = utils.tr_pub_attr(@options.publication.instance_type_definition,identifier)
-      label = jQuery('<label for="' + identifier + '">' + label + '</label>')
+      input_label = jQuery('<label>')
+      input_label.attr('for', identifier)
+      input_label.html(label)
       input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>')
       input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width" rows="5"><!--user-data--></textarea>')
       row = jQuery('<div></div>')
-      row.append(label)
+      row.append(input_label)
       if ( identifier == 'abstract' || identifier == 'extra' || identifier == 'notes' )
         input = input_multiline
         input.text(value)
@@ -202,7 +210,7 @@
         input = input_singleline
         input.val(value)
       if ( identifier == 'number_of_pages' || identifier == 'notes' || identifier == 'running_time' || identifier == 'code_volume' || identifier == 'code_pages' || identifier == 'code_sections' )
-        label.addClass('persistent_sourcedescription_attribute')
+        input_label.addClass('persistent_sourcedescription_attribute')
       else
         input.attr('disabled','true')
       row.append(input)
@@ -232,13 +240,18 @@
         #debug.log('stored',options.loid,path,data)
       if path.indexOf("number_of_pages") == 0 && data != '' && typeof data == 'string'
         # e.g.44-45
-        publication_page_from_to_match = options.publication.number_of_pages.match(/^(\d*)-(\d*)$/)
+        if ( typeof options.publication  != 'object' || (typeof options.publication.publication_pages != 'string' && typeof options.publication.number_of_pages != 'string') )
+          return null;
+        publication_pages = options.publication.publication_pages
+        if ( typeof publication_pages == 'undefined' )
+          publication_pages = options.publication.number_of_pages
+        publication_page_from_to_match = publication_pages.match(/^(\d*)-(\d*)$/)
         sourcedescription_from_to_match = data.match(/^(\d*)-(\d*)$/)
         #e.g.44
-        publication_page_to_match = options.publication.number_of_pages.match(/^(\d*)$/)
+        publication_page_to_match = publication_pages.match(/^(\d*)$/)
         sourcedescription_to_match = data.match(/^(\d*)$/)
         #e.g.44 pp
-        publication_page_over_match = options.publication.number_of_pages.match(/^(\d+)[^-\d]+$/)
+        publication_page_over_match = publication_pages.match(/^(\d+)[^-\d]+$/)
         sourcedescription_over_match = data.match(/^(\d+)[^-\d]+$/)
         from = 0
         to = 0

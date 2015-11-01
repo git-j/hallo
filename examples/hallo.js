@@ -3694,7 +3694,8 @@
             }
             qvalue = sdi.instance[attribute_name];
             if (qvalue === '') {
-              if (needs_number_of_pages && attribute_name === 'page') {
+              if (needs_number_of_pages && (attribute_name === 'page' || attribute_name === 'number_of_pages')) {
+                attribute_name = 'number_of_pages';
                 return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
               } else if (attribute_name === 'notes' | attribute_name === 'notes') {
                 return inputs.append(_this._createInput(attribute_name, sdi.description[attribute_name].label, qvalue));
@@ -3790,17 +3791,23 @@
             return _this._cleanup();
           });
           return window.setTimeout(function() {
-            var page_sum, pages;
+            var page_sum, pages, publication_pages;
             jQuery(window).resize();
-            if ((_this.widget.find('#page').length)) {
-              pages = _this.widget.find('#page');
-              if (typeof _this.options.publication.page !== 'undefined' && _this.options.publication.page !== '') {
+            if ((_this.widget.find('#number_of_pages').length)) {
+              pages = _this.widget.find('#number_of_pages');
+              if ((typeof _this.options.publication.publication_pages !== 'undefined' && _this.options.publication.publication_pages !== '') || (typeof _this.options.publication.number_of_pages !== 'undefined' && _this.options.publication.number_of_pages !== '')) {
+                publication_pages = _this.options.publication.publication_pages;
+                if (typeof publication_pages === 'undefined') {
+                  publication_pages = _this.options.publication.number_of_pages;
+                }
+              }
+              if (typeof publication_pages === 'string' && publication_pages !== '') {
                 page_sum = jQuery('<span class="sum_pages">');
-                page_sum.text(' (' + _this.options.publication.publication_pages + ')');
+                page_sum.text(' (' + publication_pages + ')');
                 pages.closest('div').find('label .sum_pages').remove();
                 pages.closest('div').find('label').append(page_sum);
               }
-              if (_this.widget.find('#page').val() === _this.options.publication.publication_pages) {
+              if (_this.widget.find('#number_of_pages').val() === publication_pages) {
                 pages.val('');
                 return pages[0].focus();
               }
@@ -3825,13 +3832,15 @@
         }
       },
       _createInput: function(identifier, label, value) {
-        var dp, fn_dp_show, fn_update_select, input, input_multiline, input_singleline, row,
+        var dp, fn_dp_show, fn_update_select, input, input_label, input_multiline, input_singleline, row,
           _this = this;
-        label = jQuery('<label for="' + identifier + '">' + label + '</label>');
+        input_label = jQuery('<label>');
+        input_label.attr('for', identifier);
+        input_label.html(label);
         input_singleline = jQuery('<input id="' + identifier + '" type="text" value="<!--user-data-->" class="max_width"/>');
         input_multiline = jQuery('<textarea id="' + identifier + '" class="max_width" rows="5"><!--user-data--></textarea>');
         row = jQuery('<div></div>');
-        row.append(label);
+        row.append(input_label);
         if (identifier === 'abstract' || identifier === 'extra' || identifier === 'notes') {
           input = input_multiline;
           input.text(value);
@@ -3840,7 +3849,7 @@
           input.val(value);
         }
         if (identifier === 'number_of_pages' || identifier === 'notes' || identifier === 'running_time' || identifier === 'code_volume' || identifier === 'code_pages' || identifier === 'code_sections') {
-          label.addClass('persistent_sourcedescription_attribute');
+          input_label.addClass('persistent_sourcedescription_attribute');
         } else {
           input.attr('disabled', 'true');
         }
@@ -3872,22 +3881,26 @@
         return row;
       },
       _formChanged: function(event, options) {
-        var data, from, path, publication_page_from_to_match, publication_page_over_match, publication_page_to_match, sd_from, sd_to, sourcedescription_from_to_match, sourcedescription_over_match, sourcedescription_to_match, target, to;
+        var data, from, path, publication_page_from_to_match, publication_page_over_match, publication_page_to_match, publication_pages, sd_from, sd_to, sourcedescription_from_to_match, sourcedescription_over_match, sourcedescription_to_match, target, to;
         target = jQuery(event.target);
         path = target.attr('id');
         data = target.val();
         if (omc && options.loid) {
           options.values[path] = data;
         }
-        if (path.indexOf("page") === 0 && data !== '' && typeof data === 'string') {
-          if (typeof options.publication !== 'object' || typeof options.publication.publication_pages !== 'string') {
+        if (path.indexOf("number_of_pages") === 0 && data !== '' && typeof data === 'string') {
+          if (typeof options.publication !== 'object' || (typeof options.publication.publication_pages !== 'string' && typeof options.publication.number_of_pages !== 'string')) {
             return null;
           }
-          publication_page_from_to_match = options.publication.publication_pages.match(/^(\d*)-(\d*)$/);
+          publication_pages = options.publication.publication_pages;
+          if (typeof publication_pages === 'undefined') {
+            publication_pages = options.publication.number_of_pages;
+          }
+          publication_page_from_to_match = publication_pages.match(/^(\d*)-(\d*)$/);
           sourcedescription_from_to_match = data.match(/^(\d*)-(\d*)$/);
-          publication_page_to_match = options.publication.publication_pages.match(/^(\d*)$/);
+          publication_page_to_match = publication_pages.match(/^(\d*)$/);
           sourcedescription_to_match = data.match(/^(\d*)$/);
-          publication_page_over_match = options.publication.publication_pages.match(/^(\d+)[^-\d]+$/);
+          publication_page_over_match = publication_pages.match(/^(\d+)[^-\d]+$/);
           sourcedescription_over_match = data.match(/^(\d+)[^-\d]+$/);
           from = 0;
           to = 0;
