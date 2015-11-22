@@ -110,13 +110,29 @@
         return this.refresh();
       },
       _createButton: function(id, command, label, icon) {
-        var button_str;
+        var button, buttonEl, button_str;
         button_str = "<button for=\"" + id + "\"";
         button_str += " class=\"" + command + "_button ui-button ui-widget ui-state-default ui-corner-all\"";
         button_str += " title=\"" + label + "\"";
         button_str += " rel=\"" + command + "\"";
-        button_str += ">" + label + "</button>";
-        return jQuery(button_str);
+        button_str += "></button>";
+        buttonEl = jQuery(button_str);
+        if (this.options.cssClass) {
+          buttonEl.addClass(this.options.cssClass);
+        }
+        if (this.options.editable.options.touchScreen) {
+          buttonEl.addClass('btn-large');
+        }
+        button = buttonEl.button({
+          "icons": {
+            "primary": "ui-icon-" + this.options.command + "-p"
+          },
+          "text": false
+        });
+        if (this.options.cssClass) {
+          button.addClass(this.options.cssClass);
+        }
+        return button;
       }
     });
   })(jQuery);
@@ -610,13 +626,29 @@
         return this.refresh();
       },
       _createButton: function(id, command, label, icon) {
-        var button_str;
+        var button, buttonEl, button_str;
         button_str = "<button for=\"" + id + "\"";
         button_str += " class=\"" + command + "_button ui-button ui-widget ui-state-default ui-corner-all\"";
         button_str += " title=\"" + label + "\"";
         button_str += " rel=\"" + command + "\"";
-        button_str += ">" + label + "</button>";
-        return jQuery(button_str);
+        button_str += "></button>";
+        buttonEl = jQuery(button_str);
+        if (this.options.cssClass) {
+          buttonEl.addClass(this.options.cssClass);
+        }
+        if (this.options.editable.options.touchScreen) {
+          buttonEl.addClass('btn-large');
+        }
+        button = buttonEl.button({
+          "icons": {
+            "primary": "ui-icon-" + this.options.command + "-p"
+          },
+          "text": false
+        });
+        if (this.options.cssClass) {
+          button.addClass(this.options.cssClass);
+        }
+        return button;
       }
     });
     return jQuery.widget('IKS.hallobuttonset', {
