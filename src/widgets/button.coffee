@@ -151,8 +151,15 @@
       button_str+= " class=\"#{command}_button ui-button ui-widget ui-state-default ui-corner-all\""
       button_str+= " title=\"#{label}\""
       button_str+= " rel=\"#{command}\""
-      button_str+= ">#{label}</button>"
-      jQuery button_str
+      button_str+= "></button>"
+      buttonEl = jQuery button_str
+      buttonEl.addClass @options.cssClass if @options.cssClass
+      buttonEl.addClass 'btn-large' if @options.editable.options.touchScreen
+
+      button = buttonEl.button { "icons": { "primary": "ui-icon-#{@options.command}-p" }, "text": false }
+      button.addClass @options.cssClass if @options.cssClass
+      button
+
       # could we switch this somehow?
       # jQuery "<button for=\"#{id}\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only #{command}_button\" title=\"#{label}\"><span class=\"ui-button-text\"><i class=\"#{icon}\"></i></span></button>"
 
