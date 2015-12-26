@@ -211,6 +211,10 @@
         input.val(value)
       if ( identifier == 'number_of_pages' || identifier == 'notes' || identifier == 'running_time' || identifier == 'code_volume' || identifier == 'code_pages' || identifier == 'code_sections' )
         input_label.addClass('persistent_sourcedescription_attribute')
+        input.bind 'keyup', (event) =>
+          if ( event.keyCode == 13 )
+            @_formChanged(event,@options)
+            jQuery('#sourcedescriptioneditor_apply').trigger('click');
       else
         input.attr('disabled','true')
       row.append(input)
@@ -234,7 +238,7 @@
       #debug.log('form changed' + target.html())
       path = target.attr('id')
       data = target.val()
-      if omc && options.loid
+      if omc && typeof options.loid != 'undefined'
         options.values[path] = data;
         #omc.storePublicationDescriptionAttribute(options.loid,path,data)
         #debug.log('stored',options.loid,path,data)
