@@ -598,6 +598,8 @@ http://hallojs.org
       pdata = pdata.replace(/<script/g,'<xscript').replace(/<\/script/,'</xscript')
 
       jq_temp = jQuery('<div>' + pdata + '</div>')
+      # avoid clean::removeGarbage to drop this important data
+      jQuery('.Z3988',jq_temp).text('|');
       dom = new IDOM()
       dom.clean(jq_temp);
       html = jq_temp.html();
