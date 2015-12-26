@@ -2168,16 +2168,19 @@
                     var co, range, z3988, z3988_node;
                     z3988 = new Z3988();
                     z3988_node = jQuery('.Z3988', replacement_node)[0];
-                    co = sourcedescription_index.index_loid[data];
+                    co = new Z3988ContextObject();
+                    co.sourcedescription = sourcedescription_index.index_loid[data];
                     if (typeof co === 'undefined') {
-                      co = {
+                      co.sourcedescription = {
                         loid: data
                       };
                     }
-                    nugget.addDerivedSourceDescriptionAttributes(z3988_node, co);
-                    z3988.attach(z3988_node, {
-                      sourcedescription: co
-                    });
+                    nugget.addDerivedSourceDescriptionAttributes(z3988_node, co.sourcedescription);
+                    co.referent.setByValueMetadata(co.referent.fromCSL(nugget.getSourceDescriptionCSL(co.sourcedescription)));
+                    co.referent.setPrivateData((new Z3988SourceDescription()).toPrivateData(co.sourcedescription));
+                    delete co.sourcedescription;
+                    z3988.setFormat(new Z3988KEV());
+                    z3988.attach(z3988_node, co);
                     if (has_block_contents) {
                       utils.info(utils.tr('warning selected block contents'));
                       selection_common.append(replacement_node.contents());
@@ -5130,13 +5133,16 @@
             z3988 = new Z3988();
             nugget = new DOMNugget();
             z3988_node = jQuery('.Z3988', replacement_node)[0];
-            co = {
+            co = new Z3988ContextObject();
+            co.sourcedescription = {
               data: result
             };
-            nugget.addDerivedSourceDescriptionAttributes(z3988_node, co);
-            z3988.attach(z3988_node, {
-              sourcedescription: co
-            });
+            nugget.addDerivedSourceDescriptionAttributes(z3988_node, co.sourcedescription);
+            co.referent.setByValueMetadata(co.referent.fromCSL(nugget.getSourceDescriptionCSL(co.sourcedescription)));
+            co.referent.setPrivateData((new Z3988SourceDescription()).toPrivateData(co.sourcedescription));
+            delete co.sourcedescription;
+            z3988.setFormat(new Z3988KEV());
+            z3988.attach(z3988_node, co);
             selection = rangy.getSelection();
             if (selection.rangeCount > 0) {
               range = selection.getRangeAt(0);
