@@ -3800,12 +3800,10 @@
                 var update_nugget;
                 if (nugget_loid) {
                   update_nugget = jQuery('#' + nugget_loid);
-                  return nugget.updateSourceDescriptionData(update_nugget).done(function() {
-                    nugget.resetCitations(update_nugget);
-                    return occ.UpdateNuggetSourceDescriptions({
-                      loid: nugget_loid
-                    });
+                  occ.UpdateNuggetSourceDescriptions({
+                    loid: nugget_loid
                   });
+                  return nugget.commitSourceDescriptionChanges(update_nugget);
                 }
               });
             };
@@ -5169,10 +5167,8 @@
           });
           new_sd_node = jQuery('#' + tmp_id);
           new_sd_node.removeAttr('id');
-          nugget.updateSourceDescriptionData(_this.options.editable.element).done(function() {
-            return nugget.resetCitations(_this.options.editable.element).done(function() {
-              return _this.openSourceDescriptionEditor(nugget, target_loid, new_sd_node);
-            });
+          nugget.commitSourceDescriptionChanges(_this.options.editable.element).done(function() {
+            return _this.openSourceDescriptionEditor(nugget, target_loid, new_sd_node);
           });
           return _this.back();
         });
