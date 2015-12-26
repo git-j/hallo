@@ -139,10 +139,9 @@
               if ( nugget_loid )
                 update_nugget = jQuery('#' + nugget_loid )
                 # console.log(update_nugget)
-                nugget.updateSourceDescriptionData(update_nugget).done =>
-                  nugget.resetCitations(update_nugget)
-                  occ.UpdateNuggetSourceDescriptions
-                    loid:nugget_loid
+                occ.UpdateNuggetSourceDescriptions
+                  loid:nugget_loid
+                nugget.commitSourceDescriptionChanges(update_nugget)
           # run the action
           undo_command.redo()
           undo_manager = (new UndoManager()).getStack()

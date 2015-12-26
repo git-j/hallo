@@ -125,10 +125,9 @@
         new_sd_node = jQuery('#' + tmp_id);
         new_sd_node.removeAttr('id')
         #console.log(new_sd_node)
-        nugget.updateSourceDescriptionData(@options.editable.element).done =>
-          nugget.resetCitations(@options.editable.element).done =>
-            #console.log(new_sd_node)
-            @openSourceDescriptionEditor(nugget,target_loid,new_sd_node)
+        nugget.commitSourceDescriptionChanges(@options.editable.element).done =>
+          #console.log(new_sd_node)
+          @openSourceDescriptionEditor(nugget,target_loid,new_sd_node)
         @back()
 
     openSourceDescriptionEditor: (nugget,target_loid,new_sd_node) ->
