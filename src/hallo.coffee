@@ -627,7 +627,7 @@ http://hallojs.org
       selection.setSingleRange(range)
       if typeof event.data == 'object' && typeof event.data.element == 'object' && event.data.element.length
         nugget = new DOMNugget();
-        nugget_node = jQuery('> .content',event.data.element.closest('.nugget'))
+        nugget_node = event.data.element.closest('.nugget')
         if nugget_node.length
           attach_dfd = nugget._attachZ3988(nugget_node)
           attach_dfd.done () =>
