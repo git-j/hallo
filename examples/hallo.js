@@ -3687,7 +3687,7 @@
         }
       },
       _init: function() {
-        var inputs, nugget, target_nugget,
+        var dfd_getsdi, inputs, nugget, target_nugget,
           _this = this;
         if (this.options.tip_element && typeof this.options.tip_element.data().api !== 'undefined') {
           this.options.tip_element.qtip('hide');
@@ -3710,7 +3710,11 @@
         jQuery('#content, #toolbar').hide();
         target_nugget = jQuery('#' + this.options.nugget_loid);
         nugget = new DOMNugget();
-        nugget.getAllSourceDescriptionAttributes(target_nugget, this.options.loid).done(function(sdi) {
+        dfd_getsdi = nugget.getAllSourceDescriptionAttributes(target_nugget, this.options.loid);
+        dfd_getsdi.fail(function() {
+          return _this._cleanup();
+        });
+        dfd_getsdi.done(function(sdi) {
           var needs_number_of_pages, str_html_buttons;
           _this.options.publication = sdi.publication;
           _this.selectables = '<option value="">' + utils.tr('more') + '</option>';

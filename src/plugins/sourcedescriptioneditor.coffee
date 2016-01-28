@@ -52,7 +52,10 @@
       #@wigtet.css('width', jQuery(window).width()) if !@options.default_css.width
       #@widget.css('height', jQuery(window).height()) if !@options.default_css.height
       nugget = new DOMNugget()
-      nugget.getAllSourceDescriptionAttributes(target_nugget, @options.loid).done (sdi) =>
+      dfd_getsdi = nugget.getAllSourceDescriptionAttributes(target_nugget, @options.loid)
+      dfd_getsdi.fail =>
+        @_cleanup()
+      dfd_getsdi.done (sdi) =>
         @options.publication = sdi.publication
         @selectables = '<option value="">' + utils.tr('more') + '</option>'
         needs_number_of_pages = false
