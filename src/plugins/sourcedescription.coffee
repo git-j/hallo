@@ -130,31 +130,32 @@
                   replacement = ""
                 replacement+= "<span class=\"cite\"><span class=\"csl\">#{element}</span><span class=\"Z3988\" data-sourcedescriptionloid=\"#{data}\"><span style=\"display:none;\">&#160;</span></span>"
                 replacement_node = jQuery('<span></span>').append(replacement)
-                nugget.getSourceDescriptionsIndex(@options.editable.element).done (sourcedescription_index) =>
-                  z3988 = new Z3988();
-                  z3988_node = jQuery('.Z3988',replacement_node)[0];
-                  co = new Z3988ContextObject();
-                  co.sourcedescription = sourcedescription_index.index_loid[data];
-                  if ( typeof co == 'undefined' )
-                    co.sourcedescription = {loid:data}
-                  nugget.addDerivedSourceDescriptionAttributes(z3988_node,co.sourcedescription);
-                  co.referent.setByValueMetadata(co.referent.fromCSL(nugget.getSourceDescriptionCSL(co.sourcedescription)));
-                  co.referent.setPrivateData((new Z3988SourceDescription()).toPrivateData(co.sourcedescription));
-                  delete co.sourcedescription;
-                  z3988.setFormat(new Z3988KEV());
-                  z3988.attach(z3988_node,co);
-                  if ( has_block_contents )
-                    utils.info(utils.tr('warning selected block contents'))
-                    selection_common.append(replacement_node.contents())
-                  else
-                    selection = rangy.getSelection()
-                    if ( selection.rangeCount > 0 )
-                      range = selection.getRangeAt(0)
-                      range.deleteContents()
-                      range.insertNode(replacement_node[0])
-                    else
+                omc_settings.getSettings().done (settings) =>
+                  nugget.getDOMSourceDescriptionsIndex(@options.editable.element,settings).done (sourcedescription_index) =>
+                    z3988 = new Z3988();
+                    z3988_node = jQuery('.Z3988',replacement_node)[0];
+                    co = new Z3988ContextObject();
+                    co.sourcedescription = sourcedescription_index.index_loid[data];
+                    if ( typeof co == 'undefined' )
+                      co.sourcedescription = {loid:data}
+                    nugget.addDerivedSourceDescriptionAttributes(z3988_node,co.sourcedescription);
+                    co.referent.setByValueMetadata(co.referent.fromCSL(nugget.getSourceDescriptionCSL(co.sourcedescription)));
+                    co.referent.setPrivateData((new Z3988SourceDescription()).toPrivateData(co.sourcedescription));
+                    delete co.sourcedescription;
+                    z3988.setFormat(new Z3988KEV());
+                    z3988.attach(z3988_node,co);
+                    if ( has_block_contents )
+                      utils.info(utils.tr('warning selected block contents'))
                       selection_common.append(replacement_node.contents())
-                  rangy.removeMarkers(saved_selection)
+                    else
+                      selection = rangy.getSelection()
+                      if ( selection.rangeCount > 0 )
+                        range = selection.getRangeAt(0)
+                        range.deleteContents()
+                        range.insertNode(replacement_node[0])
+                      else
+                        selection_common.append(replacement_node.contents())
+                    rangy.removeMarkers(saved_selection)
             else
               utils.info(utils.tr('no selection'))
           #console.log(this_editable.element)

@@ -629,11 +629,7 @@ http://hallojs.org
         nugget = new DOMNugget();
         nugget_node = event.data.element.closest('.nugget')
         if nugget_node.length
-          attach_dfd = nugget._attachZ3988(nugget_node)
-          attach_dfd.done () =>
-            nugget._processZ3988(nugget_node).always () => 
-              event.data.undoWaypointCommit(false)
-          attach_dfd.fail => 
+          nugget.prepareTextForEdit(event.data.element).always () =>
             event.data.undoWaypointCommit(false)
       else
         event.data.undoWaypointCommit(false)
@@ -1208,7 +1204,7 @@ http://hallojs.org
           selection_identifier.attr('rel',serialized_selection)
           @element.append(selection_identifier);
       catch e
-        console.warn('exception during store selection')
+        # ignore: console.warn('exception during store selection')
       @_ignoreEvents = false
 
     setContentPosition: (jq_node) ->

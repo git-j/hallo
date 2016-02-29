@@ -44,10 +44,11 @@ class _Citehandler
     target.find('.SourceDescription').remove()
     domnugget = new DOMNugget();
 
-    domnugget.getSourceDescriptions(editable.element.closest('.nugget')).done (sourcedescriptions) =>
-      jQuery.each sourcedescriptions, (index,item) =>
-        # debug.log('setup sourcedescriptions...',index,item)
-        target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
+    omc_settings.getSettings().done (settings) =>
+      domnugget.getDOMSourceDescriptions(editable.element.closest('.nugget'),settings).done (sourcedescriptions) =>
+        jQuery.each sourcedescriptions, (index,item) =>
+          # debug.log('setup sourcedescriptions...',index,item)
+          target.append(add_element_cb(item.title,null,item.type,item.loid).addClass('SourceDescription'))
 
   # update settings from the current application settings
   # usualy the relevant change may be the citation-style
