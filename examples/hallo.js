@@ -586,6 +586,12 @@
               } else {
                 _this.options.editable.execute('removeformat');
               }
+            } else if (_this.options.command === 'insertOrderedList' || _this.options.command === 'insertUnorderedList') {
+              range = rangy.getSelection().getRangeAt(0);
+              node = jQuery(range.startContainer);
+              jQuery('[contenteditable="false"]', _this.options.editable.element).removeAttr('contenteditable');
+              _this.options.editable.execute(_this.options.command);
+              jQuery('.cite, content_selection_marker, formula').attr('contenteditable', 'false');
             } else {
               _this.options.editable.execute(_this.options.command);
             }
