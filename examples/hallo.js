@@ -586,12 +586,6 @@
               } else {
                 _this.options.editable.execute('removeformat');
               }
-            } else if (_this.options.command === 'insertOrderedList' || _this.options.command === 'insertUnorderedList') {
-              range = rangy.getSelection().getRangeAt(0);
-              node = jQuery(range.startContainer);
-              jQuery('[contenteditable="false"]', _this.options.editable.element).removeAttr('contenteditable');
-              _this.options.editable.execute(_this.options.command);
-              jQuery('.cite, content_selection_marker, formula').attr('contenteditable', 'false');
             } else {
               _this.options.editable.execute(_this.options.command);
             }
@@ -1075,8 +1069,19 @@
         return this.element.html(this.originalContent);
       },
       execute: function(command, value) {
-        var range, sel_all_range, selection,
+        var e, range, sel_all_range, selection,
           _this = this;
+        if (command === 'insertOrderedList' || command === 'insertUnorderedList' || command === 'indent' || command === 'outdent') {
+          this.prepareExecCommand();
+          try {
+            document.execCommand(command, false);
+          } catch (_error) {
+            e = _error;
+            console.warn('execCommand exception', command, e);
+          }
+          this.finishExecCommand();
+          return;
+        }
         this.undoWaypointStart();
         if (command.indexOf('justify') === 0) {
           this.storeContentPosition();
@@ -1447,21 +1452,249 @@
         range.selectNode(cell);
         return selection.setSingleRange(range);
       },
+      prepareExecCommand: function() {
+        var all_block_elements, all_brs, decoded_nbsp, dom, dom_nugget, e, selection, selection_node, temporary_class_name, temporary_span;
+        try {
+          this.undoWaypointStart();
+          this.makeReadonlyEditable(this.element);
+          temporary_span = jQuery('<span>');
+          dom = new IDOM();
+          dom_nugget = new DOMNugget();
+          temporary_class_name = 'temp_' + Date.now();
+          decoded_nbsp = '\u200B';
+          this.temporary_prepare_exec_command_class_name = temporary_class_name;
+          temporary_span.text(decoded_nbsp);
+          temporary_span.addClass(temporary_class_name);
+          selection = rangy.getSelection();
+          selection_node = selection.anchorNode;
+          all_brs = jQuery('BR', this.element);
+          all_brs.before(temporary_span.clone());
+          all_brs.after(temporary_span.clone());
+          all_block_elements = jQuery(dom.block_elements, this.element);
+          all_block_elements.prepend(temporary_span.clone());
+          all_block_elements.append(temporary_span.clone());
+          jQuery('ul > .' + temporary_class_name + ', ol > .' + temporary_class_name).remove();
+          return dom_nugget._cleanFormulaForStorage(this.element);
+        } catch (_error) {
+          e = _error;
+          console.error('failed to prepare for execCommand', e);
+          return this.finishExecCommand();
+        }
+      },
+      finishExecCommand: function() {
+        var decoded_nbsp, dom_nugget, e, filter_temp_span_fn, finish_fn, finish_formula_fn, fix_mixed_up_temporary_span_fn, remove_nodes, temporary_class_name,
+          _this = this;
+        try {
+          dom_nugget = new DOMNugget();
+          temporary_class_name = this.temporary_prepare_exec_command_class_name;
+          remove_nodes = [];
+          decoded_nbsp = '\u200B';
+          filter_temp_span_fn = function() {
+            return jQuery(this).text() === decoded_nbsp;
+          };
+          fix_mixed_up_temporary_span_fn = function() {
+            var contents,
+              _this = this;
+            return contents = jQuery(this).contents().each(function(index, item) {
+              if (item.nodeType === 3 && item.nodeValue === decoded_nbsp) {
+                return remove_nodes = jQuery(item);
+              }
+            });
+          };
+          jQuery('.' + temporary_class_name, this.element).filter(filter_temp_span_fn).remove();
+          jQuery('.' + temporary_class_name, this.element).removeClass(temporary_class_name);
+          jQuery('span', this.element).filter(filter_temp_span_fn).remove();
+          jQuery('span', this.element).each(fix_mixed_up_temporary_span_fn);
+          jQuery.each(remove_nodes, function(index, node) {
+            return node.remove();
+          });
+          jQuery('li > span:empty', this.element).remove();
+          jQuery('li:empty', this.element).remove();
+          jQuery('ul:empty', this.element).remove();
+          this.makeReadonlyReadonly(this.element);
+          finish_fn = function() {
+            _this.element.trigger("change");
+            return _this.undoWaypointCommit(false);
+          };
+          finish_formula_fn = function() {
+            return MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
+          };
+          return dom_nugget._processFormula(this.element).done(finish_formula_fn).always(finish_fn);
+        } catch (_error) {
+          e = _error;
+          return console.error('failed to restore content that was prepared for execCommand', e);
+        }
+      },
+      _isStaticElement: function(jq_dom_object) {
+        if (!jq_dom_object.length) {
+          return false;
+        }
+        if (jq_dom_object.hasClass('cite') || jq_dom_object.hasClass('formula')) {
+          return true;
+        }
+        if (jq_dom_object[0].childElementCount === 1) {
+          return this._isStaticElement(jQuery(jq_dom_object.children()[0]));
+        }
+        return false;
+      },
+      _hasParentStaticElement: function(dom_node) {
+        return this._getParentStaticElement(dom_node).length;
+      },
+      _getParentStaticElement: function(dom_node) {
+        return jQuery(dom_node).closest('.cite, .formula');
+      },
+      _syskey_delete: function(widget, remove_id, selection, prev_sibling, next_sibling) {
+        var parent_contenteditable;
+        if (selection.anchorOffset === selection.anchorNode.length && widget._isStaticElement(next_sibling)) {
+          next_sibling.attr('id', remove_id);
+        }
+        if (selection.anchorOffset === 0) {
+          parent_contenteditable = widget._getParentStaticElement(selection.anchorNode);
+          if (parent_contenteditable.length) {
+            parent_contenteditable.attr('id', remove_id);
+          }
+          if (jQuery(selection.anchorNode).is('li')) {
+            return jQuery(jQuery(selection.anchorNode)[0].firstChild).attr('id', remove_id);
+          }
+        }
+      },
+      _syskey_backspace: function(widget, remove_id, selection, prev_sibling, next_sibling) {
+        var last_child, last_child_content, next_to_last_child, parent_contenteditable;
+        if (selection.anchorNode.nodeType === 3 && selection.anchorOffset === 0 && widget._isStaticElement(prev_sibling)) {
+          return prev_sibling.attr('id', remove_id);
+        } else if (selection.anchorNode.nodeType === 3 && selection.anchorOffset === selection.anchorNode.length) {
+          parent_contenteditable = widget._getParentStaticElement(selection.anchorNode);
+          if (parent_contenteditable.length) {
+            return parent_contenteditable.attr('id', remove_id);
+          }
+        } else if (selection.anchorNode.nodeType === 1) {
+          parent_contenteditable = widget._getParentStaticElement(selection.anchorNode);
+          if (parent_contenteditable.length) {
+            parent_contenteditable.attr('id', remove_id);
+          }
+          if (selection.anchorNode.childNodes.length === selection.anchorOffset) {
+            last_child = jQuery(selection.anchorNode.childNodes[selection.anchorNode.childNodes.length - 1]);
+            if (widget._isStaticElement(last_child)) {
+              last_child.attr('id', remove_id);
+            }
+          }
+          if (selection.anchorNode.childNodes.length === selection.anchorOffset + 1) {
+            last_child = selection.anchorNode.childNodes[selection.anchorNode.childNodes.length - 1];
+            if (last_child.nodeName === 'BR') {
+              next_to_last_child = jQuery(last_child.previousSibling);
+              if (widget._isStaticElement(next_to_last_child)) {
+                next_to_last_child.attr('id', remove_id);
+              }
+            }
+            if (last_child.nodeName === 'SPAN') {
+              last_child_content = jQuery(last_child).html();
+              if (last_child_content === '<br/>') {
+                next_to_last_child = jQuery(last_child.previousSibling);
+                if (widget._isStaticElement(next_to_last_child)) {
+                  return next_to_last_child.attr('id', remove_id);
+                }
+              }
+            }
+          }
+        }
+      },
+      makeReadonlyTemporaryEditable: function(widget) {
+        var restore_editable_fn,
+          _this = this;
+        widget.makeReadonlyEditable(widget.element);
+        restore_editable_fn = function() {
+          return widget.makeReadonlyReadonly(widget.element);
+        };
+        window.clearTimeout(widget._static_elements_timer);
+        return widget._static_elements_timer = window.setTimeout(restore_editable_fn, 30);
+      },
+      makeReadonlyEditable: function(jq_dom_object) {
+        var dom, temporary_span,
+          _this = this;
+        temporary_span = jQuery('<span>');
+        temporary_span.text('\u200B');
+        dom = new IDOM();
+        return jQuery('[contenteditable=false]', jq_dom_object).each(function(index, item) {
+          var node;
+          node = jQuery(item);
+          node.removeAttr('contenteditable');
+          if (item.nodeName === 'CONTENT_SELECTION_MARKER') {
+            return;
+          }
+          if (!item.previousSibling) {
+            node.before(temporary_span.clone());
+          } else if (dom.isBlockElement(node.parent()) && dom.isBlockElement(node.prev())) {
+            node.wrap('<p>');
+          }
+          if (!item.nextSibling) {
+            return node.after(temporary_span.clone());
+          }
+        });
+      },
+      makeReadonlyReadonly: function(jq_dom_object) {
+        var decoded_nbsp, fix_mixed_up_temporary_span_fn, is_temporary_span_fn, remove_nodes,
+          _this = this;
+        remove_nodes = [];
+        decoded_nbsp = '\u200B';
+        is_temporary_span_fn = function() {
+          return jQuery(this).text() === decoded_nbsp;
+        };
+        fix_mixed_up_temporary_span_fn = function() {
+          var contents,
+            _this = this;
+          return contents = jQuery(this).contents().each(function(index, item) {
+            if (item.nodeType === 3 && item.nodeValue === decoded_nbsp) {
+              return remove_nodes = jQuery(item);
+            }
+          });
+        };
+        jQuery('.cite, .formula, content_selection_marker', jq_dom_object).each(function(index, item) {
+          var node;
+          node = jQuery(item);
+          return node.attr('contenteditable', 'false');
+        });
+        jQuery('span', jq_dom_object).filter(is_temporary_span_fn).remove();
+        jQuery('span', jq_dom_object).each(fix_mixed_up_temporary_span_fn);
+        return jQuery.each(remove_nodes, function(index, node) {
+          return node.remove();
+        });
+      },
+      _syskey_remove: function(event) {
+        var next_sibling, prev_sibling, remove_id, selection, static_element_to_remove, widget;
+        widget = event.data;
+        selection = rangy.getSelection();
+        remove_id = 'syskey_' + event.keyCode + '_' + Date.now();
+        if (selection.isCollapsed) {
+          next_sibling = jQuery(selection.anchorNode.nextSibling);
+          prev_sibling = jQuery(selection.anchorNode.previousSibling);
+          if (event.keyCode === 46) {
+            widget._syskey_delete(widget, remove_id, selection, prev_sibling, next_sibling);
+          }
+          if (event.keyCode === 8) {
+            widget._syskey_backspace(widget, remove_id, selection, prev_sibling, next_sibling);
+          }
+          if ((jQuery('#' + remove_id).length)) {
+            static_element_to_remove = jQuery('#' + remove_id);
+            static_element_to_remove.removeAttr('id');
+            widget.undoWaypointCommit(false);
+            widget.undoWaypointStart('text');
+            static_element_to_remove.remove();
+            widget.undoWaypointCommit(false);
+            event.preventDefault();
+            return;
+          }
+        }
+        return widget.makeReadonlyTemporaryEditable(widget);
+      },
       _syskeys: function(event) {
-        var li, new_range, range, restore_editable_fn, selection, table, td, tds, use_next, use_prev, widget,
+        var li, new_range, range, selection, table, td, tds, use_next, use_prev, widget,
           _this = this;
         widget = event.data;
         if (widget._ignoreKeys(event.keyCode)) {
           return;
         }
         if (widget._isRemoveContentKey(widget, event)) {
-          jQuery('.static_element', widget.element).attr('contenteditable', 'false').removeClass('static_element');
-          jQuery('[contenteditable=false]', widget.element).addClass('static_element').removeAttr('contenteditable');
-          restore_editable_fn = function() {
-            return jQuery('.static_element', widget.element).attr('contenteditable', 'false').removeClass('static_element');
-          };
-          window.clearTimeout(widget._static_elements_timer);
-          widget._static_elements_timer = window.setTimeout(restore_editable_fn, 30);
+          widget._syskey_remove(event);
         }
         if (widget.checkRegisteredKeys(event)) {
           return;
@@ -1914,6 +2147,7 @@
         if (this.debug) {
           console.log('restoreContentPosition');
         }
+        this.makeReadonlyReadonly(this.element);
         stored_selection = this.element.find(this.selection_marker).eq(0);
         if (stored_selection.length) {
           if (this.debug) {

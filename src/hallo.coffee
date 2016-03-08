@@ -428,6 +428,17 @@ http://hallojs.org
 
     # Execute a contentEditable command
     execute: (command, value) ->
+      if ( command == 'insertOrderedList' || command == 'insertUnorderedList' || command == 'indent' || command == 'outdent' )
+        # HACK for qt-webkit
+        # prepare the content
+        @prepareExecCommand()
+        # execute the command - here webkit is responsible
+        try
+          document.execCommand command, false
+        catch e
+          console.warn('execCommand exception',command,e)
+        @finishExecCommand()
+        return
       @undoWaypointStart()
       if ( command.indexOf('justify') == 0 )
         # when <p style="text-align:left"><span style="text-align:left">test</span></p>
@@ -820,17 +831,219 @@ http://hallojs.org
       range.selectNode(cell)
       selection.setSingleRange(range)
 
+    # make elements arround the elements that webkit shall not destroy
+    # otherwise nested spans get confused when merging lines or in/unindenting
+    # list items
+    prepareExecCommand: () ->
+      try
+        @undoWaypointStart()
+        @makeReadonlyEditable(@element)
+        temporary_span = jQuery('<span>')
+        dom = new IDOM()
+        dom_nugget = new DOMNugget()
+        temporary_class_name = 'temp_' + Date.now()
+        decoded_nbsp = '\u200B'
+        @temporary_prepare_exec_command_class_name = temporary_class_name
+        temporary_span.text(decoded_nbsp)
+        temporary_span.addClass(temporary_class_name)
+        selection = rangy.getSelection()
+        selection_node = selection.anchorNode
+        all_brs = jQuery('BR',@element)
+        all_brs.before(temporary_span.clone())
+        all_brs.after(temporary_span.clone())
+        all_block_elements = jQuery(dom.block_elements,@element)
+        all_block_elements.prepend(temporary_span.clone())
+        all_block_elements.append(temporary_span.clone())
+        jQuery('ul > .' + temporary_class_name + ', ol > .' + temporary_class_name).remove()
+
+        dom_nugget._cleanFormulaForStorage(@element)
+      catch e
+        console.error('failed to prepare for execCommand',e)
+        @finishExecCommand()
+    # restore content that has been prepared for webkit merge lines etc
+    # when this function is not called, leftover spans will be cleaned up later
+    # but could produce weird effects (moving through nonexistent spans)
+    finishExecCommand: () ->
+      # restore content for further editing
+      try
+        dom_nugget = new DOMNugget()
+        temporary_class_name = @temporary_prepare_exec_command_class_name
+        remove_nodes = []
+        decoded_nbsp = '\u200B'
+        filter_temp_span_fn = () ->
+          return jQuery(this).text() == decoded_nbsp
+        fix_mixed_up_temporary_span_fn = () ->
+          contents = jQuery(this).contents().each (index,item) =>
+            if (item.nodeType == 3 && item.nodeValue == decoded_nbsp )
+              remove_nodes = jQuery(item)
+        jQuery('.' + temporary_class_name,@element).filter(filter_temp_span_fn).remove()
+        jQuery('.' + temporary_class_name,@element).removeClass(temporary_class_name)
+        jQuery('span',@element).filter(filter_temp_span_fn).remove()
+        jQuery('span',@element).each(fix_mixed_up_temporary_span_fn)
+        jQuery.each remove_nodes, (index,node) =>
+          node.remove()
+        jQuery('li > span:empty',@element).remove()
+        jQuery('li:empty',@element).remove()
+        jQuery('ul:empty',@element).remove()
+        @makeReadonlyReadonly(@element)
+        finish_fn = () =>
+          @element.trigger "change"
+          @undoWaypointCommit(false)
+        finish_formula_fn = () ->
+          MathJax.Hub.Queue(['Typeset',MathJax.Hub])
+        dom_nugget._processFormula(@element).done(finish_formula_fn).always(finish_fn)
+      catch e
+        console.error('failed to restore content that was prepared for execCommand',e)
+
+    # check if the given element is static (eg cite or formula) or its direct decedants is
+    # such an element.
+    # the direct decendants is required as webkit tends to put spans arround the last
+    # element on line merging
+    _isStaticElement: (jq_dom_object) ->
+      if ( !jq_dom_object.length )
+        return false
+      if ( jq_dom_object.hasClass('cite') || jq_dom_object.hasClass('formula') )
+        return true
+      if ( jq_dom_object[0].childElementCount == 1 )
+        return @_isStaticElement(jQuery(jq_dom_object.children()[0]))
+      return false
+    _hasParentStaticElement: (dom_node) ->
+      return @_getParentStaticElement(dom_node).length
+    _getParentStaticElement: (dom_node) ->
+      return jQuery(dom_node).closest('.cite, .formula')
+
+    # handle delete-key idioms
+    # - delete in text-node on last position before static element
+    # - delete on first of block element, when the first is a static element
+    _syskey_delete: (widget, remove_id, selection, prev_sibling, next_sibling) ->
+      # text before static_element
+      if ( selection.anchorOffset == selection.anchorNode.length && widget._isStaticElement(next_sibling) )
+        next_sibling.attr('id',remove_id)
+      # first in block
+      if ( selection.anchorOffset == 0 )
+        parent_contenteditable = widget._getParentStaticElement(selection.anchorNode)
+        if ( parent_contenteditable.length )
+          parent_contenteditable.attr('id', remove_id)
+        if ( jQuery(selection.anchorNode).is('li') )
+          jQuery(jQuery(selection.anchorNode)[0].firstChild).attr('id', remove_id)
+
+
+    # handle backspace idioms
+    # - backspace in text-node on zero position before static element
+    # - backspace when cursor jumped into static element
+    # - backspace at the end of li
+    _syskey_backspace: (widget, remove_id, selection, prev_sibling, next_sibling) ->
+      if ( selection.anchorNode.nodeType == 3 && selection.anchorOffset == 0 && widget._isStaticElement(prev_sibling) )
+        prev_sibling.attr('id',remove_id)
+      # backspace twice at [csl]_A|AAA so its in the (contenteditable node)
+      else if ( selection.anchorNode.nodeType == 3 && selection.anchorOffset == selection.anchorNode.length )
+        parent_contenteditable = widget._getParentStaticElement(selection.anchorNode)
+        if ( parent_contenteditable.length )
+          parent_contenteditable.attr('id',remove_id)
+      # backspace after 'hidden' <br> at the end of the list is removed
+      else if ( selection.anchorNode.nodeType == 1)
+        parent_contenteditable = widget._getParentStaticElement(selection.anchorNode)
+        if ( parent_contenteditable.length )
+          parent_contenteditable.attr('id',remove_id)
+        # backspace at the end of a <li>, no forced br
+        if ( selection.anchorNode.childNodes.length == selection.anchorOffset )
+          last_child = jQuery(selection.anchorNode.childNodes[selection.anchorNode.childNodes.length - 1])
+          if ( widget._isStaticElement(last_child) )
+            last_child.attr('id', remove_id)
+        # backspace at the end of a li, webkit added a br or a span with a br
+        if ( selection.anchorNode.childNodes.length == selection.anchorOffset + 1 )
+          last_child = selection.anchorNode.childNodes[selection.anchorNode.childNodes.length - 1]
+          if ( last_child.nodeName == 'BR' )
+            next_to_last_child = jQuery(last_child.previousSibling)
+            if ( widget._isStaticElement(next_to_last_child) )
+              next_to_last_child.attr('id', remove_id)
+          if ( last_child.nodeName == 'SPAN' )
+            last_child_content = jQuery(last_child).html()
+            if ( last_child_content == '<br/>')
+              next_to_last_child = jQuery(last_child.previousSibling)
+              if ( widget._isStaticElement(next_to_last_child) )
+                next_to_last_child.attr('id', remove_id)
+
+    # webkit kills the readonly elements when it refactors the
+    # dom, eg on combining lines or converting from/to ul-li
+    makeReadonlyTemporaryEditable: (widget) ->
+      widget.makeReadonlyEditable(widget.element)
+      restore_editable_fn = () =>
+        widget.makeReadonlyReadonly(widget.element)
+      window.clearTimeout(widget._static_elements_timer)
+      widget._static_elements_timer = window.setTimeout restore_editable_fn, 30
+    # fix the contenteditables for webkit
+    # put nonvisible content arround them to prevent webkit to be smart
+    makeReadonlyEditable: (jq_dom_object) ->
+      temporary_span = jQuery('<span>')
+      temporary_span.text('\u200B')
+      dom = new IDOM()
+      jQuery('[contenteditable=false]',jq_dom_object).each (index,item) =>
+        node = jQuery(item)
+        node.removeAttr('contenteditable')
+        if ( item.nodeName == 'CONTENT_SELECTION_MARKER')
+          return # continue
+        if ( !item.previousSibling )
+          node.before(temporary_span.clone())
+        else if dom.isBlockElement(node.parent()) && dom.isBlockElement(node.prev())
+          # <div>a</div><span class="cite">
+          node.wrap('<p>')
+        if ( !item.nextSibling )
+          node.after(temporary_span.clone())
+    # restore the mode that the user sees most
+    # static elements behave like a character
+    # removing helper elements arround the static-elements
+    makeReadonlyReadonly: (jq_dom_object) ->
+      remove_nodes = []
+      decoded_nbsp = '\u200B'
+      is_temporary_span_fn = () ->
+        return jQuery(this).text() == decoded_nbsp
+      fix_mixed_up_temporary_span_fn = () ->
+        contents = jQuery(this).contents().each (index,item) =>
+          if (item.nodeType == 3 && item.nodeValue == decoded_nbsp )
+            remove_nodes = jQuery(item)
+      jQuery('.cite, .formula, content_selection_marker',jq_dom_object).each (index,item) =>
+        node = jQuery(item)
+        node.attr('contenteditable','false')
+      jQuery('span',jq_dom_object).filter(is_temporary_span_fn).remove()
+      jQuery('span',jq_dom_object).each(fix_mixed_up_temporary_span_fn)
+      jQuery.each remove_nodes, (index,node) =>
+        node.remove()
+    # removekey handler
+    # hacks the contenteditable handling for delete
+    _syskey_remove: (event) ->
+      widget = event.data
+      selection = rangy.getSelection()
+      remove_id = 'syskey_' + event.keyCode + '_' + Date.now()
+      if ( selection.isCollapsed )
+        next_sibling = jQuery(selection.anchorNode.nextSibling)
+        prev_sibling = jQuery(selection.anchorNode.previousSibling)
+        # delete before element
+        if ( event.keyCode == 46 )
+          widget._syskey_delete(widget,remove_id,selection,prev_sibling,next_sibling)
+        # backspace after element
+        if ( event.keyCode == 8 )
+          widget._syskey_backspace(widget,remove_id,selection,prev_sibling,next_sibling)
+        if ( jQuery('#' + remove_id).length )
+          # commit remove of element tagged by key_handlers
+          # do not execute the actual key event as it would remove
+          # the next character as well
+          static_element_to_remove = jQuery('#' + remove_id)
+          static_element_to_remove.removeAttr('id')
+          widget.undoWaypointCommit(false)
+          widget.undoWaypointStart('text')
+          static_element_to_remove.remove()
+          widget.undoWaypointCommit(false)
+          event.preventDefault()
+          return
+      widget.makeReadonlyTemporaryEditable(widget)
+
     _syskeys: (event) ->
       widget = event.data
       return if widget._ignoreKeys(event.keyCode)
       # avoid disapearing content
       if widget._isRemoveContentKey(widget,event)
-        jQuery('.static_element',widget.element).attr('contenteditable','false').removeClass('static_element')
-        jQuery('[contenteditable=false]',widget.element).addClass('static_element').removeAttr('contenteditable')
-        restore_editable_fn = () =>
-          jQuery('.static_element',widget.element).attr('contenteditable','false').removeClass('static_element')
-        window.clearTimeout(widget._static_elements_timer)
-        widget._static_elements_timer = window.setTimeout restore_editable_fn, 30
+        widget._syskey_remove(event)
       return if widget.checkRegisteredKeys(event)
       if event.keyCode == 13 && !event.shiftKey
         selection = rangy.getSelection()
@@ -1174,6 +1387,7 @@ http://hallojs.org
 
     restoreContentPosition: ->
       console.log('restoreContentPosition') if @debug
+      @makeReadonlyReadonly(@element)
       stored_selection = @element.find(@selection_marker).eq(0)
       if ( stored_selection.length )
         console.log('selection to restore:',stored_selection) if @debug

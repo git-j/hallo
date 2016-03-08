@@ -110,13 +110,6 @@
               @options.editable.execute @options.command
             else
               @options.editable.execute 'removeformat'
-            # HACK for qt-webkit
-          else if ( @options.command == 'insertOrderedList' || @options.command == 'insertUnorderedList' )
-            range = rangy.getSelection().getRangeAt(0)
-            node  = jQuery(range.startContainer)
-            jQuery('[contenteditable="false"]',@options.editable.element).removeAttr('contenteditable')
-            @options.editable.execute @options.command
-            jQuery('.cite, content_selection_marker, formula').attr('contenteditable','false')
           else
             @options.editable.execute @options.command
           queryState
