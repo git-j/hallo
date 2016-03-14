@@ -636,11 +636,13 @@ http://hallojs.org
           range.selectNode(jq_temp[0])
       range.collapse(false) # collapse to end
       selection.setSingleRange(range)
+      event.data.storeContentPosition()
       if typeof event.data == 'object' && typeof event.data.element == 'object' && event.data.element.length
         nugget = new DOMNugget();
         nugget_node = event.data.element.closest('.nugget')
         if nugget_node.length
           nugget.prepareTextForEdit(event.data.element).always () =>
+            event.data.restoreContentPosition()
             event.data.undoWaypointCommit(false)
       else
         event.data.undoWaypointCommit(false)

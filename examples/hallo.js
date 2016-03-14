@@ -1335,11 +1335,13 @@
         }
         range.collapse(false);
         selection.setSingleRange(range);
+        event.data.storeContentPosition();
         if (typeof event.data === 'object' && typeof event.data.element === 'object' && event.data.element.length) {
           nugget = new DOMNugget();
           nugget_node = event.data.element.closest('.nugget');
           if (nugget_node.length) {
             return nugget.prepareTextForEdit(event.data.element).always(function() {
+              event.data.restoreContentPosition();
               return event.data.undoWaypointCommit(false);
             });
           }
