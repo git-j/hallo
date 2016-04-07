@@ -63,9 +63,9 @@
         sel_html = @textarea.val();
         selm_start = '<' + @options.editable.selection_marker + '>'
         selm_end = '</' + @options.editable.selection_marker + '>'
-        sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/,selm_start)
-        if ( sel_html.match(/<span class="rangySelectionBoundary">[^<]*<\/span>/) )
-          sel_html = sel_html.replace(/<span class="rangySelectionBoundary">[^<]*<\/span>/,selm_end)
+        sel_html = sel_html.replace(/<span class="rangySelectionBoundary[^>]*>[^<]*<\/span>/,selm_start)
+        if ( sel_html.match(/<span class="rangySelectionBoundary[^>]*>[^<]*<\/span>/) )
+          sel_html = sel_html.replace(/<span class="rangySelectionBoundary[^>]*>[^<]*<\/span>/,selm_end)
         else
           sel_html = sel_html.replace(selm_start,selm_start+selm_end);
         # 8< prepareTextForStorage
