@@ -1260,7 +1260,11 @@
         selection = rangy.getSelection();
         if (selection.rangeCount > 0) {
           range = selection.getRangeAt(0);
-          rdata = jQuery('<div/>').append(range.cloneContents());
+          if (jQuery(range.commonAncestorContainer).closest('.cite').length) {
+            rdata = jQuery('<div/>').append(jQuery(range.commonAncestorContainer).closest('.cite').clone());
+          } else {
+            rdata = jQuery('<div/>').append(range.cloneContents());
+          }
           dom = new IDOM();
           dom.cleanExport(rdata);
           rdata.find(this.selection_marker).unwrap();
